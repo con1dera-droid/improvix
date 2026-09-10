@@ -196,6 +196,10 @@ select, input[type="text"] {
   border-radius: 8px;
   width: 100%;
 }
+.btn-secondary.playing { background: var(--accent); border-color: var(--accent); color: #fff; }
+.view-btn.playing { background: #dc2626; border-color: #dc2626; color: #fff; }
+.chord-pill { transition: box-shadow 0.15s, transform 0.15s; }
+.chord-pill.playing { box-shadow: 0 0 0 3px rgba(255,255,255,0.55) inset; transform: translateY(-2px); }
 .form-error {
   margin-top: 0.6rem;
   color: #f87171;

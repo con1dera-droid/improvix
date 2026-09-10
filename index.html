@@ -206,7 +206,7 @@
                   <button class="view-btn" data-view="tab">Tab</button>
                   <button class="view-btn" data-view="partitura">Partitura</button>
                   <button class="view-btn" data-view="cifra">Cifra</button>
-                  <button class="view-btn" data-view="audio" disabled title="Chega na Etapa 3">🔊 Áudio</button>
+                  <button class="view-btn" data-view="audio" title="Tocar este fraseado">🔊 Áudio</button>
                 </div>
 
                 <div id="fraseado-conteudo" class="fraseado-conteudo"></div>
@@ -247,8 +247,8 @@
               <span class="card-icon">🔊</span>
               <div class="card-title">Ouça a progressão</div>
             </div>
-            <p class="muted-note">Áudio da harmonia chega na Etapa 3 (síntese no navegador, sem custo).</p>
-            <button class="btn-secondary" disabled>▶ Em breve</button>
+            <p class="muted-note">Backing sintetizado no navegador (sem gravações, sem custo).</p>
+            <button class="btn-secondary" id="btn-play-progressao">▶ Tocar progressão</button>
           </div>
 
           <div class="card side-card">
@@ -282,7 +282,7 @@
               <li>Veja a escala recomendada de cada acorde.</li>
               <li>Pratique os arpejos (aba Arpejos).</li>
               <li>Use as notas-alvo para começar/terminar frases.</li>
-              <li><em>Fraseados prontos e áudio chegam nas próximas etapas.</em></li>
+              <li>Ouça a progressão e os fraseados (aba Fraseados) para treinar o ouvido.</li>
             </ol>
           </div>
         </div>
@@ -312,6 +312,7 @@
 <script src="js/theory.js"></script>
 <script src="js/phrases.js"></script>
 <script src="js/notation.js"></script>
+<script src="js/audio.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

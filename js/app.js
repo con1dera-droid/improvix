@@ -10,16 +10,28 @@
   var theory = window.IL.theory;
   var phrasesMod = window.IL.phrases;
   var notation = window.IL.notation;
+  var audio = window.IL.audio;
 
   var NOTE_ORDER = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   var FLAT_SPELLING = { 'C#': 'Db', 'D#': 'Eb', 'F#': 'Gb', 'G#': 'Ab', 'A#': 'Bb' };
 
-  // Estado da aba Fraseados (Etapa 2)
+  // Estado da aba Fraseados (Etapa 2) e do último resultado analisado (Etapa 3)
   var state = {
     phrases: [],
     selectedPhraseIndex: 0,
-    selectedView: 'tab'
+    selectedView: 'tab',
+    lastResult: null
   };
+
+  function resetAudioButtons() {
+    var playBtn = document.getElementById('btn-play-progressao');
+    if (playBtn) { playBtn.classList.remove('playing'); playBtn.textContent = '▶ Tocar progressão'; }
+    var audioBtn = document.querySelector('.view-btn[data-view="audio"]');
+    if (audioBtn) { audioBtn.classList.remove('playing'); audioBtn.textContent = '🔊 Áudio'; }
+    document.querySelectorAll('#chord-chain .chord-pill.playing').forEach(function (p) {
+      p.classList.remove('playing');
+    });
+  }
 
   function buildTonalidadeOptions() {
     var select = document.getElementById('input-tonalidade');
@@ -162,6 +174,7 @@
   }
 
   function runAnalysis() {
+    if (audio) { audio.stopAll(); resetAudioButtons(); }
     var raw = document.getElementById('input-progressao').value;
     var chordSymbols = raw.split('|').map(function (s) { return s.trim(); }).filter(Boolean);
     if (chordSymbols.length === 0) {
@@ -192,6 +205,7 @@
     renderScaleLike('lista-arpejos', result, 'arpejos');
     renderTargetNotes(result);
 
+    state.lastResult = result;
     var instrumento = document.getElementById('input-instrumento').value;
     state.phrases = phrasesMod.generatePhrases(result, nivel);
     state.selectedPhraseIndex = 0;
@@ -243,6 +257,10 @@
   }
 
   function renderFraseadoDetalhe() {
+    if (audio) { audio.stopAll(); }
+    var audioBtnReset = document.querySelector('.view-btn[data-view="audio"]');
+    if (audioBtnReset) { audioBtnReset.classList.remove('playing'); audioBtnReset.textContent = '🔊 Áudio'; }
+
     var phrase = state.phrases[state.selectedPhraseIndex];
     var titulo = document.getElementById('fraseado-titulo');
     var subtitulo = document.getElementById('fraseado-subtitulo');
@@ -306,12 +324,64 @@
     document.getElementById('view-toggle').addEventListener('click', function (ev) {
       var btn = ev.target.closest('.view-btn');
       if (!btn || btn.disabled) return;
-      state.selectedView = btn.getAttribute('data-view');
+      var view = btn.getAttribute('data-view');
+      if (view === 'audio') {
+        playCurrentPhrase(btn);
+        return;
+      }
+      state.selectedView = view;
       renderFraseadoDetalhe();
     });
 
     document.getElementById('input-instrumento').addEventListener('change', function () {
       if (state.phrases.length > 0) renderFraseadoDetalhe();
+    });
+  }
+
+  function playCurrentPhrase(btn) {
+    if (!audio) return;
+    var phrase = state.phrases[state.selectedPhraseIndex];
+    if (!phrase) return;
+
+    if (btn.classList.contains('playing')) {
+      audio.stopAll();
+      btn.classList.remove('playing');
+      btn.textContent = '🔊 Áudio';
+      return;
+    }
+
+    var instrumento = document.getElementById('input-instrumento').value;
+    btn.classList.add('playing');
+    btn.textContent = '⏸ Tocando...';
+    audio.playPhrase(phrase, instrumento, null, function () {
+      btn.classList.remove('playing');
+      btn.textContent = '🔊 Áudio';
+    });
+  }
+
+  // ===================== Áudio da progressão (Etapa 3) =====================
+
+  function highlightChord(index) {
+    var pills = document.querySelectorAll('#chord-chain .chord-pill');
+    pills.forEach(function (p, i) { p.classList.toggle('playing', i === index); });
+  }
+
+  function setupAudioProgressao() {
+    var btn = document.getElementById('btn-play-progressao');
+    if (!btn || !audio) return;
+    btn.addEventListener('click', function () {
+      if (btn.classList.contains('playing')) {
+        audio.stopAll();
+        resetAudioButtons();
+        return;
+      }
+      if (!state.lastResult) return;
+      var instrumento = document.getElementById('input-instrumento').value;
+      btn.classList.add('playing');
+      btn.textContent = '⏸ Tocando... (clique para parar)';
+      audio.playProgression(state.lastResult, instrumento, highlightChord, function () {
+        resetAudioButtons();
+      });
     });
   }
 
@@ -358,6 +428,7 @@
     setupNav();
     setupForm();
     setupFraseados();
+    setupAudioProgressao();
     runAnalysis(); // já mostra um exemplo ao abrir, como no layout de referência
   });
 })();
