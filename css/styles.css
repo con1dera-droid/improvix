@@ -558,3 +558,9 @@ select, input[type="text"] {
 .lib-mais { display: flex; justify-content: center; margin-top: 1rem; }
 .lib-mais .btn-secondary { width: auto; padding: 0.55rem 1.4rem; }
 .lib-play.playing { background: #dc2626; border-color: #dc2626; color: #fff; }
+
+/* Fusion / som / tablatura com articulações */
+.nav-item.nav-sub { padding-left: 1.6rem; font-size: 0.82rem; }
+.som-modo { font-size: 0.78rem; padding: 0.35rem 0.5rem; max-width: 220px; }
+.tab-legend { font-size: 0.7rem; color: var(--text-dim); margin: 0.3rem 0 0; }
+.cifra-block sup { color: var(--accent); font-size: 0.65em; margin-left: 1px; }

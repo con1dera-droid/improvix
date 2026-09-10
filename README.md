@@ -50,9 +50,14 @@ Com isso, todo o escopo da Etapa 5 previsto em `docs/PRD.md` está entregue.
   "Outra ideia", "Padrão" fixo e "Tocar a linha inteira". Ver
   `docs/fraseados-referencias.md`.
 - **Biblioteca de Fraseados**: frases para qualquer escala (26), em
-  qualquer tom ou nos 12 tons, em 6 estilos (Bebop/Parker, Jazz moderno,
-  Blues, Modal, Rock, Baião), com ritmo (swing, tercinas, pausas), partitura,
+  qualquer tom ou nos 12 tons, em 7 estilos (Bebop/Parker, Jazz moderno,
+  Blues, Modal, Rock, Baião, Fusion), com ritmo (swing, tercinas, pausas), partitura,
   tab, áudio com acompanhamento e explicação — "Mais 12 frases" sem fim.
+- **Fusion — sweep (inspirado em Gambale)**: arpejos varridos, arpejos
+  superpostos, 3 notas por corda e slides; todas as frases com hammer-on,
+  pull-off, slide, bend, vibrato e dinâmica (tab com palhetada D/U).
+- **Som real**: samples de instrumentos (FluidR3_GM, CC BY 3.0 — créditos em
+  `sounds/CREDITOS.md`); seletor Real / Guitarra com drive / Sintetizado.
   Todos os níveis liberados, inclusive o Avançado (estilo Parker completo).
 
 O site continua sendo 100% estático (sem servidor próprio) — mesmo com login,
@@ -81,11 +86,13 @@ js/data.js            Dados de teoria musical (escalas, qualidades de acorde, ca
 js/theory.js          Motor de teoria musical (parser de cifra, análise da progressão)
 js/phrases.js         Gerador de fraseados: linha contínua (um compasso por acorde) + resolução
 js/notation.js        Realização de oitavas, tablatura e partitura simplificada (Etapa 2)
-js/audio.js           Síntese de áudio via Web Audio API (Etapa 3): progressão e fraseados
+js/audio.js           Áudio (Web Audio): samples reais com bends/slides/vibrato + síntese de reserva
 js/lab.js             Gerador de progressões do Laboratório (Etapa 5, parte 3): modelos por estilo
 js/lessons.js         Conteúdo das Aulas (Etapa 5, parte 4): lições + exemplos práticos
 js/library.js         Motor da Biblioteca de Fraseados (escala × tom × estilo, com ritmo)
 js/library-ui.js      Tela da Biblioteca de Fraseados
+js/articulation.js    Articulações (hammer-on, pull-off, slide, bend, vibrato) e dinâmica
+sounds/*.js           Samples de instrumentos reais (FluidR3_GM, CC BY 3.0 — ver sounds/CREDITOS.md)
 js/app.js             Liga a tela aos motores (sem framework, JS puro)
 js/config.js          Configuração do Supabase (Etapa 4) — troque pelos dados do seu projeto
 js/supabaseClient.js  Camada fina sobre o supabase-js: auth + CRUD de analises/favoritos/exercicios
@@ -108,6 +115,8 @@ tests/lessons.test.js  Testes automáticos do conteúdo das Aulas (node tests/le
 tests/fraseados.smoke.js Smoke test dos fraseados (cifra brasileira, Outra ideia, Padrão, linha inteira)
 tests/library.test.js  Testes do motor da Biblioteca (varre 11.232 frases) — node tests/library.test.js
 tests/biblioteca.smoke.js Smoke test da tela da Biblioteca de Fraseados
+tests/articulation.test.js Testes de articulações, tab com técnicas e Fusion — node tests/articulation.test.js
+tests/fusion.smoke.js  Smoke test do menu Fusion e do som com samples
 tests/screenshot*.js   Scripts opcionais de checagem visual com Playwright (dev only)
 docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos, status e guias do Supabase/Planos
 ```
@@ -120,6 +129,7 @@ node tests/phrases.test.js
 node tests/lab.test.js
 node tests/lessons.test.js
 node tests/library.test.js
+node tests/articulation.test.js
 ```
 
 `tests/audio.smoke.js`, `tests/etapa4.smoke.js`, `tests/etapa4.smoke2.js`,

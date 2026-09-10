@@ -201,7 +201,11 @@
     var bpb = opts.beatsPerBar || 4;
     var total = events.reduce(function (a, e) { return Math.max(a, e.onset + e.dur); }, 0);
     var nBars = Math.max(1, Math.ceil(total / bpb - 1e-6));
-    var pxBeat = 62, left = 58, barPad = 14;
+    // Largura do tempo cresce com a densidade (sextinas precisam de espaço).
+    var perBeat = {};
+    events.forEach(function (e) { var b = Math.floor(e.onset + 1e-6); perBeat[b] = (perBeat[b] || 0) + 1; });
+    var dens = Math.max.apply(null, Object.keys(perBeat).map(function (k) { return perBeat[k]; }).concat([1]));
+    var pxBeat = Math.max(62, dens * 19), left = 58, barPad = 14;
     function xAt(beat) { var bar = Math.min(nBars - 1, Math.floor(beat / bpb + 1e-6)); return left + beat * pxBeat + bar * barPad + 14; }
     var width = xAt(nBars * bpb) + 10;
     var height = 215;
@@ -265,6 +269,15 @@
       var dotted = [0.75, 1.5, 3].some(function (d) { return Math.abs(e.dur - d) < 1e-6; });
       if (dotted) s2 += '<circle cx="' + (n.x + 10) + '" cy="' + (n.y - (n.pos % 2 === 0 ? 4 : 0)) + '" r="1.8" fill="' + ink + '"/>';
       s2 += '<text x="' + n.x + '" y="' + (bottomLineY + 42) + '" font-size="9.5" text-anchor="middle" fill="' + label + '">' + e.name + '</text>';
+      var mark = '';
+      if (e.art === 'h') mark = 'h';
+      else if (e.art === 'p') mark = 'p';
+      else if (e.art === 'sl') mark = 'sl.';
+      else if (e.art === 'r') mark = 'r';
+      else if (e.art === 'b') mark = 'b' + ((e.midi - e.bendFrom) === 1 ? '½' : '1');
+      if (mark) s2 += '<text x="' + n.x + '" y="36" font-size="10" font-style="italic" text-anchor="middle" fill="var(--accent, #3b82f6)">' + mark + '</text>';
+      if (e.vibrato) s2 += '<path d="M' + (n.x - 6) + ' 44 q 2 -3 4 0 t 4 0 t 4 0 t 4 0" fill="none" stroke="' + label + '" stroke-width="1.2"/>';
+      if (e.accent) s2 += '<text x="' + n.x + '" y="' + (bottomLineY + 56) + '" font-size="11" text-anchor="middle" fill="' + label + '">&gt;</text>';
       return s2;
     }
 
@@ -304,7 +317,7 @@
       }
       if (g.triplet) {
         var tx = (x0 + x1) / 2, ty = up ? beamY - 7 : beamY + 15;
-        out += '<text x="' + tx + '" y="' + ty + '" font-size="11" font-style="italic" text-anchor="middle" fill="' + label + '">3</text>';
+        out += '<text x="' + tx + '" y="' + ty + '" font-size="11" font-style="italic" text-anchor="middle" fill="' + label + '">' + (g.items[0].e.tuplet || 3) + '</text>';
       }
     });
 
@@ -328,6 +341,181 @@
     return '<svg viewBox="0 0 ' + width + ' ' + height + '" xmlns="http://www.w3.org/2000/svg" width="100%" style="max-width:' + width + 'px" height="' + height + '">' + out + '</svg>';
   }
 
+  // ---------------------------------------------------------------------
+  // Tablatura "inteligente": digitação por programação dinâmica
+  // ---------------------------------------------------------------------
+
+  var SAME_STRING = { h: true, p: true, sl: true, r: true };
+
+  /**
+   * Escolhe corda/casa para cada nota de uma frase com articulações:
+   *   - hammer-on, pull-off, slide e release ficam na MESMA corda da nota anterior;
+   *   - bend é digitado na nota de baixo (bendFrom) e nunca em corda solta;
+   *   - notas marcadas com tabHint {sweep, dir} vão uma por corda, na direção
+   *     do arpejo (sweep picking); {nps3} prefere 3 notas por corda;
+   *   - no resto, minimiza deslocamentos de mão, pulos de corda e casas altas.
+   * `events`: eventos já realizados (midi final do instrumento), com rests.
+   * Devolve { notes: [{string, fret, bendFret, token, pick}], dropped: [índices] }
+   * — `dropped` são articulações impossíveis naquela digitação (removidas).
+   */
+  function toTabEvents(events, instrument) {
+    var strings = TUNINGS[instrument];
+    if (!strings) return null;
+    var notes = events.filter(function (e) { return !e.rest; });
+    if (!notes.length) return { notes: [], dropped: [] };
+    var maxFret = 17;
+
+    var cands = notes.map(function (e) {
+      var fingerMidi = e.art === 'b' && e.bendFrom !== undefined ? e.bendFrom : e.midi;
+      var list = [];
+      strings.forEach(function (open, s) {
+        var f = fingerMidi - open;
+        if (f < 0 || f > maxFret) return;
+        if (e.art === 'b' && f === 0) return;
+        list.push({ s: s, f: f, bf: e.art === 'b' ? e.midi - open : null });
+      });
+      if (!list.length) {
+        var f0 = Math.max(0, fingerMidi - strings[0]);
+        list.push({ s: 0, f: Math.min(f0, 24), bf: null });
+      }
+      return list;
+    });
+
+    function cost(pc, cc, pe, ce) {
+      var c = 0;
+      var ds = cc.s - pc.s;
+      var sameStringNeeded = SAME_STRING[ce.art];
+      if (sameStringNeeded && ds !== 0) c += 60;
+      var sw = ce.tabHint && pe.tabHint && ce.tabHint.sweep !== undefined && ce.tabHint.sweep === pe.tabHint.sweep;
+      if (sw && !sameStringNeeded) {
+        var want = ce.tabHint.dir > 0 ? 1 : -1;
+        if (ds !== want) c += 40;
+      }
+      var np = ce.tabHint && pe.tabHint && ce.tabHint.nps3 !== undefined && ce.tabHint.nps3 === pe.tabHint.nps3;
+      var shift = (cc.f > 0 && pc.f > 0) ? Math.abs(cc.f - pc.f) : 0;
+      if (ce.art === 'sl') c += 0; // slide é justamente para mudar de posição
+      else if (ds === 0) c += shift > 4 ? 6 + shift : shift * 0.35;
+      else c += shift > 4 ? 2 + (shift - 4) * 1.2 : shift * 0.25;
+      c += Math.abs(ds) > 1 ? (Math.abs(ds) - 1) * 0.9 : 0;
+      if (np) c += ds === 0 ? 0 : 0.4;
+      if (cc.f === 0) c += 0.8;
+      if (cc.f > 12) c += (cc.f - 12) * 0.25;
+      return c;
+    }
+
+    // Viterbi
+    var dp = [cands[0].map(function (c) { return { cost: Math.abs(c.f - 7) * 0.15 + (c.f === 0 ? 0.8 : 0), prev: -1 }; })];
+    for (var i = 1; i < notes.length; i++) {
+      dp.push(cands[i].map(function (cc) {
+        var best = { cost: Infinity, prev: -1 };
+        cands[i - 1].forEach(function (pc, j) {
+          var v = dp[i - 1][j].cost + cost(pc, cc, notes[i - 1], notes[i]);
+          if (v < best.cost) best = { cost: v, prev: j };
+        });
+        return best;
+      }));
+    }
+    var last = dp[dp.length - 1];
+    var bi = 0;
+    last.forEach(function (d, j) { if (d.cost < last[bi].cost) bi = j; });
+    var path = [];
+    for (var k = notes.length - 1; k >= 0; k--) { path.unshift(cands[k][bi]); bi = dp[k][bi].prev; }
+
+    var dropped = [];
+    var out = path.map(function (c, idx) {
+      var e = notes[idx];
+      var art = e.art;
+      if (idx > 0 && SAME_STRING[art] && path[idx - 1].s !== c.s) { dropped.push(idx); art = null; }
+      if (idx === 0 && SAME_STRING[art]) { dropped.push(idx); art = null; }
+      var tok = String(c.f);
+      if (art === 'h') tok = 'h' + c.f;
+      else if (art === 'p') tok = 'p' + c.f;
+      else if (art === 'r') tok = 'r' + c.f;
+      else if (art === 'sl') tok = (idx > 0 && path[idx - 1].f > c.f ? '\\' : '/') + c.f;
+      else if (art === 'b' && c.bf !== null) tok = c.f + 'b' + c.bf;
+      if (e.ghost && !art) tok = '(' + tok + ')';
+      if (e.vibrato) tok += '~';
+      return { string: c.s, fret: c.f, bendFret: c.bf, token: tok, art: art };
+    });
+
+    // Palhetada econômica/sweep: mudando para corda mais aguda = para baixo,
+    // para corda mais grave = para cima; na mesma corda, alterna. Notas ligadas
+    // (h, p, slide, release) não são palhetadas.
+    var lastPick = null, lastString = null;
+    out.forEach(function (n) {
+      if (n.art && SAME_STRING[n.art]) { n.pick = ''; lastString = n.string; return; }
+      var pk;
+      if (lastPick === null) pk = 'D';
+      else if (n.string > lastString) pk = 'D';
+      else if (n.string < lastString) pk = 'U';
+      else pk = lastPick === 'D' ? 'U' : 'D';
+      n.pick = pk; lastPick = pk; lastString = n.string;
+    });
+    return { notes: out, dropped: dropped };
+  }
+
+  /** Texto da tablatura (monoespaçado) com linha de palhetada e legenda. */
+  function renderTabText(events, tab, instrument) {
+    var strings = TUNINGS[instrument];
+    var six = strings.length === 6;
+    var labels = six ? ['e', 'B', 'G', 'D', 'A', 'E'] : ['G', 'D', 'A', 'E'];
+    var order = six ? [5, 4, 3, 2, 1, 0] : [3, 2, 1, 0];
+    var rows = order.map(function () { return ''; });
+    var pickRow = '';
+    var k = 0;
+    events.forEach(function (e) {
+      if (e.rest) {
+        rows = rows.map(function (r) { return r + '--'; });
+        pickRow += '  ';
+        return;
+      }
+      var n = tab.notes[k++];
+      var w = Math.max(3, n.token.length + 1);
+      order.forEach(function (s, ri) {
+        var t = s === n.string ? n.token : '';
+        rows[ri] += (t + '-'.repeat(w)).slice(0, w);
+      });
+      pickRow += ((n.pick || ' ') + ' '.repeat(w)).slice(0, w);
+    });
+    var lines = labels.map(function (l, i) { return l + '|' + rows[i] + '|'; });
+    lines.push(' ' + ' ' + pickRow);
+    return lines.join('\n');
+  }
+
+  /**
+   * Prepara uma frase (eventos com articulações) para um instrumento: desloca
+   * as oitavas para a tessitura dele e, se tiver traste, calcula a digitação;
+   * articulações impossíveis naquela digitação são removidas (assim o que se
+   * ouve é exatamente o que a tablatura mostra).
+   * Devolve { events, tab } (tab = null em instrumentos sem traste).
+   */
+  function prepareForInstrument(events, instrument) {
+    var notes = events.filter(function (e) { return !e.rest; });
+    var shift = 0;
+    if (notes.length) {
+      var real = realizeForInstrument(notes.map(function (e) { return e.name; }), instrument, notes.map(function (e) { return e.midi; }));
+      shift = real[0].midi - notes[0].midi;
+    }
+    var ev = events.map(function (e) {
+      if (e.rest) return Object.assign({}, e);
+      var o = Object.assign({}, e, { midi: e.midi + shift });
+      if (e.bendFrom !== undefined) o.bendFrom = e.bendFrom + shift;
+      return o;
+    });
+    var tab = TUNINGS[instrument] ? toTabEvents(ev, instrument) : null;
+    if (tab && tab.dropped.length) {
+      var k = 0;
+      ev.forEach(function (e) {
+        if (e.rest) return;
+        if (tab.dropped.indexOf(k) >= 0) { delete e.art; }
+        k++;
+      });
+    }
+    return { events: ev, tab: tab };
+  }
+
+  var TAB_LEGEND = 'h hammer-on · p pull-off · / \\ slide · b bend · r release · ~ vibrato · ( ) nota fantasma · D/U palhetada para baixo/cima';
+
   /** Desloca a frase inteira em oitavas para ler bem na clave de sol (centro em B4). */
   function centerForStaff(events) {
     var ns = events.filter(function (e) { return !e.rest; });
@@ -338,6 +526,10 @@
   }
 
   return {
+    toTabEvents: toTabEvents,
+    prepareForInstrument: prepareForInstrument,
+    renderTabText: renderTabText,
+    TAB_LEGEND: TAB_LEGEND,
     toRhythmStaffSVG: toRhythmStaffSVG,
     centerForStaff: centerForStaff,
     realizeForInstrument: realizeForInstrument,

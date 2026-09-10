@@ -28,7 +28,8 @@
     blues: ['blues_menor', 'blues_maior', 'mixolidio', 'dorico', 'pentatonica_menor'],
     modal: ['dorico', 'frigio', 'lidio', 'mixolidio', 'eolio', 'lidio_b7'],
     rock: ['pentatonica_menor', 'blues_menor', 'eolio', 'dorico', 'mixolidio'],
-    baiao: ['mixolidio', 'lidio_b7', 'dorico', 'jonio']
+    baiao: ['mixolidio', 'lidio_b7', 'dorico', 'jonio'],
+    fusion: ['mixolidio', 'lidio', 'dorico', 'jonio', 'eolio', 'lidio_b7', 'menor_melodica', 'alterada']
   };
 
   function $(id) { return document.getElementById(id); }
@@ -132,22 +133,38 @@
     renderList(true);
   }
 
+  // Frase pronta para o instrumento: articulações (bend, h/p, slide,
+  // vibrato, dinâmica) + oitava certa + digitação da tablatura.
+  function prepared(p, instrument) {
+    var key = instrument + '|' + p.id + '|' + p.index;
+    p._prep = p._prep || {};
+    if (!p._prep[key]) {
+      var evs = lib.articulateFor(p, instrument);
+      p._prep[key] = notation.prepareForInstrument(evs, instrument);
+    }
+    return p._prep[key];
+  }
+
   function tabHTML(p, instrument) {
     if (!window.IL.ui.isFrettedInstrument(instrument)) {
       return '<p class="muted-note">Tablatura só se aplica a instrumentos com traste (guitarra, violão, baixo).</p>';
     }
-    var realized = notation.realizeForInstrument(p.notes, instrument, p.midi);
-    var tab = notation.toTab(realized, instrument);
-    return '<pre class="tab-block">' + window.IL.ui.buildTabText(tab, instrument) + '</pre>';
+    var pr = prepared(p, instrument);
+    return '<pre class="tab-block">' + notation.renderTabText(pr.events, pr.tab, instrument) + '</pre>' +
+      '<p class="tab-legend">' + notation.TAB_LEGEND + '</p>';
   }
 
   function cardHTML(p, idx) {
     var instrument = $('lib-instrumento').value;
-    var view = p._view || 'partitura';
+    var view = p._view || (p.style === 'fusion' && window.IL.ui.isFrettedInstrument(instrument) ? 'tab' : 'partitura');
+    var pr = prepared(p, instrument);
     var body;
     if (view === 'tab') body = tabHTML(p, instrument);
-    else if (view === 'notas') body = '<div class="cifra-block">' + p.notes.join(' – ') + '</div>';
-    else body = '<div class="staff-block lib-staff">' + notation.toRhythmStaffSVG(notation.centerForStaff(p.events), { chords: p.chords }) + '</div>';
+    else if (view === 'notas') body = '<div class="cifra-block">' + pr.events.filter(function (e) { return !e.rest; }).map(function (e) {
+      return e.name + (e.art ? '<sup>' + e.art + '</sup>' : '') + (e.vibrato ? '~' : '');
+    }).join(' – ') + '</div>';
+    else body = '<div class="staff-block lib-staff">' + notation.toRhythmStaffSVG(notation.centerForStaff(pr.events), { chords: p.chords }) + '</div>';
+    var artTxt = window.IL.articulation ? window.IL.articulation.describe(pr.events) : '';
     var badges = '<span class="lib-badge">' + p.styleLabel + '</span><span class="lib-badge">' + p.scaleLabel + '</span>' +
       '<span class="lib-badge">' + p.bpm + ' bpm' + (p.swing ? ' · swing' : '') + '</span>';
     return '<div class="lib-card" data-idx="' + idx + '">' +
@@ -160,7 +177,7 @@
       '<button class="view-btn lib-play" data-play="1">🔊 Ouvir</button></div></div>' +
       '<div class="lib-badges">' + badges + '</div>' +
       '<div class="lib-card-body">' + body + '</div>' +
-      '<p class="lib-explicacao">' + p.explanation + '</p>' +
+      '<p class="lib-explicacao">' + p.explanation + (artTxt ? ' ' + artTxt : '') + '</p>' +
       '</div>';
   }
 
@@ -194,15 +211,31 @@
       btn.classList.add('playing');
       btn.textContent = '⏸ Parar';
       state.playingId = p.id;
-      audio.playEvents(p.events, $('lib-instrumento').value, { bpm: p.bpm, swing: p.swing, chords: p.chords }, function () {
+      var instr = $('lib-instrumento').value;
+      audio.playEvents(prepared(p, instr).events, instr, { bpm: p.bpm, swing: p.swing, humanize: true, chords: p.chords }, function () {
         if (state.playingId === p.id) stopAudio();
       });
     }
   }
 
-  function renderBibliotecaView() {
+  // `preset` (opcional): { style, level, instrument } — usado pelo atalho
+  // "Fusion (Gambale)" do menu.
+  function renderBibliotecaView(preset) {
     build();
     syncGate();
+    if (preset && preset.style) {
+      $('lib-estilo').value = preset.style;
+      state.userPickedScale = false;
+      fillScaleSelect();
+      if (preset.level) $('lib-nivel').value = preset.level;
+      if (preset.instrument) {
+        $('lib-instrumento').value = preset.instrument;
+        var mi = $('input-instrumento');
+        if (mi) { mi.value = preset.instrument; mi.dispatchEvent(new Event('change')); }
+      }
+      regenerate();
+      return;
+    }
     if (!state.list.length) regenerate();
   }
 

@@ -5,7 +5,7 @@
 | Motor de Teoria Musical | Core | 1 | Calcula campo harmônico, função dos acordes, escalas, arpejos e notas-alvo. Base de tudo. |
 | Análise (Visão Geral / Escalas / Arpejos / Notas-alvo) | Core | 1 | Telas que exibem o resultado do motor para teclado, guitarra e baixo. |
 | Fraseados | Opcional (flag `fraseados`) | 2 (reescrito depois da Etapa 5) | Linha contínua de improviso gerada a partir da análise (um compasso de colcheias por acorde), com 13 técnicas de fraseado, variações ("Outra ideia"), padrão fixo e tablatura/cifra/partitura/áudio. Princípios em `docs/fraseados-referencias.md`. |
-| Áudio | Opcional (flag `audio`) | 3 | Toca a progressão (backing) e cada fraseado via síntese no navegador. |
+| Áudio | Opcional (flag `audio`) | 3 | Toca a progressão (backing) e cada fraseado. Desde a Biblioteca Fusion usa samples de instrumentos reais (FluidR3_GM, CC BY 3.0, `sounds/`) com bends/slides/ligados/vibrato; seletor Real / Guitarra com drive / Sintetizado. |
 | Contas de usuário / Login | Opcional (flag `contas`) | 4 | Cadastro, login, sessão. Pré-requisito dos módulos abaixo. |
 | Histórico | Opcional (flag `historico`, depende de `contas`) | 4 | Guarda as análises feitas pelo usuário logado. |
 | Favoritos | Opcional (flag `favoritos`, depende de `contas`) | 4 | Marcar análises/fraseados como favoritos. |
@@ -14,7 +14,7 @@
 | Mais instrumentos (violão, sax, trompete, violino, flauta) | Opcional (flag `instrumentos_extra`) — ✅ Etapa 5 (parte 1) | 5 | Expande o motor e as telas para os instrumentos restantes da barra inferior do layout. |
 | Laboratório | Opcional (flag `laboratorio`), depende de `planos` (Pro) — ✅ Etapa 5 (parte 3) | 5 | Recursos experimentais/avançados, exclusivo Pro. Primeiro recurso: gerador de progressões prontas para praticar por estilo (Jazz, Blues, Pop/Rock, Modal), com botão para enviar direto à análise. |
 | Aulas | Opcional (flag `aulas`) — ✅ Etapa 5 (parte 4) | 5 | Conteúdo educacional estruturado: 8 lições curtas (fundamentos, escalas, harmonia avançada, fraseados, estilos), livre — não depende de login nem de plano. |
-| Biblioteca de Fraseados | Opcional (flag `bibliotecas`) — ✅ | 5+ | Frases geradas para qualquer escala (26), em qualquer tom (ou nos 12), em 6 estilos (Bebop/Parker, Jazz moderno, Blues, Modal, Rock, Baião), com ritmo, partitura, tab, áudio e explicação; páginas infinitas. Livre, inclusive o nível Avançado (sem trava de plano enquanto não houver cobrança — `ADVANCED_FREE` em `js/library-ui.js`). |
+| Biblioteca de Fraseados | Opcional (flag `bibliotecas`) — ✅ | 5+ | Frases geradas para qualquer escala (26), em qualquer tom (ou nos 12), em 7 estilos (Bebop/Parker, Jazz moderno, Blues, Modal, Rock, Baião, Fusion — sweep inspirado em Gambale, com atalho próprio no menu), com ritmo, articulações (hammer-on, pull-off, slide, bend, vibrato, dinâmica), partitura, tab com palhetada, áudio e explicação; páginas infinitas. Livre, inclusive o nível Avançado (sem trava de plano enquanto não houver cobrança — `ADVANCED_FREE` em `js/library-ui.js`). |
 | Biblioteca de Escalas (navegação livre) | Opcional (flag `bibliotecas`) | futura | Consulta livre de escalas/digitações, fora do fluxo de "analisar uma progressão". |
 
 Regra: nenhum módulo opcional é ativado por padrão além do que a etapa atual

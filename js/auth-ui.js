@@ -131,6 +131,7 @@
     laboratorio: 'laboratorio',
     aulas: 'aulas',
     'biblioteca-fraseados': 'biblioteca-fraseados',
+    'biblioteca-fusion': 'biblioteca-fraseados',
     config: 'config'
   };
 
@@ -147,7 +148,10 @@
         else if (view === 'config') renderConfigView();
         else if (view === 'laboratorio') renderLaboratorioView();
         else if (view === 'aulas' && window.IL.ui.renderAulasView) window.IL.ui.renderAulasView();
-        else if (view === 'biblioteca-fraseados' && window.IL.ui.renderBibliotecaView) window.IL.ui.renderBibliotecaView();
+        else if (view === 'biblioteca-fraseados' && window.IL.ui.renderBibliotecaView) {
+          window.IL.ui.renderBibliotecaView(item.getAttribute('data-nav') === 'biblioteca-fusion'
+            ? { style: 'fusion', level: 'avancado', instrument: 'guitarra' } : null);
+        }
       });
     });
   }

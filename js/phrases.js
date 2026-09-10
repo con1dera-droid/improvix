@@ -825,6 +825,7 @@
         notes: bar.notes.map(function (n) { return n.name; }),
         midi: bar.notes.map(function (n) { return n.midi; }),
         rhythm: 'colcheias',
+        events: bar.notes.map(function (n, j) { return { name: n.name, midi: n.midi, onset: j * 0.5, dur: 0.5 }; }),
         nextTarget: { name: bar.target.name, midi: bar.target.midi, chordSymbol: next.symbol },
         variation: variation,
         explanation: barExplanation(bar, chord, next, i === chords.length - 1 && chords.length > 1)
@@ -854,6 +855,8 @@
         notes: res.notes.map(function (n) { return n.name; }),
         midi: res.notes.map(function (n) { return n.midi; }),
         rhythm: 'colcheias',
+        // a resolução termina com a nota-alvo longa (semínima pontuada)
+        events: res.notes.map(function (n, j) { return { name: n.name, midi: n.midi, onset: j * 0.5, dur: j === 7 ? 1.5 : 0.5 }; }),
         variation: 0,
         explanation: 'Sobe o arpejo do ' + last.symbol + ' (' + names(res.notes.slice(0, 4)) + ') e faz um cerco ' +
           'à fundamental do ' + first.symbol + ': ' + res.notes[4].name + ' e ' + res.notes[5].name + ' por cima, ' +
@@ -863,6 +866,23 @@
     }
 
     return phrases;
+  }
+
+  // Sotaque de articulação de cada categoria (ver js/articulation.js).
+  var CATEGORY_STYLE = { melodica: 'jazz', blues: 'blues', conectando: 'bebop', tensao: 'bebop', resolucao: 'jazz' };
+
+  /**
+   * Eventos da frase com articulações (bend, hammer-on, pull-off, slide,
+   * vibrato) e dinâmica para o instrumento escolhido. Determinístico.
+   */
+  function articulateFor(phrase, instrument, level) {
+    var ART = (typeof module !== 'undefined' && module.exports) ? require('./articulation.js') : (globalThis.IL && globalThis.IL.articulation);
+    if (!ART || !phrase.events) return phrase.events;
+    var seed = 0, key = phrase.notes.join(',') + '|' + instrument + '|' + phrase.variation;
+    for (var i = 0; i < key.length; i++) seed = (seed * 31 + key.charCodeAt(i)) >>> 0;
+    var rng = function () { seed = (seed + 0x6D2B79F5) >>> 0; var t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    var scalePcs = theory.scaleNotes(phrase.chord.root, phrase.scaleKey).map(pcOf);
+    return ART.articulate(phrase.events, { style: CATEGORY_STYLE[phrase.category] || 'jazz', level: level, instrument: instrument, rng: rng, scalePcs: scalePcs });
   }
 
   /** Quantas variações diferentes existem para uma frase (para o botão "outra ideia"). */
@@ -907,6 +927,7 @@
     BAR: BAR,
     motifChoices: motifChoices,
     parseTitle: parseTitle,
+    articulateFor: articulateFor,
     categoryForFunction: categoryForFunction,
     categoryForChord: categoryForChord,
     generatePhrases: generatePhrases,

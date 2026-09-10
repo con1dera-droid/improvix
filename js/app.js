@@ -387,15 +387,18 @@
       btn.classList.toggle('active', btn.getAttribute('data-view') === state.selectedView);
     });
 
-    var realized = notation.realizeForInstrument(phrase.notes, instrumento, phrase.midi);
+    var pr = preparedPhrase(phrase, instrumento, nivel);
 
     if (state.selectedView === 'tab' && isFretted) {
-      var tab = notation.toTab(realized, instrumento);
-      conteudo.innerHTML = '<pre class="tab-block">' + buildTabText(tab, instrumento) + '</pre>';
+      conteudo.innerHTML = '<pre class="tab-block">' + notation.renderTabText(pr.events, pr.tab, instrumento) + '</pre>' +
+        '<p class="tab-legend">' + notation.TAB_LEGEND + '</p>';
     } else if (state.selectedView === 'cifra') {
-      conteudo.innerHTML = '<div class="cifra-block">' + phrase.notes.join(' – ') + '</div>';
+      conteudo.innerHTML = '<div class="cifra-block">' + pr.events.filter(function (e) { return !e.rest; }).map(function (e) {
+        return e.name + (e.art ? '<sup>' + e.art + '</sup>' : '') + (e.vibrato ? '~' : '');
+      }).join(' – ') + '</div>';
     } else {
-      conteudo.innerHTML = '<div class="staff-block">' + notation.toStaffSVG(realized) + '</div>';
+      var chordSym = [{ beat: 0, symbol: phrase.chordSymbol }];
+      conteudo.innerHTML = '<div class="staff-block">' + notation.toRhythmStaffSVG(notation.centerForStaff(pr.events), { chords: chordSym }) + '</div>';
     }
 
     chips.innerHTML = '';
@@ -403,7 +406,20 @@
       chips.appendChild(el('span', 'note-chip', n));
     });
 
-    explicacao.textContent = phrase.explanation;
+    var artTxt = window.IL.articulation ? window.IL.articulation.describe(pr.events) : '';
+    explicacao.textContent = phrase.explanation + (artTxt ? ' ' + artTxt : '');
+  }
+
+  // Frase com articulações (bend, hammer-on, pull-off, slide, vibrato) e
+  // dinâmica para o instrumento atual, na oitava certa e com a digitação da tab.
+  function preparedPhrase(phrase, instrumento, nivel) {
+    var key = instrumento + '|' + nivel;
+    phrase._prep = phrase._prep || {};
+    if (!phrase._prep[key]) {
+      var evs = phrasesMod.articulateFor ? phrasesMod.articulateFor(phrase, instrumento, nivel) : phrase.events;
+      phrase._prep[key] = notation.prepareForInstrument(evs || [], instrumento);
+    }
+    return phrase._prep[key];
   }
 
   function setupFraseados() {
@@ -456,11 +472,14 @@
       lineBtn.addEventListener('click', function () {
         if (!audio || !audio.playLine) return;
         if (lineBtn.classList.contains('playing')) { audio.stopAll(); resetAudioButtons(); return; }
-        var bars = state.phrases.filter(function (p) { return p.category !== 'resolucao'; });
+        var instrumento = document.getElementById('input-instrumento').value;
+        var nivelAtual = document.getElementById('input-nivel').value;
+        var bars = state.phrases.filter(function (p) { return p.category !== 'resolucao'; }).map(function (p) {
+          return Object.assign({}, p, { events: preparedPhrase(p, instrumento, nivelAtual).events });
+        });
         if (!bars.length) return;
         audio.stopAll();
         resetAudioButtons();
-        var instrumento = document.getElementById('input-instrumento').value;
         lineBtn.classList.add('playing');
         lineBtn.textContent = '⏸ Tocando... (clique para parar)';
         audio.playLine(bars, instrumento, function (b) {
@@ -491,7 +510,8 @@
     var instrumento = document.getElementById('input-instrumento').value;
     btn.classList.add('playing');
     btn.textContent = '⏸ Tocando...';
-    audio.playPhrase(phrase, instrumento, null, function () {
+    var pr = preparedPhrase(phrase, instrumento, document.getElementById('input-nivel').value);
+    audio.playPhrase(Object.assign({}, phrase, { events: pr.events }), instrumento, null, function () {
       btn.classList.remove('playing');
       btn.textContent = '🔊 Áudio';
     });
@@ -687,8 +707,27 @@
     setupInstrumentBar();
     setupPlanGate();
     setupAulas();
+    setupSom();
     runAnalysis(); // já mostra um exemplo ao abrir, como no layout de referência
   });
+
+  // Seletor de som (realista / com drive / sintetizado) + pré-carga dos
+  // samples do instrumento atual, para o primeiro "play" já sair rápido.
+  function setupSom() {
+    var sel = document.getElementById('som-modo');
+    if (!sel || !audio || !audio.setSoundMode) return;
+    sel.value = audio.getSoundMode();
+    sel.addEventListener('change', function () {
+      audio.stopAll();
+      resetAudioButtons();
+      audio.setSoundMode(sel.value);
+      audio.preload(document.getElementById('input-instrumento').value);
+    });
+    document.getElementById('input-instrumento').addEventListener('change', function () {
+      audio.preload(document.getElementById('input-instrumento').value);
+    });
+    setTimeout(function () { audio.preload(document.getElementById('input-instrumento').value); }, 1200);
+  }
 
   // API mínima para a Etapa 4 (js/auth-ui.js) ler o estado atual e
   // acionar telas/ações sem duplicar a lógica de análise/fraseados aqui.

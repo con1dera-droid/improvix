@@ -242,8 +242,8 @@ Item "🎼 Biblioteca de Fraseados" do menu (antes "em breve") agora
 funciona: gera frases para **qualquer escala/modo** (26 escalas: modos da
 maior, da menor melódica, da menor harmônica, simétricas, bebop,
 pentatônicas e blues), **em qualquer tom** (ou nos 12 tons, no ciclo de
-4ªs) e em **6 estilos**: Bebop (estilo Parker), Jazz moderno, Blues,
-Modal/Fusion, Rock/Pentatônica e Baião/Nordestino.
+4ªs) e em **7 estilos**: Bebop (estilo Parker), Jazz moderno, Blues,
+Modal, Rock/Pentatônica, Baião/Nordestino e Fusion (sweep — ver abaixo).
 
 - Cada frase tem 1 ou 2 compassos + a nota de chegada (longa), com ritmo de
   verdade: colcheias com swing, tercinas (grupeto), semicolcheias, pausas e
@@ -275,6 +275,49 @@ iniciante e modal sem cromatismo, ≥70% dos tempos fortes em nota do acorde
 no bebop avançado, determinismo e 48 frases distintas em 4 páginas) e
 `tests/biblioteca.smoke.js`.
 
+## Fusion (sweep, inspirado em Gambale) + articulações + som real — ✅ Concluída (2026-09-10)
+Novo item do menu **"🎸 Fusion — sweep (Gambale)"**: abre a Biblioteca já no
+estilo Fusion (7º estilo). A linguagem é associada a Frank Gambale, mas nada
+foi transcrito dele — as frases são calculadas com os princípios:
+
+- **Arpejos varridos (sweep)**: uma nota por corda, numa só palhetada
+  (D D D subindo, U U U descendo), com hammer-on/pull-off na corda de cima
+  para virar o arpejo; em sextinas (6 notas por tempo) ou tercinas.
+- **"O modo pensado como arpejos"**: arpejos superpostos que nascem nos graus
+  da escala (ex.: Em7(b5) sobre C7 no mixolídio), explicados na frase.
+- **3 notas por corda** com palhetada econômica ou legato, e **slides** para
+  trocar de posição.
+- A tablatura é calculada por programação dinâmica (Viterbi) respeitando a
+  técnica: sweep de uma nota por corda, ligados na mesma corda, bend com a
+  casa de destino, palhetada D/U embaixo.
+
+**Articulações e dinâmica em todos os estilos** (`js/articulation.js`):
+hammer-on (h), pull-off (p), slide (/ \), bend (b) e release (r), vibrato
+(~) e notas fantasma, cada estilo com seu sotaque (blues/rock com muito bend
+e vibrato, fusion com legato, bebop quase sem bend, com ghost notes). A
+dinâmica varia: acentos nos tempos fortes e no ponto culminante, crescendo
+até o clímax. Aparece na tab (com legenda), na partitura (h, p, sl., ~, >)
+e no áudio. Teclado não recebe bend/slide/vibrato — só dinâmica.
+Determinístico (mesma frase = mesmas técnicas).
+
+**Som mais real** (`js/audio.js` reescrito): samples de instrumentos reais
+(FluidR3_GM, CC BY 3.0 — `sounds/CREDITOS.md`) guardados em `sounds/*.js`
+(uma nota a cada 3 semitons, ~4,4 MB no total, carregados só quando tocam;
+funciona abrindo o `index.html` direto, sem servidor). O player aplica bend,
+slide, hammer-on/pull-off e vibrato na altura do sample, e o acompanhamento
+usa piano elétrico + baixo. Seletor **"Som"** no topo: *Real* (padrão),
+*Guitarra com drive* e *Sintetizado* (o som antigo, também usado se os
+samples não carregarem).
+
+Ajuste no motor: frases com âmbito maior que 22 semitons são descartadas.
+
+Testes: `tests/articulation.test.js` (11 testes, 504 frases fusion:
+ritmo com sextinas fecha, h sobe/p desce, bend de 1–2 semitons, todas as
+técnicas aparecem, dinâmica não plana, teclado sem bend, ligados na mesma
+corda da tab, sweep com uma nota por corda e palhetada D/U, tab alinhada,
+samples presentes com crédito) e `tests/fusion.smoke.js` (menu Fusion, tab
+com legenda, samples decodificados no Chromium, modos Real/Drive/Sintetizado).
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
@@ -299,10 +342,10 @@ do escopo cobrado, mas vale registrar): leitura transposta de sax/trompete
 
 ## Arquivos do projeto
 `index.html`, `css/styles.css`, `js/data.js`, `js/theory.js`, `js/phrases.js`,
-`js/notation.js`, `js/audio.js`, `js/lab.js`, `js/lessons.js`, `js/library.js`, `js/app.js`, `js/library-ui.js`,
+`js/notation.js`, `js/audio.js`, `js/articulation.js`, `sounds/*.js` (+ `sounds/CREDITOS.md`), `js/lab.js`, `js/lessons.js`, `js/library.js`, `js/app.js`, `js/library-ui.js`,
 `js/config.js`, `js/supabaseClient.js`, `js/auth-ui.js`, `sql/schema.sql`,
 `tests/theory.test.js`, `tests/phrases.test.js`, `tests/lab.test.js`,
-`tests/lessons.test.js`, `tests/library.test.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
+`tests/lessons.test.js`, `tests/library.test.js`, `tests/articulation.test.js`, `tests/fusion.smoke.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
 `tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`, `tests/etapa5.smoke.js`,
 `tests/etapa5.planos.smoke.js`, `tests/etapa5.laboratorio.smoke.js`,
 `tests/etapa5.aulas.smoke.js`, `tests/fraseados.smoke.js`, `tests/biblioteca.smoke.js`, `tests/screenshot*.js` (dev only),

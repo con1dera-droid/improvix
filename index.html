@@ -28,6 +28,7 @@
       <a href="#" class="nav-item" data-nav="historico">🕘 Histórico</a>
       <a href="#" class="nav-item is-soon" data-nav="biblioteca-escalas">📚 Biblioteca de Escalas <span class="soon">Etapa 5</span></a>
       <a href="#" class="nav-item" data-nav="biblioteca-fraseados">🎼 Biblioteca de Fraseados</a>
+      <a href="#" class="nav-item nav-sub" data-nav="biblioteca-fusion">🎸 Fusion — sweep (Gambale)</a>
       <a href="#" class="nav-item" data-nav="laboratorio">🧪 Laboratório <span class="soon">Pro</span></a>
       <a href="#" class="nav-item" data-nav="aulas">🎓 Aulas</a>
       <a href="#" class="nav-item" data-nav="config">⚙ Configurações</a>
@@ -51,6 +52,11 @@
         <input type="text" placeholder="Ex.: Gmaj7 | Em7 | Am7 | D7" id="quick-search" />
       </div>
       <div class="topbar-right">
+        <select id="som-modo" class="som-modo" title="Tipo de som usado para tocar as frases">
+          <option value="real">🎧 Som realista</option>
+          <option value="drive">🔥 Realista com drive (guitarra)</option>
+          <option value="synth">🎛 Sintetizado (leve)</option>
+        </select>
         <span class="bell" title="Notificações">🔔</span>
         <div class="user" id="user-area">
           <button class="btn-primary" id="btn-entrar">Entrar</button>
@@ -477,6 +483,7 @@
 
 <script src="js/data.js"></script>
 <script src="js/theory.js"></script>
+<script src="js/articulation.js"></script>
 <script src="js/phrases.js"></script>
 <script src="js/notation.js"></script>
 <script src="js/audio.js"></script>

@@ -25,11 +25,12 @@
   var theory = isNode ? require('./theory.js') : root.IL.theory;
   var data = isNode ? require('./data.js') : root.IL.data;
   var phrases = isNode ? require('./phrases.js') : root.IL.phrases;
-  var mod = factory(theory, data, phrases);
+  var articulation = isNode ? require('./articulation.js') : root.IL.articulation;
+  var mod = factory(theory, data, phrases, articulation);
   if (isNode) module.exports = mod;
   root.IL = root.IL || {};
   root.IL.library = mod;
-})(typeof window !== 'undefined' ? window : globalThis, function (theory, DATA, phrasesMod) {
+})(typeof window !== 'undefined' ? window : globalThis, function (theory, DATA, phrasesMod, ART) {
   'use strict';
 
   var U = phrasesMod.util;
@@ -157,10 +158,11 @@
 
   var TOKENS = {
     e: { dur: 0.5 }, q: { dur: 1 }, h: { dur: 2 }, dq: { dur: 1.5 }, de: { dur: 0.75 }, s: { dur: 0.25 },
-    t: { dur: 1 / 3, triplet: true },
+    t: { dur: 1 / 3, triplet: true, tuplet: 3 },
+    x: { dur: 1 / 6, triplet: true, tuplet: 6 },
     er: { dur: 0.5, rest: true }, qr: { dur: 1, rest: true }, hr: { dur: 2, rest: true }
   };
-  function R(str) { return str.split(' ').map(function (k) { var t = TOKENS[k]; return { dur: t.dur, rest: !!t.rest, triplet: !!t.triplet }; }); }
+  function R(str) { return str.split(' ').map(function (k) { var t = TOKENS[k]; return { dur: t.dur, rest: !!t.rest, triplet: !!t.triplet, tuplet: t.tuplet || null }; }); }
 
   // ---------------------------------------------------------------------
   // Estilos
@@ -173,7 +175,8 @@
       rhythms: {
         iniciante: ['q e e q e e', 'e e e e q q'],
         intermediario: ['e e e e e e e e', 'er e e e e e e e', 'e e t t t e e e e'],
-        avancado: ['er e e e e e e e', 'e e e e e e e e', 'e e t t t e e e e', 't t t e e e e e e', 'e e e e t t t e e']
+        avancado: ['er e e e e e e e', 'e e e e e e e e', 'e e t t t e e e e', 't t t e e e e e e', 'e e e e t t t e e',
+          'er e e e e e q', 'e e e e er e e e', 'q er e t t t e e']
       },
       landing: 'h hr',
       cells: [['arpUp', 3], ['arpExtUp', 3], ['scaleDown', 4], ['bebopDown', 5], ['parker', 5], ['turn', 3],
@@ -186,7 +189,7 @@
       rhythms: {
         iniciante: ['q e e q e e', 'e e e e q q'],
         intermediario: ['e e e e e e e e', 'q e e e e e e', 'e e t t t e e q'],
-        avancado: ['e e e e e e e e', 'q e e e e e e', 'e e t t t e e q', 't t t t t t e e e e']
+        avancado: ['e e e e e e e e', 'q e e e e e e', 'e e t t t e e q', 't t t t t t e e e e', 'er e e e q e e']
       },
       landing: 'h hr',
       cells: [['arpExtUp', 4], ['tensionTriad', 4], ['superPent', 4], ['quartal', 3], ['sus2', 3], ['scaleUp', 2],
@@ -211,7 +214,7 @@
       rhythms: {
         iniciante: ['q e e q e e', 'q q e e q'],
         intermediario: ['e e e e e e e e', 'q e e q e e', 't t t t t t e e q'],
-        avancado: ['e e e e e e e e', 't t t t t t e e q', 'q e e q e e', 's s s s s s s s e e q']
+        avancado: ['e e e e e e e e', 't t t t t t e e q', 'q e e q e e', 's s s s s s s s e e q', 'q er e e e e e']
       },
       landing: 'h hr',
       cells: [['sus2', 4], ['quartal', 4], ['charNote', 4], ['scaleUp', 2], ['scaleDown', 2], ['pentGroup3', 2], ['arpUp', 1]],
@@ -223,11 +226,25 @@
       rhythms: {
         iniciante: ['q q e e q', 'e e e e q q'],
         intermediario: ['e e e e e e q', 't t t t t t q q', 'e e q e e q'],
-        avancado: ['s s s s s s s s e e q', 't t t t t t t t t q', 'e e e e e e q']
+        avancado: ['s s s s s s s s e e q', 't t t t t t t t t q', 'e e e e e e q', 'e e e e er e q']
       },
       landing: 'h hr',
       cells: [['pentGroup3', 5], ['pentDown', 4], ['pentUp', 2], ['repeat', 2], ['bluePass', 2], ['neighbor', 1]],
       intro: 'Pentatônica em grupos de 3 e 4 notas, com repetição e a blue note como passagem'
+    },
+    fusion: {
+      label: 'Fusion — sweep picking (inspirado em Gambale)',
+      bpm: 92, swing: false, repeatsOk: false, strongChordTones: true, extTones: true, fusion: true,
+      rhythms: {
+        iniciante: ['e e e e e e q', 't t t t t t q q'],
+        intermediario: ['s s s s s s s s e e q', 't t t t t t t t t q', 's s s s e e s s s s q'],
+        avancado: ['x x x x x x x x x x x x s s s s q', 's s s s s s s s s s s s q', 'x x x x x x s s s s x x x x x x q',
+          't t t s s s s x x x x x x q', 'er s s s s s s s s s s q']
+      },
+      landing: 'h hr',
+      cells: [['sweepUp', 5], ['sweepDown', 4], ['superSweep', 4], ['threeNps', 5], ['slideShift', 2], ['enclose', 2],
+        ['arpExtUp', 2], ['tensionTriad', 1], ['arpUp', 1], ['scaleUp', 1], ['scaleDown', 1]],
+      intro: 'Arpejos varridos (uma nota por corda, numa só palhetada), arpejos superpostos do modo, escalas com 3 notas por corda com palhetada econômica e legato, e troca de posição por slide — a linguagem de guitarra fusion associada a Frank Gambale'
     },
     baiao: {
       label: 'Baião / Nordestino',
@@ -247,7 +264,8 @@
   var CELL_LEVEL = {
     arpUp: 0, arpDown: 0, scaleDown: 0, scaleUp: 0, neighbor: 0, pentDown: 0, pentUp: 0, repeat: 0, charNote: 0,
     turn: 1, enclose: 1, digital: 1, sus2: 1, pentGroup3: 1, arpExtUp: 1, blueSlide: 1, bluePass: 1, chromPass: 1,
-    parker: 2, tensionTriad: 2, quartal: 2, superPent: 2, bebopDown: 2, stepToTone: 0
+    parker: 2, tensionTriad: 2, quartal: 2, superPent: 2, bebopDown: 2, stepToTone: 0,
+    sweepUp: 1, sweepDown: 1, threeNps: 1, slideShift: 1, superSweep: 2
   };
   var LEVEL_IDX = { iniciante: 0, intermediario: 1, avancado: 2 };
 
@@ -258,7 +276,10 @@
     digital: 'célula 1-2-3-5', sus2: 'trifonia sus2 (1-2-5)', pentGroup3: 'pentatônica em grupos de 3', arpExtUp: 'arpejo com a 9ª (estrutura superior)',
     blueSlide: 'blue note: 3ª menor escorregando para a maior', bluePass: 'blue note (b5) de passagem', chromPass: 'passagem cromática',
     parker: 'arpejo circular (Parker)', tensionTriad: 'tríade de tensão', quartal: 'arpejo em quartas', superPent: 'pentatônica superposta',
-    bebopDown: 'escala bebop descendente', stepToTone: 'passo até a nota do acorde'
+    bebopDown: 'escala bebop descendente', stepToTone: 'passo até a nota do acorde',
+    sweepUp: 'arpejo varrido subindo (sweep, uma nota por corda)', sweepDown: 'arpejo varrido descendo (sweep)',
+    threeNps: 'escala com 3 notas por corda (palhetada econômica/legato)', slideShift: 'slide para trocar de posição',
+    superSweep: 'arpejo superposto varrido'
   };
 
   // Roteiros: desenhos de frase típicos de cada estilo (arco sobe-e-desce,
@@ -307,6 +328,15 @@
       { cells: ['repeat', 'pentDown', 'bluePass'], start: 'high' },
       { cells: ['pentUp', 'pentGroup3'], start: 'low' },
       { cells: ['pentDown', 'repeat', 'pentUp'], start: 'high' }
+    ],
+    fusion: [
+      { cells: ['sweepUp', 'threeNps'], start: 'low' },
+      { cells: ['threeNps', 'sweepDown'], start: 'high' },
+      { cells: ['superSweep', 'slideShift', 'threeNps'], start: 'low' },
+      { cells: ['threeNps', 'slideShift', 'sweepUp'], start: 'low' },
+      { cells: ['sweepUp', 'sweepDown', 'enclose'], start: 'low' },
+      { cells: ['superSweep', 'sweepDown'], start: 'low' },
+      { cells: ['sweepUp', 'slideShift', 'sweepDown'], start: 'low' }
     ],
     baiao: [
       { cells: ['charNote', 'scaleDown', 'repeat'], start: 'mid' },
@@ -388,6 +418,55 @@
     var out = [], cur = from;
     for (var i = 0; i < n; i++) { cur = U.stepFrom(ladder, cur.midi, dir); out.push(cur); }
     return out;
+  }
+
+  function nextGroupId(meta) { meta.groups = (meta.groups || 0) + 1; return meta.groups; }
+
+  // Sweep: notas do arpejo, uma por corda, numa direção; no topo pode ter
+  // hammer-on + pull-off na mesma corda (o "virar" do arpejo).
+  function sweep(ladder, last, dir, rng, meta) {
+    var id = nextGroupId(meta);
+    var k = 3 + Math.floor(rng() * 3);
+    var out = [], cur = last;
+    for (var i = 0; i < k; i++) {
+      cur = U.stepFrom(ladder, cur.midi, dir);
+      var n = N(cur.name, cur.midi);
+      n.tabHint = { sweep: id, dir: dir };
+      out.push(n);
+    }
+    if (dir > 0 && rng() < 0.65) {
+      var top = U.stepFrom(ladder, cur.midi, 1);
+      if (top.midi - cur.midi <= 5) {
+        var h = N(top.name, top.midi); h.art = 'h'; h.tabHint = { sweep: id, dir: dir };
+        out.push(h);
+        if (rng() < 0.7) { var p = N(cur.name, cur.midi); p.art = 'p'; p.tabHint = { sweep: id, dir: -1 }; out.push(p); }
+      }
+    }
+    meta.sweeps = (meta.sweeps || 0) + 1;
+    return out;
+  }
+
+  // "Pensar o modo como arpejos": o arpejo de 7ª construído sobre a 3ª, a 5ª
+  // ou a 7ª da escala (ex.: sobre C7M/jônio → Em7, G7, Bm7(b5); sobre
+  // Dm7/dórico → F7M, Am7, C7).
+  var DEGREE_NAME = { 2: '3ª', 4: '5ª', 6: '7ª' };
+  function chordSymbolFromNames(names) {
+    var r = pcOf(names[0]);
+    var iv = names.map(function (n) { return mod12(pcOf(n) - r); });
+    var third = iv[1], fifth = iv[2], sev = iv[3];
+    var q = '';
+    if (third === 4 && fifth === 7) q = sev === 11 ? '7M' : (sev === 10 ? '7' : '');
+    else if (third === 3 && fifth === 7) q = sev === 10 ? 'm7' : (sev === 11 ? 'm(7M)' : 'm');
+    else if (third === 3 && fifth === 6) q = sev === 10 ? 'm7(b5)' : '°';
+    else if (third === 4 && fifth === 8) q = '7M(#5)';
+    else q = '(' + iv.join('-') + ')';
+    return names[0] + q;
+  }
+  function superArpeggio(c, rng) {
+    if (c.scaleNames.length !== 7) return null;
+    var d = pick(rng, [2, 4, 6]);
+    var names = [0, 2, 4, 6].map(function (k) { return c.scaleNames[(d + k) % 7]; });
+    return { names: names, symbol: chordSymbolFromNames(names), degree: DEGREE_NAME[d], ladder: U.buildLadder(names) };
   }
 
   var CELLS = {
@@ -503,6 +582,40 @@
       return rng() < 0.5 ? [four, b5, five] : [five, b5, four];
     },
     repeat: function (c, last) { return [last]; },
+
+    // ---- Fusion (sweep picking, 3 notas por corda, slides) ----
+    sweepUp: function (c, last, rng, meta) { return sweep(c.arp, last, 1, rng, meta); },
+    sweepDown: function (c, last, rng, meta) { return sweep(c.arp, last, -1, rng, meta); },
+    superSweep: function (c, last, rng, meta) {
+      var sup = superArpeggio(c, rng);
+      if (!sup) return null;
+      meta.superArp = meta.superArp || sup;
+      return sweep(sup.ladder, last, 1, rng, meta);
+    },
+    threeNps: function (c, last, rng, meta) {
+      if (c.scaleNames.length < 7) return null;
+      var dir = last.midi > 66 ? -1 : 1;
+      var groups = 2 + (rng() < 0.4 ? 1 : 0);
+      var legato = rng() < 0.55;
+      var id = nextGroupId(meta);
+      var out = [], cur = last;
+      for (var i = 0; i < groups * 3; i++) {
+        cur = U.stepFrom(c.scale, cur.midi, dir);
+        var n = N(cur.name, cur.midi);
+        n.tabHint = { nps3: id, pos: i % 3 };
+        if (legato && i % 3 > 0) n.art = dir > 0 ? 'h' : 'p';
+        out.push(n);
+      }
+      meta.legato = meta.legato || legato;
+      return out;
+    },
+    slideShift: function (c, last, rng) {
+      var n = U.stepFrom(c.scale, last.midi, rng() < 0.5 ? 2 : -2);
+      if (Math.abs(n.midi - last.midi) > 5) return null;
+      var o = N(n.name, n.midi);
+      o.art = 'sl';
+      return [o];
+    },
     stepToTone: function (c, last, rng) {
       var d = U.stepFrom(c.scale, last.midi, -1), u = U.stepFrom(c.scale, last.midi, 1);
       if (c.isTone(d.midi) && (!c.isTone(u.midi) || rng() < 0.6)) return [d];
@@ -619,22 +732,29 @@
     var notes = [start];
     var used = [];
     var guard = 0;
+    var meta = {};
+    function applyCell(key) {
+      var out = CELLS[key](c, notes[notes.length - 1], rng, meta);
+      if (!out || !out.length) return false;
+      used.push(key);
+      notes = notes.concat(out.map(function (n) {
+        var o = N(n.name, n.midi);
+        if (n.art) o.art = n.art;
+        if (n.tabHint) o.tabHint = n.tabHint;
+        return o;
+      }));
+      return true;
+    }
     if (roteiro) {
       roteiro.cells.forEach(function (key) {
         if (notes.length >= bodyLen) return;
-        var out = CELLS[key](c, notes[notes.length - 1], rng);
-        if (!out || !out.length) return;
-        used.push(key);
-        notes = notes.concat(out);
+        applyCell(key);
       });
     }
     while (notes.length < bodyLen && guard++ < 30) {
       var key = pickWeighted(rng, pool);
       if (key === 'repeat' && !st.repeatsOk) continue;
-      var out = CELLS[key](c, notes[notes.length - 1], rng);
-      if (!out || !out.length) continue;
-      used.push(key);
-      notes = notes.concat(out);
+      applyCell(key);
     }
     notes = notes.slice(0, bodyLen);
 
@@ -675,7 +795,14 @@
     var onset = 0, k = 0;
     slots.forEach(function (s) {
       if (s.rest) events.push({ rest: true, dur: s.dur, onset: onset, triplet: false });
-      else { var n = notes[k++]; events.push({ name: n.name, midi: n.midi, dur: s.dur, onset: onset, triplet: s.triplet }); }
+      else {
+        var n = notes[k++];
+        var ev = { name: n.name, midi: n.midi, dur: s.dur, onset: onset, triplet: s.triplet };
+        if (s.tuplet) ev.tuplet = s.tuplet;
+        if (n.art) ev.art = n.art;
+        if (n.tabHint) ev.tabHint = n.tabHint;
+        events.push(ev);
+      }
       onset += s.dur;
     });
     landing.forEach(function (s, i) {
@@ -684,7 +811,7 @@
       onset += s.dur;
     });
 
-    return { events: events, used: used, approachKind: approachKind, target: target, rhythmNames: rhythmNames, startName: startName };
+    return { events: events, used: used, approachKind: approachKind, target: target, rhythmNames: rhythmNames, startName: startName, meta: meta };
   }
 
   // ---------------------------------------------------------------------
@@ -737,6 +864,7 @@
     var midis = ev.map(function (e) { return e.midi; });
     var hi = Math.max.apply(null, midis), lo = Math.min.apply(null, midis);
     if (hi - lo > 14) s -= (hi - lo - 14) * 1.5;
+    if (hi - lo > 22) s -= 100; // fora do âmbito tocável: descarta
     if (hi > HIGH || lo < LOW) s -= 8;
     if (midis.filter(function (m) { return m === hi; }).length === 1) s += 2;
     var changes = 0;
@@ -786,10 +914,16 @@
       if (k === 'tensionTriad') return (U.TENSION_DESC[c.scaleKey] || 'uma tríade de tensão');
       if (k === 'charNote' && c.charName) return 'a nota característica do modo, ' + c.charName + ' (' + c.charLabel + ')';
       if (k === 'bebopDown' && c.bebopKey) return 'a ' + DATA.SCALES[c.bebopKey].label.toLowerCase() + ' descendo';
+      if (k === 'superSweep' && cand.meta && cand.meta.superArp) {
+        var sa = cand.meta.superArp;
+        return 'arpejo de ' + sa.symbol + ' varrido sobre o ' + c.symbol + ' (é o arpejo que nasce na ' + sa.degree + ' da escala — "o modo pensado como arpejos")';
+      }
+      if (k === 'threeNps' && cand.meta) return 'escala com 3 notas por corda ' + (cand.meta.legato ? 'em legato (hammer-on subindo, pull-off descendo)' : 'com palhetada econômica');
       return CELL_LABEL[k];
     });
     if (labels.length) parts.push('Vocabulário: ' + labels.join(', ') + '.');
-    if (ev.some(function (e) { return e.triplet; })) parts.push('Tem uma tercina (três notas num tempo), típica dos grupetos do jazz.');
+    if (ev.some(function (e) { return e.tuplet === 6; })) parts.push('Usa sextinas (seis notas por tempo), o "motor" rítmico dos arpejos varridos.');
+    else if (ev.some(function (e) { return e.triplet; })) parts.push('Tem uma tercina (três notas num tempo), típica dos grupetos do jazz.');
     var landChord = c.resolve ? c.resolve : { root: c.root, tones: c.tones, symbol: c.symbol };
     parts.push('No fim ' + APPROACH_LABEL[cand.approachKind] + ' e ' + (c.resolve ? 'resolve' : 'repousa') + ' em ' + cand.target.name +
       ', a ' + degreeOf(c, cand.target.name, landChord.root, landChord.tones) + ' do ' + landChord.symbol + ', com nota longa.');
@@ -869,6 +1003,7 @@
         bpm: STYLES[style].bpm,
         swing: STYLES[style].swing,
         cells: best.used,
+        scalePcs: c.scaleNames.map(pcOf),
         score: Math.round(bestScore * 10) / 10,
         explanation: explain(c, best, style)
       });
@@ -876,10 +1011,36 @@
     return out;
   }
 
+  /**
+   * Articulações (bend, hammer-on, pull-off, slide, vibrato) e dinâmica da
+   * frase para um instrumento — determinístico por frase + instrumento.
+   */
+  var artCache = {};
+  function articulateFor(phrase, instrument) {
+    var key = phrase.id + '|' + phrase.index + '|' + instrument;
+    if (artCache[key]) return artCache[key];
+    var fam = ART.FAMILY[instrument] || 'fretted';
+    var base = phrase.events.map(function (e) {
+      var o = Object.assign({}, e);
+      if (fam === 'keys') { delete o.art; delete o.bendFrom; }
+      return o;
+    });
+    // Notas de sweep e de 3-notas-por-corda já têm a articulação certa (a
+    // palhetada é o que define o som): não recebem ligados extras.
+    var locked = [];
+    base.forEach(function (e, i) { if (e.tabHint && !e.art) locked.push(i); });
+    var ev = ART.articulate(base, {
+      style: phrase.style, level: phrase.level, instrument: instrument,
+      rng: makeRng(hashStr(key)), scalePcs: phrase.scalePcs, noLegatoIdx: locked
+    });
+    artCache[key] = ev;
+    return ev;
+  }
+
   function styleList() { return Object.keys(STYLES).map(function (k) { return { key: k, label: STYLES[k].label }; }); }
 
   // Escala sugerida ao trocar de estilo.
-  var STYLE_DEFAULT_SCALE = { bebop: 'bebop_dominante', jazz: 'dorico', blues: 'blues_menor', modal: 'dorico', rock: 'pentatonica_menor', baiao: 'mixolidio' };
+  var STYLE_DEFAULT_SCALE = { bebop: 'bebop_dominante', jazz: 'dorico', blues: 'blues_menor', modal: 'dorico', rock: 'pentatonica_menor', baiao: 'mixolidio', fusion: 'mixolidio' };
 
   return {
     KEYS: KEYS,
@@ -889,6 +1050,7 @@
     STYLES: STYLES,
     STYLE_DEFAULT_SCALE: STYLE_DEFAULT_SCALE,
     styleList: styleList,
+    articulateFor: articulateFor,
     generate: generate
   };
 });

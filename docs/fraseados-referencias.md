@@ -55,6 +55,28 @@ lick dos livros foi transcrito. O filtro de musicalidade aplica as regras
 dos materiais: notas do acorde nos tempos fortes, cromatismo de passagem
 resolvendo por semitom, cerco da nota-alvo, resolução numa nota estável.
 
+## Fusion — sweep picking (inspirado em Gambale)
+
+Estilo reproduzível, licks não: o sistema usa os **princípios** públicos da
+linguagem (sem transcrever frases de discos, livros ou vídeos):
+
+- Arpejo varrido: uma nota por corda, palhetada contínua na mesma direção;
+  vira na corda de cima com hammer-on/pull-off; sextinas como motor rítmico.
+- "O modo como arpejos": para cada modo, os arpejos de 4 sons que nascem
+  nos graus da escala são superpostos ao acorde (ex.: sobre C7 mixolídio,
+  Em7(b5) a partir da 3ª, Gm7 a partir da 5ª), sempre explicados.
+- 3 notas por corda com palhetada econômica ou legato; slides para mudar de
+  posição; chegada com vibrato.
+
+## Articulações
+
+Cada estilo tem um perfil de probabilidade de técnicas (`js/articulation.js`):
+blues e rock usam bend (1–2 semitons, só quando a nota de partida está na
+escala), release e vibrato; fusion vive de legato (até 3 ligados seguidos);
+bebop e baião quase não usam bend (linguagem de sopro/rabeca) e o bebop
+usa notas fantasma nos contratempos. Hammer-on/pull-off só entre notas de
+1 a 4 semitons; no teclado nada disso — só dinâmica.
+
 ## Ideias dos materiais que ficaram para depois
 
 - "Escala-arpejo" com notas vizinhas e os desenhos de 4 notas por corda
