@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ImprovisaLab — Teoria • Harmonia • Prática</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-icon">🎵</span>
+      <div>
+        <div class="brand-name">ImprovisaLab</div>
+        <div class="brand-sub">Teoria • Harmonia • Prática</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a href="#" class="nav-item active" data-nav="inicio">🏠 Início</a>
+      <a href="#" class="nav-item" data-nav="nova-analise">📊 Nova Análise</a>
+      <a href="#" class="nav-item is-soon" data-nav="meus-exercicios">📋 Meus Exercícios <span class="soon">Etapa 4</span></a>
+      <a href="#" class="nav-item is-soon" data-nav="favoritos">❤ Favoritos <span class="soon">Etapa 4</span></a>
+      <a href="#" class="nav-item is-soon" data-nav="historico">🕘 Histórico <span class="soon">Etapa 4</span></a>
+      <a href="#" class="nav-item is-soon" data-nav="biblioteca-escalas">📚 Biblioteca de Escalas <span class="soon">Etapa 5</span></a>
+      <a href="#" class="nav-item is-soon" data-nav="biblioteca-fraseados">🎼 Biblioteca de Fraseados <span class="soon">Etapa 5</span></a>
+      <a href="#" class="nav-item is-soon" data-nav="laboratorio">🧪 Laboratório <span class="soon">Etapa 5</span></a>
+      <a href="#" class="nav-item is-soon" data-nav="aulas">🎓 Aulas <span class="soon">Etapa 5</span></a>
+      <a href="#" class="nav-item is-soon" data-nav="config">⚙ Configurações <span class="soon">Etapa 4</span></a>
+    </nav>
+
+    <div class="upsell-card">
+      <div class="upsell-icon">🎸</div>
+      <div class="upsell-title">Domine a improvisação<br/>de forma simples e prática!</div>
+      <p class="upsell-text">Entenda a harmonia, descubra as escalas, toque frases reais e evolua no seu ritmo.</p>
+      <button class="btn-upsell" disabled title="Planos pagos chegam na Etapa 5">Upgrade para o Plano Pro</button>
+    </div>
+  </aside>
+
+  <!-- ===================== MAIN ===================== -->
+  <div class="main">
+
+    <!-- Header -->
+    <header class="topbar">
+      <div class="search">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Ex.: Gmaj7 | Em7 | Am7 | D7" id="quick-search" />
+      </div>
+      <div class="topbar-right">
+        <span class="bell" title="Notificações">🔔</span>
+        <div class="user">
+          <div class="avatar">A</div>
+          <div class="user-info">
+            <div class="user-name">Alex</div>
+            <div class="user-plan">Plano Gratuito</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- Hero + formulário -->
+      <section class="hero card">
+        <div class="hero-text">
+          <h1>Transforme acordes em ideias<br/>para improvisar.</h1>
+          <p>Digite a tonalidade ou a progressão de acordes e descubra as escalas, arpejos, notas-alvo e muito mais.</p>
+        </div>
+
+        <div class="form-row">
+          <div class="field">
+            <label>Tonalidade</label>
+            <select id="input-tonalidade"></select>
+          </div>
+          <div class="field">
+            <label>Instrumento</label>
+            <select id="input-instrumento">
+              <option value="guitarra">Guitarra</option>
+              <option value="teclado">Teclado / Piano</option>
+              <option value="baixo">Baixo</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Nível</label>
+            <select id="input-nivel">
+              <option value="iniciante">Iniciante</option>
+              <option value="intermediario" selected>Intermediário</option>
+              <option value="avancado">Avançado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field field-progressao">
+          <label>Progressão de acordes</label>
+          <div class="progressao-row">
+            <input type="text" id="input-progressao" placeholder="Ex.: Gmaj7 | Em7 | Am7 | D7" value="Gmaj7 | Em7 | Am7 | D7" />
+            <button id="btn-clear" class="btn-icon" title="Limpar">✕</button>
+            <button id="btn-analisar" class="btn-primary">🔍 Analisar Harmonia</button>
+          </div>
+          <div id="form-error" class="form-error" hidden></div>
+        </div>
+      </section>
+
+      <!-- Tabs -->
+      <nav class="tabs" id="tabs">
+        <button class="tab active" data-tab="visao-geral">🏠 Visão Geral</button>
+        <button class="tab" data-tab="escalas">📋 Escalas</button>
+        <button class="tab" data-tab="arpejos">🔷 Arpejos</button>
+        <button class="tab" data-tab="notas-alvo">🎯 Notas-alvo</button>
+        <button class="tab is-soon" data-tab="fraseados" title="Chega na Etapa 2">🎵 Fraseados</button>
+        <button class="tab is-soon" data-tab="exercicios" title="Chega na Etapa 4">📖 Exercícios</button>
+        <button class="tab is-soon" data-tab="teoria" title="Chega na Etapa 5">📄 Teoria</button>
+      </nav>
+
+      <!-- Grid principal -->
+      <div class="grid">
+
+        <!-- Coluna central -->
+        <div class="col-main">
+
+          <!-- Painel: Visão Geral -->
+          <section class="panel" data-panel="visao-geral">
+            <div class="card">
+              <div class="card-head">
+                <span class="card-icon">🎼</span>
+                <div>
+                  <div class="card-title">Análise da Harmonia</div>
+                  <div class="card-subtitle" id="analise-subtitulo">—</div>
+                </div>
+              </div>
+
+              <div class="chord-chain" id="chord-chain"></div>
+
+              <table class="theory-table" id="tabela-visao-geral">
+                <thead>
+                  <tr>
+                    <th>Acorde</th><th>Grau</th><th>Função</th><th>Notas do acorde</th><th>Escalas recomendadas</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Painel: Escalas -->
+          <section class="panel" data-panel="escalas" hidden>
+            <div class="card">
+              <div class="card-head">
+                <span class="card-icon">📋</span>
+                <div class="card-title">Escalas por acorde</div>
+              </div>
+              <div id="lista-escalas" class="scale-list"></div>
+            </div>
+          </section>
+
+          <!-- Painel: Arpejos -->
+          <section class="panel" data-panel="arpejos" hidden>
+            <div class="card">
+              <div class="card-head">
+                <span class="card-icon">🔷</span>
+                <div class="card-title">Arpejos por acorde</div>
+              </div>
+              <div id="lista-arpejos" class="scale-list"></div>
+            </div>
+          </section>
+
+          <!-- Painel: Notas-alvo -->
+          <section class="panel" data-panel="notas-alvo" hidden>
+            <div class="card">
+              <div class="card-head">
+                <span class="card-icon">🎯</span>
+                <div class="card-title">Notas-alvo por acorde</div>
+              </div>
+              <div id="lista-notas-alvo" class="target-list"></div>
+            </div>
+          </section>
+
+          <!-- Painéis futuros -->
+          <section class="panel" data-panel="fraseados" hidden>
+            <div class="card placeholder-card">
+              <div class="placeholder-icon">🎵</div>
+              <div class="placeholder-title">Fraseados prontos chegam na Etapa 2</div>
+              <p>Biblioteca de frases por acorde/escala, com tablatura, cifra e partitura — como no layout de referência.</p>
+            </div>
+          </section>
+          <section class="panel" data-panel="exercicios" hidden>
+            <div class="card placeholder-card">
+              <div class="placeholder-icon">📖</div>
+              <div class="placeholder-title">Exercícios salvos chegam na Etapa 4</div>
+              <p>Vai depender de login (Etapa 4) para guardar seu progresso.</p>
+            </div>
+          </section>
+          <section class="panel" data-panel="teoria" hidden>
+            <div class="card placeholder-card">
+              <div class="placeholder-icon">📄</div>
+              <div class="placeholder-title">Conteúdo teórico chega na Etapa 5</div>
+              <p>Explicações completas de campo harmônico, modos e improvisação.</p>
+            </div>
+          </section>
+
+          <!-- Fraseados e exercícios (placeholder, layout de referência) -->
+          <div class="two-col">
+            <div class="card placeholder-card small">
+              <div class="placeholder-icon">🎵</div>
+              <div class="placeholder-title">Fraseados e Exercícios</div>
+              <p>5 frases por acorde para praticar — Etapa 2.</p>
+            </div>
+            <div class="card placeholder-card small">
+              <div class="placeholder-icon">🎼</div>
+              <div class="placeholder-title">Exemplo de Fraseado</div>
+              <p>Tab · Partitura · Cifra · Áudio — Etapa 2 e 3.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Coluna lateral direita -->
+        <div class="col-side">
+          <div class="card side-card">
+            <div class="card-head small">
+              <span class="card-icon">🔊</span>
+              <div class="card-title">Ouça a progressão</div>
+            </div>
+            <p class="muted-note">Áudio da harmonia chega na Etapa 3 (síntese no navegador, sem custo).</p>
+            <button class="btn-secondary" disabled>▶ Em breve</button>
+          </div>
+
+          <div class="card side-card">
+            <div class="card-head small">
+              <span class="card-icon">🎯</span>
+              <div class="card-title">Notas-alvo</div>
+            </div>
+            <div id="side-notas-alvo" class="side-target-list"></div>
+          </div>
+
+          <div class="card side-card">
+            <div class="card-head small">
+              <span class="card-icon">💡</span>
+              <div class="card-title">Dicas rápidas</div>
+            </div>
+            <ul class="tips-list">
+              <li>Use a nota-alvo (a 3ª do acorde) para começar ou terminar sua frase com mais resolução.</li>
+              <li>Em acordes dominantes (7), experimente a escala Alterada para criar tensão antes de resolver.</li>
+              <li>A pentatônica menor "funciona por cima" de quase qualquer acorde do campo harmônico — comece por ela.</li>
+              <li>Toque a mesma frase em graus diferentes da progressão para ouvir como a função muda o efeito.</li>
+            </ul>
+          </div>
+
+          <div class="card side-card">
+            <div class="card-head small">
+              <span class="card-icon">🚀</span>
+              <div class="card-title">Próximos passos</div>
+            </div>
+            <ol class="steps-list">
+              <li>Aprenda o campo harmônico da tonalidade escolhida.</li>
+              <li>Veja a escala recomendada de cada acorde.</li>
+              <li>Pratique os arpejos (aba Arpejos).</li>
+              <li>Use as notas-alvo para começar/terminar frases.</li>
+              <li><em>Fraseados prontos e áudio chegam nas próximas etapas.</em></li>
+            </ol>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Rodapé com instrumentos -->
+    <footer class="instrument-bar">
+      <div class="foot-brand">🎵 ImprovisaLab · Sua evolução musical, um acorde de cada vez.</div>
+      <div class="instruments">
+        <span class="instr active" data-instr="guitarra">🎸 Guitarra</span>
+        <span class="instr active" data-instr="teclado">🎹 Teclado</span>
+        <span class="instr active" data-instr="baixo">🎸 Baixo</span>
+        <span class="instr soon">🎻 Violão</span>
+        <span class="instr soon">🎷 Sax</span>
+        <span class="instr soon">🎺 Trompete</span>
+        <span class="instr soon">🎻 Violino</span>
+        <span class="instr soon">🪈 Flauta</span>
+      </div>
+    </footer>
+
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/theory.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
