@@ -124,6 +124,7 @@ node tests/scaleinfo.test.js
 tests/fusion.smoke.js  Smoke test do menu Fusion e do som com samples
 tests/scaleinfo.test.js Testes da ficha das escalas — node tests/scaleinfo.test.js
 tests/scaleinfo.smoke.js Smoke test da ficha da escala na Biblioteca
+tests/som.smoke.js     Mede o volume real na saída de áudio em cada modo e instrumento
 tests/screenshot*.js   Scripts opcionais de checagem visual com Playwright (dev only)
 docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos, status e guias do Supabase/Planos
 ```

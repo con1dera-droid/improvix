@@ -338,6 +338,24 @@ escala de tons inteiros passou a ser grafada com b7 (G A B C# D# F, não E#).
 Testes: `tests/scaleinfo.test.js` (fichas completas, fórmulas conhecidas,
 intervalos batendo com os semitons) e `tests/scaleinfo.smoke.js`.
 
+## Correção: som baixo/sem som no modo "Real" — ✅ (2026-09-10)
+Os samples do FluidR3_GM vêm gravados muito baixos (pico ~0,1, cerca de
+−20 dB); somados à dinâmica, o modo *Real* saía quase inaudível. Agora:
+
+- cada amostra é **normalizada pelo pico** ao carregar (todas as notas com o
+  mesmo volume) e amostras mudas/corrompidas são descartadas (ex.: a nota 94
+  do violino);
+- toda a saída passa por um **compressor/limitador** (volume forte sem
+  estourar);
+- se os samples demorarem mais de 5 s para carregar, aquela vez toca com o
+  som sintetizado (e os samples entram na próxima);
+- o contexto de áudio é "destravado" no primeiro clique/tecla da página
+  (Safari/iOS).
+
+Medido no Chromium (pico na saída): Real 0,64–0,84, Drive 0,71, Sintetizado
+0,76, em todos os 8 instrumentos (antes: Real 0,05–0,11). Teste:
+`tests/som.smoke.js`.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
@@ -365,7 +383,7 @@ do escopo cobrado, mas vale registrar): leitura transposta de sax/trompete
 `js/notation.js`, `js/audio.js`, `js/articulation.js`, `js/scale-info.js`, `sounds/*.js` (+ `sounds/CREDITOS.md`), `js/lab.js`, `js/lessons.js`, `js/library.js`, `js/app.js`, `js/library-ui.js`,
 `js/config.js`, `js/supabaseClient.js`, `js/auth-ui.js`, `sql/schema.sql`,
 `tests/theory.test.js`, `tests/phrases.test.js`, `tests/lab.test.js`,
-`tests/lessons.test.js`, `tests/library.test.js`, `tests/articulation.test.js`, `tests/fusion.smoke.js`, `tests/scaleinfo.test.js`, `tests/scaleinfo.smoke.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
+`tests/lessons.test.js`, `tests/library.test.js`, `tests/articulation.test.js`, `tests/fusion.smoke.js`, `tests/scaleinfo.test.js`, `tests/scaleinfo.smoke.js`, `tests/som.smoke.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
 `tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`, `tests/etapa5.smoke.js`,
 `tests/etapa5.planos.smoke.js`, `tests/etapa5.laboratorio.smoke.js`,
 `tests/etapa5.aulas.smoke.js`, `tests/fraseados.smoke.js`, `tests/biblioteca.smoke.js`, `tests/screenshot*.js` (dev only),

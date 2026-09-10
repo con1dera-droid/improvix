@@ -63,8 +63,37 @@
       var Ctor = root.AudioContext || root.webkitAudioContext;
       ctx = new Ctor();
     }
-    if (ctx.state === 'suspended') ctx.resume();
+    if (ctx.state === 'suspended' || ctx.state === 'interrupted') { try { ctx.resume(); } catch (e) { /* ignora */ } }
     return ctx;
+  }
+
+  // Safari/iOS e alguns Chrome só liberam o som dentro de um clique: ao
+  // primeiro toque/tecla na página já "destrava" o contexto de áudio.
+  if (root.document && root.addEventListener) {
+    var unlock = function () {
+      try { getCtx(); } catch (e) { /* sem Web Audio */ }
+      root.removeEventListener('pointerdown', unlock, true);
+      root.removeEventListener('keydown', unlock, true);
+    };
+    root.addEventListener('pointerdown', unlock, true);
+    root.addEventListener('keydown', unlock, true);
+  }
+
+  // Saída: tudo passa por um compressor/limitador (volume forte sem estourar).
+  var outBus = null;
+  function getOut(ac) {
+    if (outBus && outBus.context === ac) return outBus;
+    var comp = ac.createDynamicsCompressor();
+    comp.threshold.value = -16;
+    comp.knee.value = 10;
+    comp.ratio.value = 4;
+    comp.attack.value = 0.003;
+    comp.release.value = 0.2;
+    var makeup = ac.createGain();
+    makeup.gain.value = 1.25;
+    comp.connect(makeup).connect(ac.destination);
+    outBus = comp;
+    return comp;
   }
 
   function midiToFreq(midi) { return 440 * Math.pow(2, (midi - 69) / 12); }
@@ -73,7 +102,8 @@
   // Samples
   // ---------------------------------------------------------------------
 
-  var buffers = {};   // conjunto -> [{midi, buffer}]
+  var buffers = {};   // conjunto -> [{midi, buffer, norm}]
+  var LOAD_TIMEOUT_MS = 5000;
   var loading = {};   // conjunto -> Promise
 
   function setFor(instrument) {
@@ -112,9 +142,19 @@
       var data = root.IL_SAMPLES[set];
       var keys = Object.keys(data);
       return Promise.all(keys.map(function (k) {
-        return decodeDataUri(ac, data[k]).then(function (buf) { return { midi: parseInt(k, 10), buffer: buf }; });
+        return decodeDataUri(ac, data[k]).then(function (buf) {
+          // As gravações vêm baixinhas (pico ~0,1): normaliza cada nota pelo
+          // pico, para todas soarem com o mesmo volume.
+          var ch = buf.getChannelData(0), peak = 0;
+          var n = Math.min(ch.length, Math.floor(buf.sampleRate * 1.2));
+          for (var i = 0; i < n; i++) { var a = ch[i] < 0 ? -ch[i] : ch[i]; if (a > peak) peak = a; }
+          return { midi: parseInt(k, 10), buffer: buf, norm: peak > 0.005 ? Math.min(14, 0.9 / peak) : 0 };
+        }, function () { return null; });
       }));
     }).then(function (list) {
+      // descarta amostras que não decodificaram ou vieram mudas
+      list = list.filter(function (x) { return x && x.norm > 0; });
+      if (!list.length) throw new Error('nenhuma amostra válida em ' + set);
       list.sort(function (a, b) { return a.midi - b.midi; });
       buffers[set] = list;
       return list;
@@ -133,9 +173,24 @@
   /** Garante os samples necessários; resolve com true (samples) ou false (usar síntese). */
   function ensureSets(sets) {
     if (soundMode === 'synth' || typeof root.document === 'undefined') return Promise.resolve(false);
-    return Promise.all(sets.map(loadSet)).then(function () { return true; }, function (err) {
+    var all = Promise.all(sets.map(loadSet)).then(function () { return true; }, function (err) {
       if (root.console) root.console.warn('ImprovisaLab: usando som sintetizado (' + (err && err.message) + ')');
       return false;
+    });
+    // Se os samples demorarem demais (computador lento, navegador que não
+    // decodifica), toca já com o som sintetizado; os samples continuam
+    // carregando e entram na próxima vez.
+    var already = sets.every(function (s) { return !!buffers[s]; });
+    if (already) return all;
+    var timeout = new Promise(function (resolve) {
+      setTimeout(function () { resolve('timeout'); }, LOAD_TIMEOUT_MS);
+    });
+    return Promise.race([all, timeout]).then(function (r) {
+      if (r === 'timeout') {
+        if (root.console) root.console.warn('ImprovisaLab: samples ainda carregando — tocando com som sintetizado desta vez');
+        return false;
+      }
+      return r;
     });
   }
 
@@ -161,7 +216,7 @@
       }
     });
     var g = ac.createGain();
-    var peak = (SAMPLE_GAIN[set] || 0.8) * v.vel;
+    var peak = (SAMPLE_GAIN[set] || 0.8) * v.vel * smp.norm * 0.55;
     var end = v.start + v.dur;
     var maxEnd = v.start + smp.buffer.duration / rate(p0.midi) - 0.02;
     if (end > maxEnd) end = maxEnd;
@@ -320,8 +375,9 @@
       }
       var t0 = ac.currentTime + 0.08;
       function timeOf(beat) { return t0 + swung(beat) * spb; }
-      var master = ac.createGain(); master.gain.value = 0.9; master.connect(ac.destination);
-      var comp = ac.createGain(); comp.gain.value = useSamples ? 0.32 : 0.3; comp.connect(ac.destination);
+      var out = getOut(ac);
+      var master = ac.createGain(); master.gain.value = 0.9; master.connect(out);
+      var comp = ac.createGain(); comp.gain.value = useSamples ? 0.4 : 0.3; comp.connect(out);
       activeNodes.push(master, comp);
 
       var noteEvents = events.filter(function (e) { return !e.rest; });
