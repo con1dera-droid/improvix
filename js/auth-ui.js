@@ -129,6 +129,7 @@
     favoritos: 'favoritos',
     historico: 'historico',
     laboratorio: 'laboratorio',
+    aulas: 'aulas',
     config: 'config'
   };
 
@@ -144,6 +145,7 @@
         else if (view === 'exercicios') renderExerciciosView();
         else if (view === 'config') renderConfigView();
         else if (view === 'laboratorio') renderLaboratorioView();
+        else if (view === 'aulas' && window.IL.ui.renderAulasView) window.IL.ui.renderAulasView();
       });
     });
   }

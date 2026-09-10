@@ -1,4 +1,4 @@
-# ImprovisaLab — Etapas 1 a 5 (instrumentos + planos + Laboratório)
+# ImprovisaLab — Etapas 1 a 5 (instrumentos + planos + Laboratório + Aulas)
 
 Sistema online de improvisação: transforma uma progressão de acordes em
 análise harmônica completa (campo harmônico, função de cada acorde, escalas,
@@ -32,6 +32,14 @@ Concluído até agora (ver `docs/PRD.md` e `docs/status.md`):
   gerador de progressões prontas para praticar, por estilo (Jazz, Blues,
   Pop/Rock, Modal). Sorteia uma progressão, explica o porquê dela funcionar,
   e manda direto para a análise com um clique.
+- **Etapa 5 (parte 4 — Aulas)**: novo item no menu, **livre** (sem login,
+  sem plano) — 8 lições curtas cobrindo campo harmônico, leitura de cifras,
+  escalas/modos, arpejos e notas-alvo, dominantes secundários, os 5 tipos de
+  frase, blues/turnarounds e ii–V–I. Cada lição pode trazer um exemplo
+  prático com um botão "Testar este exemplo" que manda direto para a
+  análise.
+
+Com isso, todo o escopo da Etapa 5 previsto em `docs/PRD.md` está entregue.
 
 O site continua sendo 100% estático (sem servidor próprio) — mesmo com login,
 quem guarda os dados é o Supabase (gratuito), acessado direto do navegador.
@@ -61,6 +69,7 @@ js/phrases.js         Gerador de fraseados (Etapa 2): uma frase por acorde + res
 js/notation.js        Realização de oitavas, tablatura e partitura simplificada (Etapa 2)
 js/audio.js           Síntese de áudio via Web Audio API (Etapa 3): progressão e fraseados
 js/lab.js             Gerador de progressões do Laboratório (Etapa 5, parte 3): modelos por estilo
+js/lessons.js         Conteúdo das Aulas (Etapa 5, parte 4): lições + exemplos práticos
 js/app.js             Liga a tela aos motores (sem framework, JS puro)
 js/config.js          Configuração do Supabase (Etapa 4) — troque pelos dados do seu projeto
 js/supabaseClient.js  Camada fina sobre o supabase-js: auth + CRUD de analises/favoritos/exercicios
@@ -77,7 +86,9 @@ tests/etapa4.e2e.js    Teste completo de cadastro/login/salvar/favoritar/exercí
 tests/etapa5.smoke.js  Smoke test dos novos instrumentos (select, rodapé, tab/partitura, áudio)
 tests/etapa5.planos.smoke.js Smoke test do gate Gratuito/Pro (nível Avançado, Configurações)
 tests/etapa5.laboratorio.smoke.js Smoke test do Laboratório (bloqueio, sorteio, enviar para análise)
+tests/etapa5.aulas.smoke.js Smoke test das Aulas (acesso livre, lista, exemplo -> análise)
 tests/lab.test.js      Testes automáticos do gerador de progressões (node tests/lab.test.js)
+tests/lessons.test.js  Testes automáticos do conteúdo das Aulas (node tests/lessons.test.js)
 tests/screenshot*.js   Scripts opcionais de checagem visual com Playwright (dev only)
 docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos, status e guias do Supabase/Planos
 ```
@@ -88,6 +99,7 @@ docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos,
 node tests/theory.test.js
 node tests/phrases.test.js
 node tests/lab.test.js
+node tests/lessons.test.js
 ```
 
 `tests/audio.smoke.js`, `tests/etapa4.smoke.js`, `tests/etapa4.smoke2.js`,
@@ -103,6 +115,7 @@ node tests/etapa4.e2e.js
 node tests/etapa5.smoke.js
 node tests/etapa5.planos.smoke.js
 node tests/etapa5.laboratorio.smoke.js
+node tests/etapa5.aulas.smoke.js
 ```
 
 Todos os testes devem passar antes de qualquer alteração ser considerada
@@ -140,6 +153,16 @@ praticar (Jazz, Blues, Pop/Rock, Modal), com explicação de cada uma e um
 botão para mandar direto para a análise (fraseados, tab/partitura e áudio
 saem na hora). Os modelos ficam em `js/lab.js`.
 
+## Aulas (Etapa 5)
+
+Item "🎓 Aulas" no menu lateral — **livre**, sem precisar de login nem de
+plano Pro. 8 lições curtas (campo harmônico, leitura de cifras, escalas e
+modos, arpejos e notas-alvo, dominantes secundários, os 5 tipos de frase,
+blues/turnarounds, ii–V–I) com um botão "Testar este exemplo" em cada uma
+que manda a progressão de exemplo direto para a análise. Conteúdo em
+`js/lessons.js`.
+
 ## Roadmap
 
-Ver `docs/PRD.md` para o roadmap completo. Falta, na Etapa 5: Aulas.
+Ver `docs/PRD.md` para o roadmap completo. Com a Etapa 5 (instrumentos,
+planos, Laboratório e Aulas), todo o escopo original do PRD foi entregue.

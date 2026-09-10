@@ -11,6 +11,7 @@
   var phrasesMod = window.IL.phrases;
   var notation = window.IL.notation;
   var audio = window.IL.audio;
+  var lessonsMod = window.IL.lessons;
 
   var NOTE_ORDER = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   var FLAT_SPELLING = { 'C#': 'Db', 'D#': 'Eb', 'F#': 'Gb', 'G#': 'Ab', 'A#': 'Bb' };
@@ -42,7 +43,8 @@
     phrases: [],
     selectedPhraseIndex: 0,
     selectedView: 'tab',
-    lastResult: null
+    lastResult: null,
+    selectedLessonId: null
   };
 
   function resetAudioButtons() {
@@ -411,6 +413,84 @@
     });
   }
 
+  // ===================== Aulas (Etapa 5, parte 4) =====================
+  // Módulo livre — não depende de login nem de plano. Conteúdo em
+  // js/lessons.js; aqui só a renderização (lista + detalhe) e o botão
+  // "Testar este exemplo", que reaproveita o mesmo fluxo do Laboratório
+  // (preenche tonalidade/progressão e roda a análise).
+
+  function renderAulasList() {
+    var wrap = document.getElementById('lista-aulas');
+    if (!wrap || !lessonsMod) return;
+    wrap.innerHTML = '';
+    lessonsMod.LESSONS.forEach(function (l) {
+      var item = el('div', 'aula-item' + (l.id === state.selectedLessonId ? ' active' : ''));
+      item.setAttribute('data-lesson-id', l.id);
+      item.innerHTML =
+        '<div class="aula-categoria">' + l.categoria + '</div>' +
+        '<div class="aula-titulo">' + l.titulo + '</div>' +
+        '<div class="aula-resumo">' + l.resumo + '</div>';
+      wrap.appendChild(item);
+    });
+  }
+
+  function renderAulaDetalhe() {
+    var wrap = document.getElementById('aula-detalhe');
+    if (!wrap || !lessonsMod) return;
+    var lesson = lessonsMod.byId(state.selectedLessonId);
+    if (!lesson) {
+      wrap.innerHTML = '<p class="muted-note">Escolha uma lição na lista ao lado.</p>';
+      return;
+    }
+
+    var html =
+      '<div class="aula-detalhe-categoria">' + lesson.categoria + '</div>' +
+      '<h3 class="aula-detalhe-titulo">' + lesson.titulo + '</h3>';
+    lesson.corpo.forEach(function (paragrafo) {
+      html += '<p class="aula-paragrafo">' + paragrafo + '</p>';
+    });
+    if (lesson.exemplo) {
+      html +=
+        '<div class="aula-exemplo">' +
+        '<div class="aula-exemplo-label">Exemplo prático</div>' +
+        '<div class="aula-exemplo-progressao">' + lesson.exemplo.progressao + '</div>' +
+        '<button class="btn-secondary" id="btn-aula-testar">▶ Testar este exemplo</button>' +
+        '</div>';
+    }
+    wrap.innerHTML = html;
+
+    var btn = document.getElementById('btn-aula-testar');
+    if (btn) {
+      btn.addEventListener('click', function () {
+        document.getElementById('input-tonalidade').value = lesson.exemplo.tonalidade + '|' + lesson.exemplo.modo;
+        document.getElementById('input-progressao').value = lesson.exemplo.progressao;
+        window.IL.ui.switchView('inicio');
+        window.IL.ui.switchTab('visao-geral');
+        runAnalysis();
+      });
+    }
+  }
+
+  function renderAulasView() {
+    if (!state.selectedLessonId && lessonsMod && lessonsMod.LESSONS.length > 0) {
+      state.selectedLessonId = lessonsMod.LESSONS[0].id;
+    }
+    renderAulasList();
+    renderAulaDetalhe();
+  }
+
+  function setupAulas() {
+    var wrap = document.getElementById('lista-aulas');
+    if (!wrap) return;
+    wrap.addEventListener('click', function (ev) {
+      var item = ev.target.closest('[data-lesson-id]');
+      if (!item) return;
+      state.selectedLessonId = item.getAttribute('data-lesson-id');
+      renderAulasList();
+      renderAulaDetalhe();
+    });
+  }
+
   // ===================== Áudio da progressão (Etapa 3) =====================
 
   function highlightChord(index) {
@@ -522,6 +602,7 @@
     setupAudioProgressao();
     setupInstrumentBar();
     setupPlanGate();
+    setupAulas();
     runAnalysis(); // já mostra um exemplo ao abrir, como no layout de referência
   });
 
@@ -534,6 +615,9 @@
     // Etapa 5 (Planos): js/auth-ui.js chama isso após login/logout/troca de
     // plano para revalidar o nível Avançado (exclusivo Pro).
     onAccountChange: updateNivelGateUI,
+    // Etapa 5 (Aulas): js/auth-ui.js chama isso ao navegar para "Aulas" —
+    // módulo livre, sem depender de conta/plano.
+    renderAulasView: renderAulasView,
     switchTab: function (tabName) {
       document.querySelectorAll('.tab').forEach(function (t) {
         t.classList.toggle('active', t.getAttribute('data-tab') === tabName);

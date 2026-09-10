@@ -162,18 +162,68 @@ Primeiro recurso do módulo **Laboratório** (exclusivo Pro, previsto em
   um novo smoke test `tests/etapa5.laboratorio.smoke.js` (bloqueio por
   plano, sorteio, e o fluxo completo até a análise aparecer preenchida).
 
+## Etapa 5 (parte 4 — Aulas) — ✅ Concluída (2026-09-10)
+Módulo **Aulas** (previsto em `docs/matriz-rbac.md`): conteúdo educacional
+estruturado, **livre** — ao contrário de Fraseados Avançado e Laboratório,
+não depende de login nem de plano Pro.
+
+- Novo item "🎓 Aulas" no menu lateral, sem nenhum bloqueio (antes ficava
+  com o rótulo "Etapa 5"/`is-soon`).
+- **8 lições curtas**, organizadas por categoria: Fundamentos (campo
+  harmônico e funções; como ler cifras), Escalas (modos da escala maior +
+  escalas de cor; arpejos e notas-alvo), Harmonia avançada (dominantes
+  secundários), Fraseados (os 5 tipos de frase gerados pelo motor) e
+  Estilos (blues de 12 compassos e turnarounds; ii–V–I e giros de jazz).
+  Cada lição referencia as telas/recursos correspondentes do próprio
+  ImprovisaLab (Visão Geral, Escalas, Arpejos, Fraseados, Laboratório).
+- Cada lição pode trazer um **exemplo prático** (tonalidade + progressão);
+  o botão "Testar este exemplo" manda direto para a análise, reaproveitando
+  o mesmo fluxo já usado pelo Laboratório ("Analisar esta progressão").
+- `js/lessons.js` (novo módulo, testável em Node como `theory.js`/`lab.js`):
+  só dados (lista de lições) + `byId()`, sem lógica de UI.
+
+Testes automáticos: 6 testes em `tests/lessons.test.js` (estrutura completa
+de cada lição, ids únicos, `byId()`, e — o mais importante — cada
+`exemplo.progressao` é validado contra o motor de teoria de verdade,
+garantindo que nenhum exemplo didático tem um acorde que o próprio sistema
+não reconheceria) e um novo smoke test `tests/etapa5.aulas.smoke.js`
+(acesso sem login, lista renderizada, troca de lição, "Testar este
+exemplo" preenchendo e rodando a análise).
+
+Com isso, todo o escopo original da Etapa 5 do `docs/PRD.md` está
+entregue: mais instrumentos, planos Gratuito/Pro, Laboratório e Aulas.
+
 ## Próxima etapa
-Etapa 5 (parte 4) — Aulas (ver `docs/PRD.md` para o escopo completo). Depois
-disso a Etapa 5 do PRD fica com todo o escopo original entregue.
+Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
+ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
+
+- **"Plano Pro pago"**: o PRD prevê cobrança de verdade. Como pedido pelo
+  usuário ("inicialmente sem custo"), isso não foi implementado — não existe
+  gateway de pagamento nem botão de "assinar"/"pagar" em lugar nenhum do
+  site (um botão desses sem processar pagamento de verdade seria enganoso).
+  A distinção Gratuito/Pro existe e funciona (nível Avançado + Laboratório),
+  só que virar Pro hoje é manual, via SQL Editor do Supabase — ver
+  `docs/etapa5-planos.md`. Cobrança real fica para quando o usuário decidir
+  monetizar (exigiria escolher um provedor de pagamento, ex. Stripe).
+- **"Exercícios avançados"**: coberto pelo nível Avançado dos fraseados
+  (Etapa 5, parte 2 — exclusivo Pro: 3ª escala recomendada + frases de
+  "tensão"), que já é o mecanismo de "exercício mais difícil" do sistema.
+  Não foi criado um módulo separado disso, por já estar coberto.
+
+Fora isso, itens documentados como simplificação assumida (não fazem parte
+do escopo cobrado, mas vale registrar): leitura transposta de sax/trompete
+(Etapa 5, parte 1) e Bibliotecas de Escalas/Fraseados de navegação livre
+(`docs/modulos.md`).
 
 ## Arquivos do projeto
 `index.html`, `css/styles.css`, `js/data.js`, `js/theory.js`, `js/phrases.js`,
-`js/notation.js`, `js/audio.js`, `js/lab.js`, `js/app.js`, `js/config.js`,
-`js/supabaseClient.js`, `js/auth-ui.js`, `sql/schema.sql`,
+`js/notation.js`, `js/audio.js`, `js/lab.js`, `js/lessons.js`, `js/app.js`,
+`js/config.js`, `js/supabaseClient.js`, `js/auth-ui.js`, `sql/schema.sql`,
 `tests/theory.test.js`, `tests/phrases.test.js`, `tests/lab.test.js`,
-`tests/audio.smoke.js`, `tests/etapa4.smoke.js`, `tests/etapa4.smoke2.js`,
-`tests/etapa4.e2e.js`, `tests/etapa5.smoke.js`, `tests/etapa5.planos.smoke.js`,
-`tests/etapa5.laboratorio.smoke.js`, `tests/screenshot*.js` (dev only),
+`tests/lessons.test.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
+`tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`, `tests/etapa5.smoke.js`,
+`tests/etapa5.planos.smoke.js`, `tests/etapa5.laboratorio.smoke.js`,
+`tests/etapa5.aulas.smoke.js`, `tests/screenshot*.js` (dev only),
 `docs/PRD.md`, `docs/mapa-do-sistema.md`, `docs/matriz-rbac.md`,
 `docs/modulos.md`, `docs/status.md`, `docs/etapa4-supabase.md`,
 `docs/etapa5-planos.md`, `README.md`.

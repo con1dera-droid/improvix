@@ -464,9 +464,35 @@ select, input[type="text"] {
 }
 .lab-card-explicacao { font-size: 0.83rem; color: var(--text-dim); margin: 0 0 1rem; }
 
+/* Aulas (Etapa 5, parte 4) */
+.aulas-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 1.25rem; align-items: start; }
+.aulas-list { display: flex; flex-direction: column; gap: 0.5rem; max-height: 560px; overflow-y: auto; }
+.aula-item {
+  border: 1px solid var(--border); border-radius: 10px; padding: 0.65rem 0.8rem; cursor: pointer;
+  background: var(--bg-card); transition: background 0.15s, border-color 0.15s;
+}
+.aula-item:hover { background: var(--bg-elevated); }
+.aula-item.active { border-color: var(--accent); background: var(--bg-elevated); }
+.aula-categoria { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--accent); margin-bottom: 0.15rem; }
+.aula-titulo { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.2rem; }
+.aula-resumo { font-size: 0.72rem; color: var(--text-muted); }
+
+.aula-detalhe-categoria { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--accent); margin-bottom: 0.3rem; }
+.aula-detalhe-titulo { margin: 0 0 0.8rem; }
+.aula-paragrafo { font-size: 0.86rem; line-height: 1.55; color: var(--text-dim); margin: 0 0 0.8rem; }
+.aula-exemplo {
+  border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem; background: var(--bg-elevated); margin-top: 1rem;
+}
+.aula-exemplo-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); margin-bottom: 0.4rem; }
+.aula-exemplo-progressao {
+  font-family: monospace; font-size: 0.95rem; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.5rem 0.7rem; margin-bottom: 0.7rem;
+}
+
 @media (max-width: 640px) {
   .plan-compare { grid-template-columns: 1fr; }
   .lab-controls { flex-direction: column; align-items: stretch; }
+  .aulas-grid { grid-template-columns: 1fr; }
 }
 
 /* Modal de login/cadastro */
