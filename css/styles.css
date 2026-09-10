@@ -445,8 +445,28 @@ select, input[type="text"] {
 }
 .plan-gate-note a { color: var(--accent); }
 
+/* Laboratório (Etapa 5, parte 3) */
+.lab-controls {
+  display: flex; align-items: flex-end; gap: 0.9rem; flex-wrap: wrap; margin: 0.9rem 0 1.1rem;
+}
+.lab-controls select {
+  background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text);
+  border-radius: 8px; padding: 0.5rem 0.6rem; font-size: 0.85rem; min-width: 160px;
+}
+.lab-controls .btn-primary { flex-shrink: 0; }
+.lab-card {
+  border: 1px solid var(--accent); border-radius: 10px; padding: 1rem; background: var(--bg-elevated);
+}
+.lab-card-title { font-weight: 700; margin-bottom: 0.5rem; }
+.lab-card-progressao {
+  font-family: monospace; font-size: 1rem; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 0.7rem;
+}
+.lab-card-explicacao { font-size: 0.83rem; color: var(--text-dim); margin: 0 0 1rem; }
+
 @media (max-width: 640px) {
   .plan-compare { grid-template-columns: 1fr; }
+  .lab-controls { flex-direction: column; align-items: stretch; }
 }
 
 /* Modal de login/cadastro */

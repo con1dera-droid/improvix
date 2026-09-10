@@ -28,7 +28,7 @@
       <a href="#" class="nav-item" data-nav="historico">🕘 Histórico</a>
       <a href="#" class="nav-item is-soon" data-nav="biblioteca-escalas">📚 Biblioteca de Escalas <span class="soon">Etapa 5</span></a>
       <a href="#" class="nav-item is-soon" data-nav="biblioteca-fraseados">🎼 Biblioteca de Fraseados <span class="soon">Etapa 5</span></a>
-      <a href="#" class="nav-item is-soon" data-nav="laboratorio">🧪 Laboratório <span class="soon">Etapa 5</span></a>
+      <a href="#" class="nav-item" data-nav="laboratorio">🧪 Laboratório <span class="soon">Pro</span></a>
       <a href="#" class="nav-item is-soon" data-nav="aulas">🎓 Aulas <span class="soon">Etapa 5</span></a>
       <a href="#" class="nav-item" data-nav="config">⚙ Configurações</a>
     </nav>
@@ -350,6 +350,18 @@
       </div>
     </div>
 
+    <!-- View: Laboratório (Etapa 5, parte 3) -->
+    <div class="content view" data-view="laboratorio" hidden>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-icon">🧪</span>
+          <div class="card-title">Laboratório</div>
+          <span class="plan-badge plan-badge-pro" style="margin-left:auto;">Pro</span>
+        </div>
+        <div id="lab-conteudo"></div>
+      </div>
+    </div>
+
     <!-- Modal de login/cadastro (Etapa 4) -->
     <div class="modal-overlay" id="auth-modal" hidden>
       <div class="modal">
@@ -394,6 +406,7 @@
 <script src="js/phrases.js"></script>
 <script src="js/notation.js"></script>
 <script src="js/audio.js"></script>
+<script src="js/lab.js"></script>
 <script src="js/app.js"></script>
 
 <!-- Etapa 4: contas de usuário (Supabase). Se js/config.js ainda tiver os

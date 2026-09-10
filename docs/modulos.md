@@ -12,7 +12,7 @@
 | Meus Exercícios | Opcional (flag `exercicios`, depende de `contas`) | 4 | Exercícios salvos e progresso do usuário. |
 | Planos (Gratuito/Pro) | Opcional (flag `planos`, depende de `contas`) — ✅ Etapa 5 (parte 2) | 4/5 | Controla o que cada usuário pode acessar. Hoje gate o nível Avançado dos fraseados; Laboratório vai depender dele quando sair. Sem cobrança configurada — virar Pro é manual (`docs/etapa5-planos.md`). |
 | Mais instrumentos (violão, sax, trompete, violino, flauta) | Opcional (flag `instrumentos_extra`) | 5 | Expande o motor e as telas para os instrumentos restantes da barra inferior do layout. |
-| Laboratório | Opcional (flag `laboratorio`) | 5 | Recursos experimentais/avançados, exclusivo Pro. |
+| Laboratório | Opcional (flag `laboratorio`), depende de `planos` (Pro) — ✅ Etapa 5 (parte 3) | 5 | Recursos experimentais/avançados, exclusivo Pro. Primeiro recurso: gerador de progressões prontas para praticar por estilo (Jazz, Blues, Pop/Rock, Modal), com botão para enviar direto à análise. |
 | Aulas | Opcional (flag `aulas`) | 5 | Conteúdo educacional estruturado. |
 | Biblioteca de Escalas / Biblioteca de Fraseados (navegação livre) | Opcional (flag `bibliotecas`) | 5 | Telas de consulta livre, fora do fluxo de "analisar uma progressão". |
 

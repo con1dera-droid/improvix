@@ -132,20 +132,51 @@ usuário Gratuito bloqueado, usuário Pro liberado (3 escalas + frase de
 tensão confirmadas), Configurações sem nenhum botão de pagamento, e a
 reversão automática do nível ao sair da conta.
 
+## Etapa 5 (parte 3 — Laboratório) — ✅ Concluída (2026-09-10)
+Primeiro recurso do módulo **Laboratório** (exclusivo Pro, previsto em
+`docs/matriz-rbac.md`): um gerador de progressões prontas para praticar.
+
+- Novo item "🧪 Laboratório" no menu lateral, agora aberto para navegação
+  (antes ficava com o rótulo "Etapa 5"/`is-soon`). Segue o mesmo padrão de
+  bloqueio das outras telas de conta: visitante vê um convite para entrar,
+  usuário Gratuito vê o comparativo de planos explicando que é exclusivo
+  Pro, usuário Pro vê a ferramenta de verdade — sempre reaproveitando
+  `planComparisonHTML()` (sem nenhum botão de pagamento, mesma lógica da
+  Etapa 5 parte 2).
+- **A ferramenta**: escolhe uma tonalidade e um estilo (Jazz, Blues,
+  Pop/Rock ou Modal/empréstimo) e sorteia uma entre 8 progressões prontas
+  (ex.: ii–V–I e giros de jazz, blues de 12 compassos, "a progressão pop",
+  empréstimos modais como bVII e bVI) — cada uma com uma explicação curta
+  do porquê ela funciona. Um botão "Analisar esta progressão" manda tudo
+  direto para a tela principal (fraseados, tab/partitura/cifra e áudio
+  saem na hora, sem digitar nada).
+- `js/lab.js` (novo módulo, testável em Node como `theory.js`/`phrases.js`):
+  cada modelo é uma lista de graus (afastamento da tônica em passos de
+  letra + semitons, o mesmo método de `noteAt` do motor de teoria) e uma
+  qualidade de acorde — isso garante grafia correta mesmo em graus
+  emprestados (ex.: bVII de C vira Bb, nunca A#) e em tonalidades com
+  bemóis (ex.: ii–V–I em Bb vira Cm7 | F7 | Bbmaj7, sem sustenidos).
+- 9 testes automáticos em `tests/lab.test.js` (grafia correta em tonalidades
+  com sustenido/bemol, blues com 12 acordes todos dominantes, cada símbolo
+  gerado é reconhecido de volta pelo parser de cifras do motor de teoria) e
+  um novo smoke test `tests/etapa5.laboratorio.smoke.js` (bloqueio por
+  plano, sorteio, e o fluxo completo até a análise aparecer preenchida).
+
 ## Próxima etapa
-Etapa 5 (partes 3 e 4) — Laboratório (exclusivo Pro) e Aulas (ver
-`docs/PRD.md` para o escopo completo).
+Etapa 5 (parte 4) — Aulas (ver `docs/PRD.md` para o escopo completo). Depois
+disso a Etapa 5 do PRD fica com todo o escopo original entregue.
 
 ## Arquivos do projeto
 `index.html`, `css/styles.css`, `js/data.js`, `js/theory.js`, `js/phrases.js`,
-`js/notation.js`, `js/audio.js`, `js/app.js`, `js/config.js`,
+`js/notation.js`, `js/audio.js`, `js/lab.js`, `js/app.js`, `js/config.js`,
 `js/supabaseClient.js`, `js/auth-ui.js`, `sql/schema.sql`,
-`tests/theory.test.js`, `tests/phrases.test.js`, `tests/audio.smoke.js`,
-`tests/etapa4.smoke.js`, `tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`,
-`tests/etapa5.smoke.js`, `tests/etapa5.planos.smoke.js`,
-`tests/screenshot*.js` (dev only), `docs/PRD.md`, `docs/mapa-do-sistema.md`,
-`docs/matriz-rbac.md`, `docs/modulos.md`, `docs/status.md`,
-`docs/etapa4-supabase.md`, `docs/etapa5-planos.md`, `README.md`.
+`tests/theory.test.js`, `tests/phrases.test.js`, `tests/lab.test.js`,
+`tests/audio.smoke.js`, `tests/etapa4.smoke.js`, `tests/etapa4.smoke2.js`,
+`tests/etapa4.e2e.js`, `tests/etapa5.smoke.js`, `tests/etapa5.planos.smoke.js`,
+`tests/etapa5.laboratorio.smoke.js`, `tests/screenshot*.js` (dev only),
+`docs/PRD.md`, `docs/mapa-do-sistema.md`, `docs/matriz-rbac.md`,
+`docs/modulos.md`, `docs/status.md`, `docs/etapa4-supabase.md`,
+`docs/etapa5-planos.md`, `README.md`.
 
 Entregue na pasta local do usuário: `IMPROVIX/` (repositório git, um commit
 por etapa).

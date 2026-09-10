@@ -1,4 +1,4 @@
-# ImprovisaLab — Etapas 1 a 5 (mais instrumentos + planos Gratuito/Pro)
+# ImprovisaLab — Etapas 1 a 5 (instrumentos + planos + Laboratório)
 
 Sistema online de improvisação: transforma uma progressão de acordes em
 análise harmônica completa (campo harmônico, função de cada acorde, escalas,
@@ -28,6 +28,10 @@ Concluído até agora (ver `docs/PRD.md` e `docs/status.md`):
   exclusivo do plano Pro. Sem cobrança configurada ainda — virar Pro é
   manual por enquanto (ver `docs/etapa5-planos.md`), sem nenhum botão de
   pagamento na tela.
+- **Etapa 5 (parte 3 — Laboratório)**: novo item no menu, exclusivo Pro —
+  gerador de progressões prontas para praticar, por estilo (Jazz, Blues,
+  Pop/Rock, Modal). Sorteia uma progressão, explica o porquê dela funcionar,
+  e manda direto para a análise com um clique.
 
 O site continua sendo 100% estático (sem servidor próprio) — mesmo com login,
 quem guarda os dados é o Supabase (gratuito), acessado direto do navegador.
@@ -56,6 +60,7 @@ js/theory.js          Motor de teoria musical (parser de cifra, análise da prog
 js/phrases.js         Gerador de fraseados (Etapa 2): uma frase por acorde + resolução
 js/notation.js        Realização de oitavas, tablatura e partitura simplificada (Etapa 2)
 js/audio.js           Síntese de áudio via Web Audio API (Etapa 3): progressão e fraseados
+js/lab.js             Gerador de progressões do Laboratório (Etapa 5, parte 3): modelos por estilo
 js/app.js             Liga a tela aos motores (sem framework, JS puro)
 js/config.js          Configuração do Supabase (Etapa 4) — troque pelos dados do seu projeto
 js/supabaseClient.js  Camada fina sobre o supabase-js: auth + CRUD de analises/favoritos/exercicios
@@ -71,6 +76,8 @@ tests/etapa4.e2e.js    Teste completo de cadastro/login/salvar/favoritar/exercí
                        um projeto Supabase real, mas cobre toda a lógica de UI)
 tests/etapa5.smoke.js  Smoke test dos novos instrumentos (select, rodapé, tab/partitura, áudio)
 tests/etapa5.planos.smoke.js Smoke test do gate Gratuito/Pro (nível Avançado, Configurações)
+tests/etapa5.laboratorio.smoke.js Smoke test do Laboratório (bloqueio, sorteio, enviar para análise)
+tests/lab.test.js      Testes automáticos do gerador de progressões (node tests/lab.test.js)
 tests/screenshot*.js   Scripts opcionais de checagem visual com Playwright (dev only)
 docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos, status e guias do Supabase/Planos
 ```
@@ -80,6 +87,7 @@ docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos,
 ```
 node tests/theory.test.js
 node tests/phrases.test.js
+node tests/lab.test.js
 ```
 
 `tests/audio.smoke.js`, `tests/etapa4.smoke.js`, `tests/etapa4.smoke2.js`,
@@ -94,6 +102,7 @@ node tests/etapa4.smoke2.js
 node tests/etapa4.e2e.js
 node tests/etapa5.smoke.js
 node tests/etapa5.planos.smoke.js
+node tests/etapa5.laboratorio.smoke.js
 ```
 
 Todos os testes devem passar antes de qualquer alteração ser considerada
@@ -123,7 +132,14 @@ configurada nesta instalação — virar Pro é manual (um `update` no SQL
 Editor do Supabase), documentado em `docs/etapa5-planos.md`, que também
 explica a trava de segurança que impede um usuário de se autopromover.
 
+## Laboratório (Etapa 5)
+
+Exclusivo do plano Pro — item "🧪 Laboratório" no menu lateral. Por
+enquanto tem uma ferramenta: um gerador de progressões prontas para
+praticar (Jazz, Blues, Pop/Rock, Modal), com explicação de cada uma e um
+botão para mandar direto para a análise (fraseados, tab/partitura e áudio
+saem na hora). Os modelos ficam em `js/lab.js`.
+
 ## Roadmap
 
-Ver `docs/PRD.md` para o roadmap completo. Falta, na Etapa 5: Laboratório
-(exclusivo Pro) e Aulas.
+Ver `docs/PRD.md` para o roadmap completo. Falta, na Etapa 5: Aulas.

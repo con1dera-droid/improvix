@@ -128,6 +128,7 @@
     'meus-exercicios': 'exercicios',
     favoritos: 'favoritos',
     historico: 'historico',
+    laboratorio: 'laboratorio',
     config: 'config'
   };
 
@@ -142,6 +143,7 @@
         else if (view === 'favoritos') renderFavoritosView();
         else if (view === 'exercicios') renderExerciciosView();
         else if (view === 'config') renderConfigView();
+        else if (view === 'laboratorio') renderLaboratorioView();
       });
     });
   }
@@ -296,7 +298,7 @@
       '<ul class="plan-features">' +
       '<li>Tudo do Gratuito, mais:</li>' +
       '<li>Fraseados nível <strong>Avançado</strong> (3ª escala recomendada por acorde e frases de tensão)</li>' +
-      '<li><span class="soon">Laboratório</span> — chega numa próxima etapa</li>' +
+      '<li><strong>Laboratório</strong> — gerador de progressões para praticar (Jazz, Blues, Pop, Modal)</li>' +
       '</ul>' +
       '</div>' +
       '</div>' +
@@ -324,6 +326,83 @@
       '<button class="btn-secondary btn-config-sair" id="btn-sair-config">Sair da conta</button>' +
       planComparisonHTML();
     $('btn-sair-config').addEventListener('click', handleSignOut);
+  }
+
+  // ---------------- Laboratório (Etapa 5, parte 3) ----------------
+  // Exclusivo Pro. O primeiro experimento é um gerador de progressões
+  // prontas para praticar (js/lab.js cuida da teoria; aqui só a tela).
+
+  var lab = window.IL.lab;
+  var labLastResult = null;
+  var NOTE_ORDER_LAB = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+  function labToneOptionsHTML() {
+    return NOTE_ORDER_LAB.map(function (n) { return '<option value="' + n + '">' + n + '</option>'; }).join('');
+  }
+
+  function labCategoryOptionsHTML() {
+    var opts = '<option value="todas">Todos os estilos</option>';
+    opts += lab.CATEGORIES.map(function (c) { return '<option value="' + c.key + '">' + c.label + '</option>'; }).join('');
+    return opts;
+  }
+
+  function renderLabResultado(result) {
+    labLastResult = result;
+    var wrap = $('lab-resultado');
+    if (!result) { wrap.innerHTML = ''; return; }
+    wrap.innerHTML =
+      '<div class="lab-card">' +
+      '<div class="lab-card-title">' + result.template.label + '</div>' +
+      '<div class="lab-card-progressao">' + result.progressionText + '</div>' +
+      '<p class="lab-card-explicacao">' + result.template.explanation + '</p>' +
+      '<button class="btn-primary" id="btn-lab-analisar">Analisar esta progressão →</button>' +
+      '</div>';
+    $('btn-lab-analisar').addEventListener('click', function () {
+      if (!labLastResult) return;
+      $('input-tonalidade').value = labLastResult.tonic + '|' + labLastResult.mode;
+      $('input-progressao').value = labLastResult.progressionText;
+      window.IL.ui.switchView('inicio');
+      window.IL.ui.switchTab('visao-geral');
+      window.IL.ui.runAnalysis();
+    });
+  }
+
+  function sortearProgressao() {
+    var tonica = $('lab-tonica').value;
+    var categoria = $('lab-categoria').value;
+    renderLabResultado(lab.generateRandom(tonica, categoria));
+  }
+
+  function renderLabTool() {
+    var wrap = $('lab-conteudo');
+    wrap.innerHTML =
+      '<p class="muted-note">Sorteie uma progressão pronta para praticar, num estilo à ' +
+      'escolha, e mande direto para a análise — fraseados, tab/partitura e áudio saem na hora.</p>' +
+      '<div class="lab-controls">' +
+      '<div class="field"><label>Tonalidade</label><select id="lab-tonica">' + labToneOptionsHTML() + '</select></div>' +
+      '<div class="field"><label>Estilo</label><select id="lab-categoria">' + labCategoryOptionsHTML() + '</select></div>' +
+      '<button class="btn-primary" id="btn-lab-sortear">🎲 Sortear progressão</button>' +
+      '</div>' +
+      '<div id="lab-resultado" class="lab-resultado"></div>';
+    $('btn-lab-sortear').addEventListener('click', sortearProgressao);
+  }
+
+  function renderLaboratorioView() {
+    var wrap = $('lab-conteudo');
+    if (!currentUser) {
+      wrap.innerHTML =
+        '<p class="muted-note">Entre na sua conta para acessar o Laboratório.</p>' +
+        planComparisonHTML();
+      return;
+    }
+    var isPro = currentProfile && currentProfile.plano === 'pro';
+    if (!isPro) {
+      wrap.innerHTML =
+        '<p class="muted-note">O Laboratório é exclusivo do plano Pro.</p>' +
+        planComparisonHTML();
+      return;
+    }
+    renderLabTool();
   }
 
   // ---------------- Salvar / favoritar / exercício ----------------
