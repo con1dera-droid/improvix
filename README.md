@@ -41,6 +41,15 @@ Concluído até agora (ver `docs/PRD.md` e `docs/status.md`):
 
 Com isso, todo o escopo da Etapa 5 previsto em `docs/PRD.md` está entregue.
 
+- **Fraseados melhores** (depois da Etapa 5, a partir dos materiais de
+  estudo enviados): cifra brasileira com tensões (`C7M`, `Am7(b5)`, `G7(b9)`,
+  `G7/4`, `B°`...), escala de cada acorde escolhida pela função e pelas
+  tensões (menor melódica, menor harmônica, dominante-diminuta, bebop...),
+  e fraseados como uma linha contínua de colcheias com técnicas de jazz
+  (arpejo circular, 3-5-7-9, bebop, 1-2-3-5, pentatônica superposta, cerco),
+  "Outra ideia", "Padrão" fixo e "Tocar a linha inteira". Ver
+  `docs/fraseados-referencias.md`.
+
 O site continua sendo 100% estático (sem servidor próprio) — mesmo com login,
 quem guarda os dados é o Supabase (gratuito), acessado direto do navegador.
 Veja `docs/etapa4-supabase.md` para o passo a passo (é o único passo manual,
@@ -65,7 +74,7 @@ index.html            Tela principal (layout do print de referência)
 css/styles.css        Estilos (tema escuro)
 js/data.js            Dados de teoria musical (escalas, qualidades de acorde, campo harmônico)
 js/theory.js          Motor de teoria musical (parser de cifra, análise da progressão)
-js/phrases.js         Gerador de fraseados (Etapa 2): uma frase por acorde + resolução
+js/phrases.js         Gerador de fraseados: linha contínua (um compasso por acorde) + resolução
 js/notation.js        Realização de oitavas, tablatura e partitura simplificada (Etapa 2)
 js/audio.js           Síntese de áudio via Web Audio API (Etapa 3): progressão e fraseados
 js/lab.js             Gerador de progressões do Laboratório (Etapa 5, parte 3): modelos por estilo
@@ -89,6 +98,7 @@ tests/etapa5.laboratorio.smoke.js Smoke test do Laboratório (bloqueio, sorteio,
 tests/etapa5.aulas.smoke.js Smoke test das Aulas (acesso livre, lista, exemplo -> análise)
 tests/lab.test.js      Testes automáticos do gerador de progressões (node tests/lab.test.js)
 tests/lessons.test.js  Testes automáticos do conteúdo das Aulas (node tests/lessons.test.js)
+tests/fraseados.smoke.js Smoke test dos fraseados (cifra brasileira, Outra ideia, Padrão, linha inteira)
 tests/screenshot*.js   Scripts opcionais de checagem visual com Playwright (dev only)
 docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos, status e guias do Supabase/Planos
 ```
@@ -116,6 +126,7 @@ node tests/etapa5.smoke.js
 node tests/etapa5.planos.smoke.js
 node tests/etapa5.laboratorio.smoke.js
 node tests/etapa5.aulas.smoke.js
+node tests/fraseados.smoke.js
 ```
 
 Todos os testes devem passar antes de qualquer alteração ser considerada

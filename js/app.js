@@ -44,7 +44,11 @@
     selectedPhraseIndex: 0,
     selectedView: 'tab',
     lastResult: null,
-    selectedLessonId: null
+    selectedLessonId: null,
+    // Fraseados melhores: variação escolhida por compasso ("Outra ideia")
+    // e técnica fixa opcional para a progressão inteira ("Padrão").
+    variations: [],
+    motif: ''
   };
 
   function resetAudioButtons() {
@@ -52,6 +56,8 @@
     if (playBtn) { playBtn.classList.remove('playing'); playBtn.textContent = '▶ Tocar progressão'; }
     var audioBtn = document.querySelector('.view-btn[data-view="audio"]');
     if (audioBtn) { audioBtn.classList.remove('playing'); audioBtn.textContent = '🔊 Áudio'; }
+    var lineBtn = document.getElementById('btn-tocar-linha');
+    if (lineBtn) { lineBtn.classList.remove('playing'); lineBtn.textContent = '▶ Tocar a linha inteira'; }
     document.querySelectorAll('#chord-chain .chord-pill.playing').forEach(function (p) {
       p.classList.remove('playing');
     });
@@ -92,6 +98,8 @@
       case 'Subdominante': return 'func-subdominante';
       case 'Dominante': return 'func-dominante';
       case 'Dominante secundário': return 'func-dominante-secundario';
+      case 'SubV7 (substituto do dominante)': return 'func-dominante-secundario';
+      case 'II cadencial': return 'func-subdominante';
       default: return 'func-cromatico';
     }
   }
@@ -260,11 +268,37 @@
 
     state.lastResult = result;
     var instrumento = document.getElementById('input-instrumento').value;
-    state.phrases = phrasesMod.generatePhrases(result, nivel);
+    state.variations = [];
+    renderMotifOptions(nivel);
+    state.phrases = phrasesMod.generatePhrases(result, nivel, { variations: state.variations, motif: state.motif });
     state.selectedPhraseIndex = 0;
     state.selectedView = isFrettedInstrument(instrumento) ? 'tab' : 'partitura';
     renderFraseadosList();
     renderFraseadoDetalhe();
+  }
+
+  // Refaz os fraseados mantendo a análise (usado por "Outra ideia" e "Padrão").
+  function regeneratePhrases() {
+    if (!state.lastResult) return;
+    var nivel = document.getElementById('input-nivel').value;
+    state.phrases = phrasesMod.generatePhrases(state.lastResult, nivel, { variations: state.variations, motif: state.motif });
+    if (state.selectedPhraseIndex >= state.phrases.length) state.selectedPhraseIndex = 0;
+    renderFraseadosList();
+    renderFraseadoDetalhe();
+  }
+
+  // Opções do seletor "Padrão" dependem do nível (as técnicas avançadas só
+  // aparecem no Avançado).
+  function renderMotifOptions(nivel) {
+    var select = document.getElementById('input-motivo');
+    if (!select || !phrasesMod.motifChoices) return;
+    var choices = phrasesMod.motifChoices(nivel);
+    var valid = choices.some(function (c) { return c.key === state.motif; });
+    if (!valid) state.motif = '';
+    select.innerHTML = '<option value="">Automático (variado)</option>' + choices.map(function (c) {
+      return '<option value="' + c.key + '">' + c.label + '</option>';
+    }).join('');
+    select.value = state.motif;
   }
 
   // ===================== Fraseados (Etapa 2) =====================
@@ -303,7 +337,7 @@
         '<span class="phrase-num">' + p.index + '</span>' +
         '<div class="phrase-info">' +
         '<div class="phrase-title">' + p.title + '</div>' +
-        '<div class="phrase-sub">' + p.scaleLabel + '</div>' +
+        '<div class="phrase-sub">' + (p.technique ? p.technique + ' · ' : '') + p.scaleLabel + '</div>' +
         '</div>' +
         '<span class="phrase-play">▶</span>';
       wrap.appendChild(item);
@@ -334,7 +368,13 @@
     }
 
     titulo.textContent = phrase.title;
-    subtitulo.textContent = 'Escala: ' + phrase.scaleLabel + ' · Nível: ' + nivel;
+    subtitulo.textContent = (phrase.technique ? 'Técnica: ' + phrase.technique + ' · ' : '') +
+      'Escala: ' + phrase.scaleLabel + ' · Nível: ' + nivel;
+    var ideiaBtn = document.getElementById('btn-outra-ideia');
+    if (ideiaBtn) {
+      ideiaBtn.disabled = phrase.category === 'resolucao';
+      ideiaBtn.title = ideiaBtn.disabled ? 'A frase de resolução é sempre o cerco à fundamental' : 'Gera outra frase para este compasso, com outra técnica';
+    }
 
     // Tab só existe para instrumentos com traste (guitarra/violão/baixo).
     var tabBtn = document.querySelector('.view-btn[data-view="tab"]');
@@ -347,7 +387,7 @@
       btn.classList.toggle('active', btn.getAttribute('data-view') === state.selectedView);
     });
 
-    var realized = notation.realizeForInstrument(phrase.notes, instrumento);
+    var realized = notation.realizeForInstrument(phrase.notes, instrumento, phrase.midi);
 
     if (state.selectedView === 'tab' && isFretted) {
       var tab = notation.toTab(realized, instrumento);
@@ -390,6 +430,50 @@
     document.getElementById('input-instrumento').addEventListener('change', function () {
       if (state.phrases.length > 0) renderFraseadoDetalhe();
     });
+
+    var ideiaBtn = document.getElementById('btn-outra-ideia');
+    if (ideiaBtn) {
+      ideiaBtn.addEventListener('click', function () {
+        var phrase = state.phrases[state.selectedPhraseIndex];
+        if (!phrase || phrase.category === 'resolucao') return;
+        var i = state.selectedPhraseIndex;
+        state.variations[i] = (state.variations[i] || 0) + 1;
+        regeneratePhrases();
+      });
+    }
+
+    var motivo = document.getElementById('input-motivo');
+    if (motivo) {
+      motivo.addEventListener('change', function () {
+        state.motif = motivo.value;
+        state.variations = [];
+        regeneratePhrases();
+      });
+    }
+
+    var lineBtn = document.getElementById('btn-tocar-linha');
+    if (lineBtn) {
+      lineBtn.addEventListener('click', function () {
+        if (!audio || !audio.playLine) return;
+        if (lineBtn.classList.contains('playing')) { audio.stopAll(); resetAudioButtons(); return; }
+        var bars = state.phrases.filter(function (p) { return p.category !== 'resolucao'; });
+        if (!bars.length) return;
+        audio.stopAll();
+        resetAudioButtons();
+        var instrumento = document.getElementById('input-instrumento').value;
+        lineBtn.classList.add('playing');
+        lineBtn.textContent = '⏸ Tocando... (clique para parar)';
+        audio.playLine(bars, instrumento, function (b) {
+          highlightChord(b);
+          document.querySelectorAll('#lista-fraseados .phrase-item').forEach(function (el, idx) {
+            el.classList.toggle('playing', idx === b);
+          });
+        }, function () {
+          resetAudioButtons();
+          document.querySelectorAll('#lista-fraseados .phrase-item.playing').forEach(function (el) { el.classList.remove('playing'); });
+        });
+      });
+    }
   }
 
   function playCurrentPhrase(btn) {
@@ -631,7 +715,19 @@
         v.hidden = v.getAttribute('data-view') !== viewName;
       });
     },
-    selectPhrase: function (index) {
+    // `titulo` (opcional): título salvo em favoritos/exercícios — dele saem
+    // a "ideia" (variação) e o padrão fixo que estavam na tela ao salvar.
+    selectPhrase: function (index, titulo) {
+      if (titulo && phrasesMod.parseTitle) {
+        var info = phrasesMod.parseTitle(titulo);
+        if (info.variation || info.motif) {
+          state.motif = info.motif || '';
+          renderMotifOptions(document.getElementById('input-nivel').value);
+          state.variations = [];
+          state.variations[index] = info.variation;
+          regeneratePhrases();
+        }
+      }
       if (index < 0 || index >= state.phrases.length) return;
       state.selectedPhraseIndex = index;
       renderFraseadosList();

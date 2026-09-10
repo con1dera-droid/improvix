@@ -195,8 +195,15 @@
                   <span class="card-icon">🎵</span>
                   <div>
                     <div class="card-title">Fraseados e Exercícios</div>
-                    <div class="card-subtitle">Uma frase por acorde da progressão, gerada automaticamente</div>
+                    <div class="card-subtitle">Uma linha contínua: um compasso por acorde, cada frase preparando a próxima</div>
                   </div>
+                </div>
+                <div class="fraseados-controles">
+                  <label for="input-motivo" class="fraseados-controles-label">Padrão</label>
+                  <select id="input-motivo" title="Deixe variado ou fixe um padrão para atravessar a progressão inteira com ele">
+                    <option value="">Automático (variado)</option>
+                  </select>
+                  <button class="btn-secondary" id="btn-tocar-linha" title="Toca todas as frases em sequência, com o acompanhamento">▶ Tocar a linha inteira</button>
                 </div>
                 <div id="lista-fraseados" class="phrase-list"></div>
               </div>
@@ -218,6 +225,7 @@
                 </div>
 
                 <div class="fraseado-actions">
+                  <button class="btn-chip-action" id="btn-outra-ideia" title="Gera outra frase para este compasso, com outra técnica">🎲 Outra ideia</button>
                   <button class="btn-chip-action" id="btn-favoritar" disabled title="Entre para favoritar">☆ Favoritar</button>
                   <button class="btn-chip-action" id="btn-exercicio" disabled title="Entre para adicionar aos exercícios">➕ Adicionar aos exercícios</button>
                 </div>

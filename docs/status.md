@@ -193,6 +193,50 @@ exemplo" preenchendo e rodando a análise).
 Com isso, todo o escopo original da Etapa 5 do `docs/PRD.md` está
 entregue: mais instrumentos, planos Gratuito/Pro, Laboratório e Aulas.
 
+## Fraseados melhores (a partir dos materiais de estudo) — ✅ Concluída (2026-09-10)
+O usuário enviou 11 materiais (métodos de harmonia, modos gregos, padrões
+de jazz, dicionários de acordes, voicings) para melhorar os fraseados. O
+sistema passou a aplicar os princípios desses materiais — sem copiar texto,
+exercícios ou licks de nenhum deles (vários são obras protegidas). Detalhe
+de o que veio de cada material: `docs/fraseados-referencias.md`.
+
+- **Cifra brasileira** (padrão Chediak): `C7M`, `C7+`, `Am7(b5)`, `B°`,
+  `Cm(7M)`, `G7/4`, `C6(9)`, tensões entre parênteses (`G7(b9)`,
+  `G7(b13)`, `C7M(#11)`, `G7alt`) e baixo invertido (`D7/F#`). Antes, `C7M`
+  virava dominante e `Am7(b5)` virava m7 — erro grave para quem cifra no
+  padrão brasileiro.
+- **Escala de cada acorde** agora considera a função e para onde o acorde
+  resolve: 18 escalas novas (modos da menor melódica, menor harmônica,
+  mixolídio b9 b13, dominante-diminuta, bebop, blues); V7 → acorde maior =
+  mixolídio, V7 → acorde menor = mixolídio b9 b13, SubV7/IV7/bVII7 = lídio
+  b7, tensões da cifra mandam (b9 = dom-dim, #11 = lídio b7, alt = alterada,
+  b13 = mixolídio b13); 7M fora do I = lídio; m6/m(7M) = menor melódica.
+  A análise também reconhece SubV7, II cadencial, diminuto de passagem e
+  auxiliar, empréstimo modal (bVI, bVII, iv...), I7/IV7 de blues e V/V (que
+  antes aparecia como "cromático" por engano).
+- **Fraseados** reescritos: uma linha contínua de colcheias, um compasso
+  por acorde, começando numa nota do acorde e terminando com aproximação da
+  nota-alvo do próximo (por grau, cromática, cerco, cromática dupla).
+  13 técnicas (arpejo circular "Parker", arpejo 3-5-7-9, escala bebop,
+  padrão 1-2-3-5, sequência sus2, pentatônica superposta, tríade de SubV,
+  arpejo diminuto da 3ª, padrão simétrico, pentatônica/blues em grupos...),
+  escolhidas por função do acorde e nível. Cada frase explica a técnica, as
+  notas e a nota característica do modo.
+- **Interface**: "🎲 Outra ideia" (troca a técnica de um compasso),
+  seletor "Padrão" (fixa uma técnica na progressão inteira), "▶ Tocar a
+  linha inteira" (solo completo com acompanhamento), colcheias com swing no
+  áudio, partitura/tab preservando o desenho real da frase (saltos de 6ª,
+  arpejos). Favoritos/exercícios lembram a "ideia" e o padrão escolhidos.
+- **Aulas**: 2 lições novas (técnicas de fraseado; menor melódica/harmônica
+  e o dominante) e 3 atualizadas.
+
+Testes automáticos: `tests/theory.test.js` (70 testes, +46: cifra
+brasileira, tensões, escolha de escala por função), `tests/phrases.test.js`
+(39 testes, reescrito: linha contínua, notas do acorde no tempo 1, escala
+bebop acertando os tempos, variações, padrão fixo, varredura de musicalidade
+em 12 progressões × 3 níveis × 6 variações sem notas repetidas nem saltos
+maiores que uma oitava) e um novo smoke test `tests/fraseados.smoke.js`.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
@@ -223,10 +267,10 @@ do escopo cobrado, mas vale registrar): leitura transposta de sax/trompete
 `tests/lessons.test.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
 `tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`, `tests/etapa5.smoke.js`,
 `tests/etapa5.planos.smoke.js`, `tests/etapa5.laboratorio.smoke.js`,
-`tests/etapa5.aulas.smoke.js`, `tests/screenshot*.js` (dev only),
+`tests/etapa5.aulas.smoke.js`, `tests/fraseados.smoke.js`, `tests/screenshot*.js` (dev only),
 `docs/PRD.md`, `docs/mapa-do-sistema.md`, `docs/matriz-rbac.md`,
 `docs/modulos.md`, `docs/status.md`, `docs/etapa4-supabase.md`,
-`docs/etapa5-planos.md`, `README.md`.
+`docs/etapa5-planos.md`, `docs/fraseados-referencias.md`, `README.md`.
 
 Entregue na pasta local do usuário: `IMPROVIX/` (repositório git, um commit
 por etapa).

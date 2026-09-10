@@ -328,6 +328,14 @@ select, input[type="text"] {
 .fraseados-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 1.25rem; align-items: start; }
 
 .phrase-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.fraseados-controles { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin: 0 0 0.8rem; }
+.fraseados-controles-label { font-size: 0.75rem; color: var(--text-muted); }
+.fraseados-controles select {
+  background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text);
+  border-radius: 8px; padding: 0.35rem 0.5rem; font-size: 0.8rem; flex: 1; min-width: 150px;
+}
+.fraseados-controles .btn-secondary { font-size: 0.78rem; width: auto; padding: 0.35rem 0.7rem; }
+.phrase-tech { display: inline-block; font-size: 0.66rem; color: var(--accent); margin-left: 0.3rem; }
 .phrase-item {
   display: flex; align-items: center; gap: 0.7rem;
   border: 1px solid var(--border); border-radius: 10px;
@@ -335,6 +343,7 @@ select, input[type="text"] {
 }
 .phrase-item:hover { background: var(--bg-elevated); }
 .phrase-item.active { border-color: var(--accent); background: var(--bg-elevated); }
+.phrase-item.playing { box-shadow: 0 0 0 2px var(--accent-2) inset; }
 .phrase-num {
   width: 26px; height: 26px; border-radius: 50%;
   background: var(--accent); color: #fff; font-size: 0.75rem; font-weight: 700;

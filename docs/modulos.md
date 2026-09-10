@@ -4,7 +4,7 @@
 |---|---|---|---|
 | Motor de Teoria Musical | Core | 1 | Calcula campo harmônico, função dos acordes, escalas, arpejos e notas-alvo. Base de tudo. |
 | Análise (Visão Geral / Escalas / Arpejos / Notas-alvo) | Core | 1 | Telas que exibem o resultado do motor para teclado, guitarra e baixo. |
-| Fraseados | Opcional (flag `fraseados`) | 2 | Biblioteca de frases prontas por acorde/escala, com tablatura/cifra/partitura. |
+| Fraseados | Opcional (flag `fraseados`) | 2 (reescrito depois da Etapa 5) | Linha contínua de improviso gerada a partir da análise (um compasso de colcheias por acorde), com 13 técnicas de fraseado, variações ("Outra ideia"), padrão fixo e tablatura/cifra/partitura/áudio. Princípios em `docs/fraseados-referencias.md`. |
 | Áudio | Opcional (flag `audio`) | 3 | Toca a progressão (backing) e cada fraseado via síntese no navegador. |
 | Contas de usuário / Login | Opcional (flag `contas`) | 4 | Cadastro, login, sessão. Pré-requisito dos módulos abaixo. |
 | Histórico | Opcional (flag `historico`, depende de `contas`) | 4 | Guarda as análises feitas pelo usuário logado. |

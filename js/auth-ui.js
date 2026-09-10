@@ -176,7 +176,7 @@
   function openPhraseFromRecord(row) {
     loadAnaliseIntoForm(row);
     window.IL.ui.switchTab('fraseados');
-    window.IL.ui.selectPhrase(row.phrase_index);
+    window.IL.ui.selectPhrase(row.phrase_index, row.titulo);
   }
 
   function renderEmptyOrError(wrap, res, emptyMsg) {

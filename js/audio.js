@@ -134,8 +134,16 @@
     stopAll();
     var audioCtx = getCtx();
     var timbre = TIMBRES[instrument] || TIMBRES.teclado;
-    var realized = notation.realizeForInstrument(phrase.notes, instrument);
+    var realized = notation.realizeForInstrument(phrase.notes, instrument, phrase.midi);
     var noteDuration = 0.32;
+    // Colcheias com "swing" (longa-curta), como na linguagem de jazz/blues.
+    var swing = phrase.rhythm === 'colcheias';
+    var starts = [];
+    var acc = 0;
+    realized.forEach(function (n, i) {
+      starts.push(acc);
+      acc += swing ? (i % 2 === 0 ? noteDuration * 1.24 : noteDuration * 0.76) : noteDuration;
+    });
 
     var master = audioCtx.createGain();
     master.gain.value = 0.9;
@@ -143,8 +151,9 @@
 
     var t0 = audioCtx.currentTime + 0.05;
     realized.forEach(function (n, i) {
-      var startTime = t0 + i * noteDuration;
-      scheduleNote(audioCtx, midiToFreq(n.midi), startTime, noteDuration * 0.92, timbre, master);
+      var startTime = t0 + starts[i];
+      var dur = (i + 1 < starts.length ? starts[i + 1] - starts[i] : noteDuration) * 0.92;
+      scheduleNote(audioCtx, midiToFreq(n.midi), startTime, dur, timbre, master);
       if (onNoteStart) {
         var delayMs = Math.max(0, (startTime - audioCtx.currentTime) * 1000);
         activeTimers.push(setTimeout(function () { onNoteStart(i); }, delayMs));
@@ -152,14 +161,63 @@
     });
 
     if (onDone) {
-      activeTimers.push(setTimeout(onDone, realized.length * noteDuration * 1000 + 150));
+      activeTimers.push(setTimeout(onDone, acc * 1000 + 150));
     }
+  }
+
+  /**
+   * Toca a LINHA INTEIRA do improviso (todas as frases de compasso em
+   * sequência, que já se ligam umas às outras) com o acompanhamento de cada
+   * acorde por baixo, mais discreto. `onBarStart(i)` avisa o compasso atual.
+   */
+  function playLine(barPhrases, instrument, onBarStart, onDone) {
+    stopAll();
+    if (!barPhrases.length) return;
+    var audioCtx = getCtx();
+    var timbre = TIMBRES[instrument] || TIMBRES.teclado;
+    var eighth = 0.3;
+
+    var master = audioCtx.createGain();
+    master.gain.value = 0.9;
+    master.connect(audioCtx.destination);
+    var comp = audioCtx.createGain();
+    comp.gain.value = 0.35;
+    comp.connect(audioCtx.destination);
+
+    var allNames = [], allMidi = [];
+    barPhrases.forEach(function (p) { allNames = allNames.concat(p.notes); allMidi = allMidi.concat(p.midi || []); });
+    var realized = notation.realizeForInstrument(allNames, instrument, allMidi.length === allNames.length ? allMidi : null);
+
+    var t0 = audioCtx.currentTime + 0.08;
+    var barLen = 8 * eighth;
+    var k = 0;
+    barPhrases.forEach(function (p, b) {
+      var barStart = t0 + b * barLen;
+      var chord = p.chord;
+      var bass = notation.realizeForInstrument([chord.root], 'baixo');
+      scheduleNote(audioCtx, midiToFreq(bass[0].midi - 12), barStart, barLen * 0.95, TIMBRES.baixo, comp);
+      notation.realizeForInstrument(chord.tones, 'teclado').forEach(function (n) {
+        scheduleNote(audioCtx, midiToFreq(n.midi - 12), barStart, barLen * 0.9, TIMBRES.teclado, comp);
+      });
+      p.notes.forEach(function (name, i) {
+        var off = Math.floor(i / 2) * 2 * eighth + (i % 2 === 0 ? 0 : eighth * 1.24);
+        var dur = (i % 2 === 0 ? eighth * 1.24 : eighth * 0.76) * 0.92;
+        scheduleNote(audioCtx, midiToFreq(realized[k].midi), barStart + off, dur, timbre, master);
+        k++;
+      });
+      if (onBarStart) {
+        var delayMs = Math.max(0, (barStart - audioCtx.currentTime) * 1000);
+        activeTimers.push(setTimeout(function () { onBarStart(b); }, delayMs));
+      }
+    });
+    if (onDone) activeTimers.push(setTimeout(onDone, barPhrases.length * barLen * 1000 + 200));
   }
 
   root.IL = root.IL || {};
   root.IL.audio = {
     playProgression: playProgression,
     playPhrase: playPhrase,
+    playLine: playLine,
     stopAll: stopAll
   };
 })(typeof window !== 'undefined' ? window : globalThis);

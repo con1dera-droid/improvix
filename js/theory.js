@@ -99,58 +99,154 @@
 
   // --- Análise de acorde (parser de cifra) ---------------------------------
 
-  // Ordem importa: padrões mais específicos primeiro.
+  // Ordem importa: padrões mais específicos primeiro. Aplicados sobre a
+  // parte "principal" da cifra, já sem baixo (/E) e sem parênteses.
+  // Aceita tanto a cifra internacional (Cmaj7, Cm7b5, C7alt) quanto a
+  // brasileira no padrão Chediak (C7M, Cm7(b5), C°, G7/4, Cm(7M), C6(9)).
   var CHORD_PATTERNS = [
-    [/^(maj9|Maj9|M9|Δ9)/, 'major9'],
-    [/^(maj7|Maj7|M7|Δ7|Δ)/, 'major7'],
-    [/^(maj13|maj11|M13|M11)/, 'major7'],
-    [/^(maj6|6\/9|69)/, 'major6'],
-    [/^(maj)$/, 'major'],
-    [/^(m\(maj7\)|mMaj7|mM7|minMaj7|m\/maj7)/, 'minMaj7'],
-    [/^(m7b5|m7-5|min7b5|ø7?)/, 'm7b5'],
+    [/^(m7b5|m7-5|min7b5|ø7?|Ø7?)/, 'm7b5'],
+    [/^(mmaj7|mMaj7|mM7|minMaj7|m7M|m7\+(?![0-9])|mΔ7?|m\/maj7)/, 'minMaj7'],
     [/^(dim7|°7|o7)/, 'dim7'],
-    [/^(dim|°|o)(?![a-zA-Z0-9])/, 'dim'],
+    [/^(dim|°|o)(?![a-zA-Z0-9])/, 'dim7'], // no padrão Chediak, "°" já inclui a 7ª diminuta
+    [/^(maj9|Maj9|M9|Δ9|7M9)/, 'major9'],
+    [/^(maj13|maj11|Maj13|Maj11|M13|M11)/, 'major7'],
+    [/^(maj7|Maj7|M7|Δ7|Δ|7M|7\+(?![0-9])|7maj)/, 'major7'],
     [/^(m6|min6|-6)/, 'minor6'],
     [/^(m9|min9|-9)/, 'minor9'],
     [/^(m11|min11|-11|m13|min13|-13)/, 'minor7'],
     [/^(m7|min7|-7)/, 'minor7'],
     [/^(m(?!aj)|min|-)(?![a-zA-Z])/, 'minor'],
-    [/^(9)/, 'dominant9'],
+    [/^(7sus4|7sus|9sus4|9sus|13sus4|13sus)/, 'dominant7sus4'],
     [/^(13|11)/, 'dominant7'],
+    [/^(9)/, 'dominant9'],
     [/^(7)/, 'dominant7'],
-    [/^(6)/, 'major6'],
-    [/^(add9)/, 'add9'],
-    [/^(sus4|sus)/, 'sus4'],
-    [/^(sus2)/, 'sus2'],
+    [/^(69|6)/, 'major6'],
+    [/^(add9|add2)/, 'add9'],
+    [/^(sus2|2)(?![0-9])/, 'sus2'],
+    [/^(sus4|sus|4)(?![0-9])/, 'sus4'],
     [/^(aug|\+)/, 'aug'],
-    [/^(5)/, 'power5']
+    [/^(5)/, 'power5'],
+    [/^(maj|M)(?![a-zA-Z0-9])/, 'major']
   ];
 
+  // Normaliza uma tensão escrita de várias formas ("+5", "5+", "-9", "9-",
+  // "11+", "maj7"...) para a grafia usada internamente.
+  function normalizeTension(tok) {
+    var x = tok.trim();
+    if (!x) return null;
+    if (/^(alt|alt\.)$/i.test(x)) return 'alt';
+    if (/^(7M|maj7|M7|Δ)$/.test(x)) return '7M';
+    if (/^(sus4?|4)$/.test(x)) return '4';
+    if (/^add(9|2)$/.test(x)) return '9';
+    var m = /^([#b+\-]?)(\d{1,2})([#b+\-]?)$/.exec(x);
+    if (!m) return null;
+    var acc = m[1] || m[3] || '';
+    if (acc === '+') acc = '#';
+    if (acc === '-') acc = 'b';
+    var num = m[2];
+    if (num === '2') num = '9';
+    if (num === '6' && acc === 'b') num = '13';
+    if (num === '6' && !acc) return '6';
+    if (num === '7') return acc === '#' ? '7M' : null; // "7" dentro de parênteses não é tensão
+    if (['5', '9', '11', '13'].indexOf(num) < 0) return null;
+    return acc + num;
+  }
+
+  // Extrai tensões de um trecho sem parênteses, ex.: "b9#11", "#5b9", "13".
+  function tensionsFromRun(run) {
+    var out = [];
+    var re = /(alt|[#b+\-]?(?:13|11|9|5|4))/g;
+    var m;
+    while ((m = re.exec(run)) !== null) {
+      var n = normalizeTension(m[1]);
+      if (n) out.push(n);
+    }
+    return out;
+  }
+
   /**
-   * Interpreta uma cifra (ex.: "Gmaj7", "Bbm7b5", "F#7") e devolve
-   * { root, quality, symbol } ou null se não conseguir reconhecer.
+   * Interpreta uma cifra e devolve { root, quality, symbol, bass, tensions }
+   * ou null se não conseguir reconhecer a fundamental.
+   * Exemplos aceitos: Gmaj7, G7M, Bbm7b5, Bbm7(b5), Bø, F#7, G7(b9), G7(#11),
+   * G7(b13), G7alt, G7/4, G7(4), C6(9), C6/9, Cm(7M), C°, C7M(#11), D7/F#.
    */
   function parseChordSymbol(raw) {
-    var symbol = (raw || '').trim();
+    var symbol = (raw || '').trim().replace(/º/g, '°').replace(/[–—−]/g, '-');
     if (!symbol) return null;
     var m = /^([A-Ga-g])(#{1,2}|b{1,2})?/.exec(symbol);
     if (!m) return null;
     var root = m[1].toUpperCase() + (m[2] || '');
-    var rest = symbol.slice(m[0].length).trim();
+    if (!parseNoteName(root)) return null;
+    var rest = symbol.slice(m[0].length).replace(/\s+/g, '');
+
+    // Baixo invertido: "/E", "/F#", "/Bb" no final.
+    var bass = null;
+    var bm = /\/([A-Ga-g](?:#|b)?)$/.exec(rest);
+    if (bm) {
+      bass = bm[1].charAt(0).toUpperCase() + bm[1].slice(1);
+      rest = rest.slice(0, bm.index);
+    }
+    // Tensões entre parênteses: "(b9)", "(b9/b13)", "(9, #11)".
+    var tensions = [];
+    rest = rest.replace(/\(([^)]*)\)/g, function (all, inner) {
+      inner.split(/[,\/\s]+/).forEach(function (tok) {
+        var n = normalizeTension(tok);
+        if (n) tensions.push(n);
+      });
+      return '';
+    });
+    // "/4", "/9" fora de parênteses (ex.: G7/4, C6/9, C7/9) = tensão, não baixo.
+    rest = rest.replace(/\/([#b+\-]?\d+)/g, function (all, tok) {
+      var n = normalizeTension(tok);
+      if (n) tensions.push(n);
+      return '';
+    });
 
     var quality = 'major';
-    if (rest === '') {
-      quality = 'major';
-    } else {
+    var tail = '';
+    if (rest !== '') {
+      var matched = false;
       for (var i = 0; i < CHORD_PATTERNS.length; i++) {
-        if (CHORD_PATTERNS[i][0].test(rest)) {
+        var pm = CHORD_PATTERNS[i][0].exec(rest);
+        if (pm) {
           quality = CHORD_PATTERNS[i][1];
+          tail = rest.slice(pm[0].length);
+          if (/^(9|11|13)/.test(pm[0]) && quality !== 'dominant9') tensions.push(pm[0].replace(/sus4?/, '').slice(0, 2));
+          if (/^(m11|min11|-11)$/.test(pm[0])) tensions.push('11');
+          if (/^(m13|min13|-13)$/.test(pm[0])) tensions.push('13');
+          if (/^(maj13|Maj13|M13)$/.test(pm[0])) tensions.push('13');
+          if (/^(maj11|Maj11|M11)$/.test(pm[0])) tensions.push('#11');
+          if (pm[0] === '69') tensions.push('9');
+          matched = true;
           break;
         }
       }
+      if (!matched) tail = rest;
+      tensionsFromRun(tail).forEach(function (x) { tensions.push(x); });
     }
-    if (!parseNoteName(root)) return null;
-    return { root: root, quality: quality, symbol: symbol };
+
+    // Remove duplicadas mantendo a ordem.
+    tensions = tensions.filter(function (x, idx) { return x && tensions.indexOf(x) === idx; });
+    function has(x) { return tensions.indexOf(x) >= 0; }
+
+    // Regras de combinação qualidade + tensões (cifra brasileira).
+    if (quality === 'minor' && has('7M')) quality = 'minMaj7';
+    if (quality === 'minor7' && has('b5')) quality = 'm7b5';
+    if ((quality === 'dominant7' || quality === 'dominant9') && has('4')) quality = 'dominant7sus4';
+    if ((quality === 'dominant7' || quality === 'dominant9') && !has('alt')) {
+      if (has('#5') && !has('b9') && !has('#9')) quality = 'dominant7sharp5';
+      else if (has('b5') && !has('b9') && !has('#9')) quality = 'dominant7flat5';
+    }
+    if (quality === 'major7' && has('#5')) quality = 'augMaj7';
+    if (quality === 'major' && has('#5')) quality = 'aug';
+    if (quality === 'major' && has('4')) quality = 'sus4';
+    if (quality === 'major' && has('9') && tensions.length === 1) quality = 'add9';
+    if (quality === 'major7' && has('9') && tensions.length === 1) quality = 'major9';
+    if (quality === 'minor7' && has('9') && tensions.length === 1) quality = 'minor9';
+    if (quality === 'dominant7' && has('9') && tensions.length === 1) quality = 'dominant9';
+    if (quality === 'dominant9' && tensions.indexOf('9') < 0) tensions.unshift('9');
+
+    return { root: root, quality: quality, symbol: symbol, bass: bass, tensions: tensions };
   }
 
   // --- Campo harmônico -----------------------------------------------------
@@ -220,7 +316,7 @@
   function familyOf(qualityKey) {
     if (['major', 'major6', 'major7', 'major9', 'add9'].indexOf(qualityKey) >= 0) return 'majorish';
     if (['minor', 'minor6', 'minor7', 'minor9', 'minMaj7'].indexOf(qualityKey) >= 0) return 'minorish';
-    if (['dominant7', 'dominant9'].indexOf(qualityKey) >= 0) return 'dominant';
+    if (['dominant7', 'dominant9', 'dominant7sus4', 'dominant7sharp5', 'dominant7flat5'].indexOf(qualityKey) >= 0) return 'dominant';
     if (qualityKey === 'm7b5') return 'halfdim';
     if (qualityKey === 'dim' || qualityKey === 'dim7') return 'dim';
     return 'loose'; // sus, aug, power5: aceitos em qualquer grau (aproximação)
@@ -232,46 +328,157 @@
    * `tonicName` + `mode` ("maior"|"menor"): tonalidade escolhida pelo usuário.
    * `level`: "iniciante" | "intermediario" | "avancado" — controla quantas
    *          escalas/arpejos são sugeridos.
+   *
+   * Cada acorde é analisado olhando também para o acorde SEGUINTE (para onde
+   * ele resolve), como na análise funcional: um G7 que vai para C é V7 de um
+   * acorde maior (mixolídio), um E7 que vai para Am é V7 de um acorde menor
+   * (mixolídio b9 b13), um Db7 que vai para C é SubV7 (lídio b7), um C#°
+   * entre C e Dm é diminuto de passagem, e assim por diante.
    */
   function analyzeProgression(chordSymbols, tonicName, mode, level) {
     var field = buildDiatonicField(tonicName, mode);
+    var otherMode = mode === 'menor' ? 'maior' : 'menor';
+    var parallelField = buildDiatonicField(tonicName, otherMode);
+    var tonicPc = pitchClassOf(tonicName);
     var scaleLimit = level === 'iniciante' ? 1 : (level === 'intermediario' ? 2 : 3);
     var showSubArpeggio = level !== 'iniciante';
 
-    var chords = chordSymbols.map(function (raw) {
-      var parsed = parseChordSymbol(raw);
+    var items = chordSymbols.map(function (raw) { return { raw: raw, parsed: parseChordSymbol(raw) }; });
+    var validCount = items.filter(function (it) { return it.parsed; }).length;
+
+    // Próximo acorde válido (dá a volta para o primeiro: progressões de
+    // estudo costumam ser tocadas em loop, então o último acorde "resolve"
+    // no primeiro).
+    function nextParsed(i) {
+      if (validCount < 2) return null;
+      for (var k = 1; k <= items.length; k++) {
+        var it = items[(i + k) % items.length];
+        if (it.parsed) return it.parsed;
+      }
+      return null;
+    }
+
+    function degreeIndexOf(pc) {
+      return field.findIndex(function (d) { return pitchClassOf(d.root) === pc; });
+    }
+
+    // Grau "cromático" em algarismo romano (ex.: C# em Dó maior = #I).
+    function chromaticRoman(pc) {
+      function plain(idx) { return field[idx].roman.replace('°', '').toUpperCase(); }
+      var same = degreeIndexOf(pc);
+      if (same >= 0) return plain(same);
+      var below = degreeIndexOf(mod12(pc - 1));
+      if (below >= 0) return '#' + plain(below);
+      var above = degreeIndexOf(mod12(pc + 1));
+      if (above >= 0) return 'b' + plain(above);
+      return '';
+    }
+
+    var chords = items.map(function (item, i) {
+      var raw = item.raw;
+      var parsed = item.parsed;
       if (!parsed) {
         return { raw: raw, error: 'Não foi possível reconhecer o acorde "' + raw + '".' };
       }
       var pc = pitchClassOf(parsed.root);
-      var directIndex = field.findIndex(function (d) { return pitchClassOf(d.root) === pc; });
-      var compatible = directIndex >= 0 &&
-        (familyOf(parsed.quality) === 'loose' || familyOf(parsed.quality) === familyOf(field[directIndex].quality));
+      var fam = familyOf(parsed.quality);
+      var isDominantish = fam === 'dominant';
+      var next = nextParsed(i);
+      var nextPc = next ? pitchClassOf(next.root) : null;
+      var nextFam = next ? familyOf(next.quality) : null;
+      var resolvesByFifth = next ? mod12(nextPc - pc) === 5 : false;
+      var resolvesHalfStepDown = next ? mod12(pc - nextPc) === 1 : false;
+      var nextIsMinorish = nextFam === 'minorish' || nextFam === 'halfdim';
 
+      var directIndex = degreeIndexOf(pc);
+      var compatible = directIndex >= 0 &&
+        (fam === 'loose' || fam === familyOf(field[directIndex].quality));
+
+      var ctx = { tensions: parsed.tensions || [] };
       var roman, functionLabel, isDiatonic, note = '';
+
       if (compatible) {
         isDiatonic = true;
         roman = field[directIndex].roman;
         functionLabel = field[directIndex].function;
+        if (isDominantish && resolvesByFifth && nextIsMinorish) ctx.resolvesToMinor = true;
       } else {
         isDiatonic = false;
-        var isDominantish = parsed.quality.indexOf('dominant') === 0;
+        var secIndex = field.findIndex(function (d) { return pitchClassOf(d.root) === mod12(pc - 7); });
         if (mode === 'menor' && directIndex === 4 && isDominantish) {
           // Dominante "emprestado" da menor harmônica — uso muito comum.
           roman = 'V';
           functionLabel = 'Dominante';
           note = 'Dominante emprestado da escala menor harmônica (o V natural da menor natural seria m7).';
+          ctx.resolvesToMinor = true;
+        } else if (isDominantish && resolvesHalfStepDown) {
+          var targetIdx = degreeIndexOf(nextPc);
+          var targetRoman = targetIdx >= 0 ? field[targetIdx].roman : null;
+          roman = (targetRoman && targetIdx !== 0) ? 'SubV7/' + targetRoman : 'SubV7';
+          functionLabel = 'SubV7 (substituto do dominante)';
+          note = 'Substituto trítono: faz o papel de dominante e resolve meio tom abaixo, em ' + next.root + '.';
+          ctx.isSubV = true;
+        } else if (isDominantish && mode === 'maior' && directIndex === 0 && !resolvesByFifth) {
+          roman = 'I7';
+          functionLabel = 'Tônica';
+          note = 'I7: tônica com 7ª menor, sonoridade típica do blues (não está preparando outro acorde).';
+          ctx.isBluesDominant = true;
+        } else if (isDominantish && mode === 'maior' && directIndex === 3 && !resolvesByFifth) {
+          roman = 'IV7';
+          functionLabel = 'Subdominante';
+          note = 'IV7: subdominante com 7ª menor (blues/MPB). Não resolve como dominante — a #11 (lídio b7) é da própria tonalidade.';
+          ctx.isIV7 = true;
+          ctx.isBluesDominant = true;
+        } else if (isDominantish && mode === 'maior' && mod12(pc - tonicPc) === 10) {
+          roman = 'bVII7';
+          functionLabel = 'Empréstimo modal';
+          note = 'Dominante "backdoor" (empréstimo do modo menor): costuma resolver direto no I.';
+          ctx.isBackdoor = true;
+        } else if (isDominantish && secIndex >= 0 && (resolvesByFifth || !next)) {
+          roman = 'V/' + field[secIndex].roman;
+          functionLabel = 'Dominante secundário';
+          note = 'Empréstimo: resolve para ' + field[secIndex].roman + '.';
+          var targetFam = familyOf(field[secIndex].quality);
+          if (targetFam === 'minorish' || targetFam === 'halfdim') ctx.resolvesToMinor = true;
+        } else if ((fam === 'minorish' || fam === 'halfdim') && next && familyOf(next.quality) === 'dominant' && resolvesByFifth) {
+          // II cadencial: m7 ou m7(b5) que prepara um dominante (ex.: F#m7(b5) → B7 → Em).
+          var domTargetIdx = degreeIndexOf(mod12(nextPc + 5));
+          roman = domTargetIdx > 0 ? 'II/' + field[domTargetIdx].roman : 'II cad.';
+          functionLabel = 'II cadencial';
+          note = 'II cadencial: prepara o dominante ' + next.root + (domTargetIdx > 0 ? ' (que vai para o ' + field[domTargetIdx].roman + ')' : '') + '.';
+          ctx.isIIcad = true;
+        } else if (fam === 'dim' && next && mod12(nextPc - pc) === 1) {
+          roman = chromaticRoman(pc) + '°';
+          functionLabel = 'Diminuto de passagem';
+          note = 'Diminuto de passagem ascendente: liga o acorde anterior a ' + next.root + ', meio tom acima.';
+        } else if (fam === 'dim' && next && mod12(pc - nextPc) === 1) {
+          roman = chromaticRoman(pc) + '°';
+          functionLabel = 'Diminuto de passagem';
+          note = 'Diminuto de passagem descendente: desce meio tom até ' + next.root + '.';
+        } else if (fam === 'dim' && next && nextPc === pc) {
+          roman = chromaticRoman(pc) + '°';
+          functionLabel = 'Diminuto auxiliar';
+          note = 'Diminuto auxiliar: mesma fundamental do acorde seguinte, "enfeitando" a chegada nele.';
         } else {
-          // Tenta reconhecer dominante secundário: raiz = 5ª acima de algum grau.
-          var secIndex = field.findIndex(function (d) {
-            return pitchClassOf(d.root) === mod12(pc - 7);
-          });
-          if (isDominantish && secIndex >= 0 && secIndex !== 4) {
-            roman = 'V/' + field[secIndex].roman;
-            functionLabel = 'Dominante secundário';
-            note = 'Empréstimo: resolve para ' + field[secIndex].roman + '.';
+          // Empréstimo modal: acorde que pertence ao campo da tonalidade
+          // homônima (ex.: Fm, Ab7M ou Bb7M em Dó maior vêm de Dó menor).
+          var parIdx = parallelField.findIndex(function (d) { return pitchClassOf(d.root) === pc; });
+          var parFam = parIdx >= 0 ? familyOf(parallelField[parIdx].quality) : null;
+          var bothMajorLike = (fam === 'majorish' || fam === 'dominant') && (parFam === 'majorish' || parFam === 'dominant');
+          var parCompatible = parIdx >= 0 && (fam === 'loose' || fam === parFam || bothMajorLike);
+          if (parCompatible) {
+            var r = parallelField[parIdx].roman;
+            // Grau alterado em relação à tonalidade escolhida recebe "b"/"#".
+            var diff = mod12(pc - pitchClassOf(field[parIdx].root));
+            if (diff === 11) r = 'b' + r;
+            else if (diff === 1) r = '#' + r;
+            roman = r + (isDominantish ? '7' : '');
+            functionLabel = 'Empréstimo modal';
+            if (isDominantish && !resolvesByFifth) ctx.isNonResolving = true;
+            note = 'Acorde de empréstimo modal: vem do campo harmônico de ' + tonicName + ' ' + otherMode + '.';
           } else {
-            roman = '—';
+            roman = chromaticRoman(pc) || '—';
+            if (isDominantish && !resolvesByFifth) ctx.isNonResolving = true;
             functionLabel = 'Cromático / empréstimo';
             note = 'Acorde fora do campo harmônico de ' + tonicName + ' ' + mode + '.';
           }
@@ -281,7 +488,8 @@
       var tones = chordTones(parsed.root, parsed.quality);
       var qualityDef = DATA.QUALITIES[parsed.quality];
 
-      var scaleKeys = DATA.scalesForChord(parsed.quality, roman.replace('V/', ''), mode).slice(0, scaleLimit);
+      var allScaleKeys = DATA.scalesForChord(parsed.quality, roman, mode, ctx);
+      var scaleKeys = allScaleKeys.slice(0, scaleLimit);
       var scales = scaleKeys.map(function (key) {
         return {
           key: key,
@@ -307,7 +515,7 @@
 
       // Nota-alvo: a 3ª do acorde (ou a 4ª/5ª quando não há 3ª, ex. sus/power).
       var targetNote, targetLabel;
-      if (parsed.quality === 'sus4') { targetNote = tones[1]; targetLabel = '4ª'; }
+      if (parsed.quality === 'sus4' || parsed.quality === 'dominant7sus4') { targetNote = tones[1]; targetLabel = '4ª'; }
       else if (parsed.quality === 'sus2') { targetNote = tones[1]; targetLabel = '9ª (2ª)'; }
       else if (parsed.quality === 'power5') { targetNote = tones[1]; targetLabel = '5ª'; }
       else { targetNote = tones[1]; targetLabel = '3ª'; }
@@ -318,12 +526,16 @@
         quality: parsed.quality,
         qualityLabel: qualityDef.label,
         symbol: parsed.root + parsed.symbol.slice(parsed.root.length),
+        bass: parsed.bass,
+        tensions: parsed.tensions || [],
         roman: roman,
         function: functionLabel,
         isDiatonic: isDiatonic,
         note: note,
+        context: ctx,
         tones: tones,
         scales: scales,
+        allScaleKeys: allScaleKeys,
         arpeggios: arpeggios,
         targetNote: targetNote,
         targetLabel: targetLabel
@@ -346,6 +558,7 @@
     scaleNotes: scaleNotes,
     chordTones: chordTones,
     parseChordSymbol: parseChordSymbol,
+    familyOf: familyOf,
     buildDiatonicField: buildDiatonicField,
     triadFromThird: triadFromThird,
     analyzeProgression: analyzeProgression

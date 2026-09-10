@@ -76,8 +76,20 @@
     });
   }
 
-  function realizeForInstrument(noteNames, instrument) {
+  /**
+   * Realiza a oitava de cada nota para o instrumento. Se a frase já traz as
+   * alturas absolutas (`midi`, gerado por js/phrases.js — preserva o desenho
+   * real da linha, com saltos de 6ª, arpejos etc.), só desloca a frase
+   * inteira em oitavas para cair na região confortável do instrumento.
+   * Sem `midi`, usa a condução "nota mais próxima da anterior".
+   */
+  function realizeForInstrument(noteNames, instrument, midi) {
     var center = INSTRUMENT_CENTER[instrument] || 60;
+    if (midi && midi.length === noteNames.length) {
+      var mean = midi.reduce(function (a, b) { return a + b; }, 0) / midi.length;
+      var shift = 12 * Math.round((center - mean) / 12);
+      return noteNames.map(function (name, i) { return { name: name, midi: midi[i] + shift }; });
+    }
     return realizeMidiSequence(noteNames, center);
   }
 
