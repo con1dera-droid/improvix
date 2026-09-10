@@ -100,7 +100,8 @@
     tons_inteiros: {
       label: 'Tons inteiros',
       curta: 'Tons inteiros',
-      steps: [0, 1, 2, 3, 4, 5],
+      // grafada 1 9 3 #11 #5 b7 (as notas do dominante 7(#5)): G A B C# D# F
+      steps: [0, 1, 2, 3, 4, 6],
       semitones: [0, 2, 4, 6, 8, 10]
     },
 

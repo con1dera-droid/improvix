@@ -564,3 +564,31 @@ select, input[type="text"] {
 .som-modo { font-size: 0.78rem; padding: 0.35rem 0.5rem; max-width: 220px; }
 .tab-legend { font-size: 0.7rem; color: var(--text-dim); margin: 0.3rem 0 0; }
 .cifra-block sup { color: var(--accent); font-size: 0.65em; margin-left: 1px; }
+
+/* Ficha da escala/modo na Biblioteca */
+.scale-info {
+  margin: 0.9rem 0 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  padding: 0.2rem 0.9rem;
+}
+.scale-info summary { cursor: pointer; padding: 0.6rem 0; color: var(--text); }
+.scale-info .si-body { padding-bottom: 0.8rem; }
+.scale-info p { margin: 0.45rem 0; line-height: 1.5; color: var(--text-muted); font-size: 0.92rem; }
+.scale-info p strong { color: var(--text); }
+.si-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.2rem 0 0.7rem; }
+.si-chip {
+  display: flex; flex-direction: column; align-items: center; min-width: 3.1rem;
+  padding: 0.35rem 0.45rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card);
+}
+.si-chip.si-hl { border-color: var(--dominante); background: rgba(217, 119, 6, 0.14); }
+.si-deg { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+.si-chip.si-hl .si-deg { color: #fbbf24; }
+.si-int { font-size: 0.75rem; color: var(--text-muted); }
+.si-note { font-size: 0.75rem; color: var(--accent); margin-top: 0.1rem; }
+.si-rows { display: grid; gap: 0.3rem; margin-bottom: 0.4rem; font-size: 0.9rem; color: var(--text-muted); }
+.si-rows code { color: var(--text); background: var(--bg-card); padding: 0.1rem 0.4rem; border-radius: 6px; font-size: 0.88rem; }
+.si-k { display: inline-block; min-width: 8.5rem; color: var(--text-dim); }
+.si-legend { font-size: 0.8rem; color: var(--text-dim); }
+@media (max-width: 600px) { .si-k { min-width: 0; display: block; } }

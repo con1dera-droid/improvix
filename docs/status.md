@@ -318,6 +318,26 @@ corda da tab, sweep com uma nota por corda e palhetada D/U, tab alinhada,
 samples presentes com crédito) e `tests/fusion.smoke.js` (menu Fusion, tab
 com legenda, samples decodificados no Chromium, modos Real/Drive/Sintetizado).
 
+## Ficha da escala/modo na Biblioteca — ✅ Concluída (2026-09-10)
+Ao escolher a escala/modo (e o tom) na Biblioteca de Fraseados aparece uma
+ficha "📐 fórmula e características" (pode ser recolhida):
+
+- **Fórmula** em graus (ex.: dórico `1 2 b3 4 5 6 b7`), com a leitura como
+  **tensões** nos dominantes alterados (alterada `1 b9 #9 3 #11 b13 b7`);
+- **Intervalos** na nomenclatura brasileira (`Tôn 2M 3m 4J 5J 6M 7m`);
+- **Tons e semitons** (`T – ST – T – T – T – ST – T`, com T½ = tom e meio);
+- as **notas no tom escolhido** (em C quando "todos os tons") e o acorde;
+- **de onde vem** (qual modo de qual escala), **sonoridade**, **o que dá a
+  cara dela** (nota característica, destacada em laranja na fórmula) e
+  **onde usar** — para as 26 escalas.
+
+Fórmula, intervalos e tons/semitons são calculados de `js/data.js` (não
+podem divergir do motor); os textos estão em `js/scale-info.js`. Ajuste: a
+escala de tons inteiros passou a ser grafada com b7 (G A B C# D# F, não E#).
+
+Testes: `tests/scaleinfo.test.js` (fichas completas, fórmulas conhecidas,
+intervalos batendo com os semitons) e `tests/scaleinfo.smoke.js`.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
@@ -342,10 +362,10 @@ do escopo cobrado, mas vale registrar): leitura transposta de sax/trompete
 
 ## Arquivos do projeto
 `index.html`, `css/styles.css`, `js/data.js`, `js/theory.js`, `js/phrases.js`,
-`js/notation.js`, `js/audio.js`, `js/articulation.js`, `sounds/*.js` (+ `sounds/CREDITOS.md`), `js/lab.js`, `js/lessons.js`, `js/library.js`, `js/app.js`, `js/library-ui.js`,
+`js/notation.js`, `js/audio.js`, `js/articulation.js`, `js/scale-info.js`, `sounds/*.js` (+ `sounds/CREDITOS.md`), `js/lab.js`, `js/lessons.js`, `js/library.js`, `js/app.js`, `js/library-ui.js`,
 `js/config.js`, `js/supabaseClient.js`, `js/auth-ui.js`, `sql/schema.sql`,
 `tests/theory.test.js`, `tests/phrases.test.js`, `tests/lab.test.js`,
-`tests/lessons.test.js`, `tests/library.test.js`, `tests/articulation.test.js`, `tests/fusion.smoke.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
+`tests/lessons.test.js`, `tests/library.test.js`, `tests/articulation.test.js`, `tests/fusion.smoke.js`, `tests/scaleinfo.test.js`, `tests/scaleinfo.smoke.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
 `tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`, `tests/etapa5.smoke.js`,
 `tests/etapa5.planos.smoke.js`, `tests/etapa5.laboratorio.smoke.js`,
 `tests/etapa5.aulas.smoke.js`, `tests/fraseados.smoke.js`, `tests/biblioteca.smoke.js`, `tests/screenshot*.js` (dev only),

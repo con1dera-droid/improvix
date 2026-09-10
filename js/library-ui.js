@@ -181,7 +181,53 @@
       '</div>';
   }
 
+  // Ficha da escala/modo escolhido: fórmula, intervalos, tons e semitons,
+  // notas no tom, acorde, sonoridade, nota característica e onde usar.
+  function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  function renderScaleInfo() {
+    var box = $('lib-escala-info');
+    var si = window.IL.scaleInfo;
+    if (!box || !si) return;
+    var key = $('lib-escala').value;
+    var info = si.get(key);
+    if (!info) { box.hidden = true; return; }
+    box.hidden = false;
+    var tomSel = $('lib-tom').value;
+    var tonic = lib.bestSpelling(tomSel === 'todos' ? 'C' : tomSel, key);
+    var notes = window.IL.theory.scaleNotes(tonic, key);
+    var mi = lib.MODE_INFO[key];
+    var chord = mi ? tonic + mi.suffix : '';
+    var chips = info.formula.map(function (f, i) {
+      return '<div class="si-chip' + (f.highlight ? ' si-hl' : '') + '" title="' + f.interval + '">' +
+        '<span class="si-deg">' + f.degree + '</span><span class="si-int">' + f.interval + '</span>' +
+        '<span class="si-note">' + notes[i] + '</span></div>';
+    }).join('');
+    var wasOpen = box.hasAttribute('data-built') ? box.open : true;
+    box.innerHTML =
+      '<summary>📐 <strong>' + esc(info.label) + '</strong> — fórmula e características</summary>' +
+      '<div class="si-body">' +
+      '<div class="si-chips">' + chips + '</div>' +
+      '<div class="si-rows">' +
+      '<div><span class="si-k">Fórmula</span> <code>' + info.formulaText + '</code></div>' +
+      (info.tensoes ? '<div><span class="si-k">Como tensões</span> <code>' + info.tensoes + '</code></div>' : '') +
+      '<div><span class="si-k">Intervalos</span> <code>' + info.intervalsText + '</code></div>' +
+      '<div><span class="si-k">Tons e semitons</span> <code>' + info.steps.join(' – ') + '</code></div>' +
+      '<div><span class="si-k">Em ' + tonic + (tomSel === 'todos' ? ' (exemplo)' : '') + '</span> <code>' + notes.join(' ') + '</code>' +
+      (chord ? ' · acorde <strong>' + esc(chord) + '</strong>' : '') + ' · ' + info.notesCount + ' notas</div>' +
+      '</div>' +
+      '<p><strong>De onde vem:</strong> ' + esc(info.origem) + '</p>' +
+      '<p><strong>Sonoridade:</strong> ' + esc(info.som) + '</p>' +
+      '<p><strong>O que dá a cara dela:</strong> ' + esc(info.carac) + ' <span class="si-legend">(em destaque na fórmula)</span></p>' +
+      '<p><strong>Onde usar:</strong> ' + esc(info.uso) + '</p>' +
+      '<p class="si-legend">Legenda: Tôn = tônica · M = maior · m = menor · J = justa · aum = aumentada · dim = diminuta · ' +
+      'ST = semitom · T (entre notas) = tom · T½ = um tom e meio.</p>' +
+      '</div>';
+    box.open = wasOpen;
+    box.setAttribute('data-built', '1');
+  }
+
   function renderList(keepScroll) {
+    renderScaleInfo();
     var wrap = $('lib-lista');
     wrap.innerHTML = state.list.map(cardHTML).join('');
     var o = currentOpts(0);

@@ -1045,6 +1045,7 @@
   return {
     KEYS: KEYS,
     KEYS_CYCLE: KEYS_CYCLE,
+    bestSpelling: bestSpelling,
     SCALE_GROUPS: SCALE_GROUPS,
     MODE_INFO: MODE_INFO,
     STYLES: STYLES,
