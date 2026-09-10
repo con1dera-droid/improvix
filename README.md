@@ -1,4 +1,4 @@
-# ImprovisaLab — Etapas 1 a 5 (mais instrumentos)
+# ImprovisaLab — Etapas 1 a 5 (mais instrumentos + planos Gratuito/Pro)
 
 Sistema online de improvisação: transforma uma progressão de acordes em
 análise harmônica completa (campo harmônico, função de cada acorde, escalas,
@@ -23,6 +23,11 @@ Concluído até agora (ver `docs/PRD.md` e `docs/status.md`):
   cordas da guitarra (tablatura igual); sax/trompete/violino/flauta tocam uma
   nota por vez, então usam Partitura/Cifra em vez de Tab. Dá pra escolher o
   instrumento tanto no formulário quanto clicando direto no rodapé.
+- **Etapa 5 (parte 2 — planos Gratuito/Pro)**: o nível **Avançado** dos
+  fraseados (3ª escala recomendada por acorde + frases de tensão) agora é
+  exclusivo do plano Pro. Sem cobrança configurada ainda — virar Pro é
+  manual por enquanto (ver `docs/etapa5-planos.md`), sem nenhum botão de
+  pagamento na tela.
 
 O site continua sendo 100% estático (sem servidor próprio) — mesmo com login,
 quem guarda os dados é o Supabase (gratuito), acessado direto do navegador.
@@ -65,8 +70,9 @@ tests/etapa4.e2e.js    Teste completo de cadastro/login/salvar/favoritar/exercí
                        (com um cliente Supabase falso, em memória — não substitui testar com
                        um projeto Supabase real, mas cobre toda a lógica de UI)
 tests/etapa5.smoke.js  Smoke test dos novos instrumentos (select, rodapé, tab/partitura, áudio)
+tests/etapa5.planos.smoke.js Smoke test do gate Gratuito/Pro (nível Avançado, Configurações)
 tests/screenshot*.js   Scripts opcionais de checagem visual com Playwright (dev only)
-docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos, status e guia do Supabase
+docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos, status e guias do Supabase/Planos
 ```
 
 ## Rodar os testes
@@ -87,6 +93,7 @@ node tests/etapa4.smoke.js
 node tests/etapa4.smoke2.js
 node tests/etapa4.e2e.js
 node tests/etapa5.smoke.js
+node tests/etapa5.planos.smoke.js
 ```
 
 Todos os testes devem passar antes de qualquer alteração ser considerada
@@ -109,7 +116,14 @@ exatamente o que está escrito) — sax e trompete são instrumentos
 transpositores na partitura tradicional deles, mas essa "leitura transposta"
 fica para uma etapa futura, se fizer falta.
 
+## Planos Gratuito/Pro (Etapa 5)
+
+O nível Avançado dos fraseados é exclusivo do plano Pro. Não há cobrança
+configurada nesta instalação — virar Pro é manual (um `update` no SQL
+Editor do Supabase), documentado em `docs/etapa5-planos.md`, que também
+explica a trava de segurança que impede um usuário de se autopromover.
+
 ## Roadmap
 
-Ver `docs/PRD.md` para o roadmap completo. Falta, na Etapa 5: plano Pro
-pago, Laboratório e Aulas.
+Ver `docs/PRD.md` para o roadmap completo. Falta, na Etapa 5: Laboratório
+(exclusivo Pro) e Aulas.

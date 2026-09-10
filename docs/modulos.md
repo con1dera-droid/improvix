@@ -10,7 +10,7 @@
 | Histórico | Opcional (flag `historico`, depende de `contas`) | 4 | Guarda as análises feitas pelo usuário logado. |
 | Favoritos | Opcional (flag `favoritos`, depende de `contas`) | 4 | Marcar análises/fraseados como favoritos. |
 | Meus Exercícios | Opcional (flag `exercicios`, depende de `contas`) | 4 | Exercícios salvos e progresso do usuário. |
-| Planos (Gratuito/Pro) | Opcional (flag `planos`, depende de `contas`) | 4/5 | Controla o que cada usuário pode acessar (ex.: fraseados avançados, Laboratório). |
+| Planos (Gratuito/Pro) | Opcional (flag `planos`, depende de `contas`) — ✅ Etapa 5 (parte 2) | 4/5 | Controla o que cada usuário pode acessar. Hoje gate o nível Avançado dos fraseados; Laboratório vai depender dele quando sair. Sem cobrança configurada — virar Pro é manual (`docs/etapa5-planos.md`). |
 | Mais instrumentos (violão, sax, trompete, violino, flauta) | Opcional (flag `instrumentos_extra`) | 5 | Expande o motor e as telas para os instrumentos restantes da barra inferior do layout. |
 | Laboratório | Opcional (flag `laboratorio`) | 5 | Recursos experimentais/avançados, exclusivo Pro. |
 | Aulas | Opcional (flag `aulas`) | 5 | Conteúdo educacional estruturado. |

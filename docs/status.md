@@ -98,8 +98,42 @@ via Chromium headless, `tests/etapa5.smoke.js` (select e rodapé atualizados,
 Tab desabilitado/Partitura automática nos instrumentos sem traste, tab
 funcionando no violão, áudio tocando sem erros nos 5 instrumentos novos).
 
+## Etapa 5 (parte 2 — planos Gratuito/Pro) — ✅ Concluída (2026-09-10)
+Cria a distinção de plano prevista em `docs/matriz-rbac.md`: o nível
+**Avançado** dos fraseados (3ª escala recomendada por acorde + frases de
+"tensão" com escala alterada) agora é exclusivo do plano **Pro**.
+
+- **Sem cobrança configurada.** Não existe botão de "assinar" em lugar
+  nenhum — um botão desses sem processar pagamento de verdade seria
+  enganoso. Por enquanto, virar Pro é manual (um `update` no SQL Editor do
+  Supabase), documentado em `docs/etapa5-planos.md`.
+- **Correção de segurança importante**: a política de RLS de `profiles`
+  criada na Etapa 4 permitia, sem querer, que qualquer usuário logado
+  mudasse o próprio `plano` para `'pro'` direto pela API (ela só checava
+  *qual* linha podia ser alterada, não *o quê*). `sql/schema.sql` ganhou um
+  trigger (`prevent_plano_selfupgrade`) que reverte qualquer mudança de
+  `plano` feita pelo papel `authenticated` — só um `update` rodado direto no
+  SQL Editor (fora do app) consegue promover alguém.
+- **Interface**: a opção "Avançado" no seletor de Nível mostra 🔒 e um
+  aviso para quem não é Pro; tentar selecioná-la reverte sozinho para
+  Intermediário. Isso é reativo: sai/entra da conta ou muda de plano e a
+  trava se ajusta na hora (`window.IL.account`, publicado por
+  `js/auth-ui.js`, e `window.IL.ui.onAccountChange`, consumido por
+  `js/app.js`). Configurações ganhou um comparativo Gratuito x Pro.
+- **Limite assumido e documentado**: como o gerador de fraseados roda 100%
+  no navegador (sem chamada a servidor), essa trava é de interface — os
+  dados salvos (histórico/favoritos/exercícios/o próprio `plano`) é que são
+  realmente protegidos pelo banco (RLS + trigger). Detalhado em
+  `docs/etapa5-planos.md`.
+
+Testes automáticos: novo smoke test `tests/etapa5.planos.smoke.js`
+(Chromium headless, cliente Supabase falso) cobre visitante bloqueado,
+usuário Gratuito bloqueado, usuário Pro liberado (3 escalas + frase de
+tensão confirmadas), Configurações sem nenhum botão de pagamento, e a
+reversão automática do nível ao sair da conta.
+
 ## Próxima etapa
-Etapa 5 (partes 2, 3 e 4) — Laboratório, Aulas e plano Pro pago (ver
+Etapa 5 (partes 3 e 4) — Laboratório (exclusivo Pro) e Aulas (ver
 `docs/PRD.md` para o escopo completo).
 
 ## Arquivos do projeto
@@ -108,9 +142,10 @@ Etapa 5 (partes 2, 3 e 4) — Laboratório, Aulas e plano Pro pago (ver
 `js/supabaseClient.js`, `js/auth-ui.js`, `sql/schema.sql`,
 `tests/theory.test.js`, `tests/phrases.test.js`, `tests/audio.smoke.js`,
 `tests/etapa4.smoke.js`, `tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`,
-`tests/etapa5.smoke.js`, `tests/screenshot*.js` (dev only), `docs/PRD.md`,
-`docs/mapa-do-sistema.md`, `docs/matriz-rbac.md`, `docs/modulos.md`,
-`docs/status.md`, `docs/etapa4-supabase.md`, `README.md`.
+`tests/etapa5.smoke.js`, `tests/etapa5.planos.smoke.js`,
+`tests/screenshot*.js` (dev only), `docs/PRD.md`, `docs/mapa-do-sistema.md`,
+`docs/matriz-rbac.md`, `docs/modulos.md`, `docs/status.md`,
+`docs/etapa4-supabase.md`, `docs/etapa5-planos.md`, `README.md`.
 
 Entregue na pasta local do usuário: `IMPROVIX/` (repositório git, um commit
 por etapa).

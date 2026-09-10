@@ -45,6 +45,34 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
+-- Etapa 5 (Planos): a política de update acima ("usuario atualiza o
+-- proprio perfil") só verifica QUAL linha pode ser alterada — não IMPEDE
+-- que o próprio usuário mude o campo `plano` para 'pro' pela API. Sem essa
+-- trava, qualquer pessoa logada poderia se autopromover a Pro direto pelo
+-- navegador (Console do DevTools chamando supabase.from('profiles').update
+-- (...)), o que anularia o sentido de ter um plano pago. Este trigger
+-- reverte qualquer mudança em `plano` feita pelo papel "authenticated" (ou
+-- seja, pela API/app com a sessão do usuário) — só quem roda SQL direto no
+-- SQL Editor do Supabase (papel "postgres"/"supabase_admin") consegue
+-- mudar o plano de alguém. Veja docs/etapa5-planos.md para o passo a passo
+-- de como liberar o Pro manualmente enquanto não há cobrança configurada.
+create or replace function public.prevent_plano_selfupgrade()
+returns trigger
+language plpgsql
+as $$
+begin
+  if current_user = 'authenticated' and new.plano is distinct from old.plano then
+    new.plano := old.plano;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_prevent_plano_selfupgrade on public.profiles;
+create trigger trg_prevent_plano_selfupgrade
+  before update on public.profiles
+  for each row execute procedure public.prevent_plano_selfupgrade();
+
 -- ============================================================
 -- 2) analises — histórico de progressões analisadas
 -- ============================================================
@@ -156,4 +184,21 @@ create index if not exists exercicios_user_id_idx on public.exercicios(user_id, 
 -- 4. Repita para Favoritos e Meus Exercícios.
 -- Se a Conta B enxergar qualquer dado da Conta A, pare e revise as
 -- políticas de RLS acima antes de usar o sistema com dados reais.
+-- ============================================================
+
+-- ============================================================
+-- Etapa 5 (Planos) — como liberar o plano Pro manualmente
+--
+-- Sem um meio de pagamento configurado ainda, promover alguém a Pro é
+-- manual: rode isto aqui no SQL Editor (não pela API/app — o trigger
+-- trg_prevent_plano_selfupgrade acima bloqueia mudanças de `plano` vindas
+-- do app, de propósito).
+--
+--   update public.profiles set plano = 'pro' where email = 'alguem@exemplo.com';
+--
+-- Para voltar ao gratuito:
+--
+--   update public.profiles set plano = 'gratuito' where email = 'alguem@exemplo.com';
+--
+-- Ver docs/etapa5-planos.md para o passo a passo com prints do painel.
 -- ============================================================

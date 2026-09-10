@@ -15,6 +15,17 @@
   var currentProfile = null;
   var authMode = 'login';
 
+  // Publicado logo na carga do script (não só dentro do DOMContentLoaded)
+  // para que js/app.js (Etapa 5 — Planos) já encontre window.IL.account
+  // pronto quando checar o plano do usuário, mesmo antes da sessão do
+  // Supabase terminar de carregar (nesse meio-tempo, isPro() responde
+  // "não Pro" por padrão, o que é o comportamento seguro).
+  window.IL = window.IL || {};
+  window.IL.account = {
+    isLoggedIn: function () { return !!currentUser; },
+    isPro: function () { return !!(currentProfile && currentProfile.plano === 'pro'); }
+  };
+
   function $(id) { return document.getElementById(id); }
 
   function showAuthGate(elId, show) {
@@ -263,18 +274,55 @@
     });
   }
 
+  // Etapa 5 (Planos): comparativo Gratuito x Pro, reaproveitado com ou sem
+  // sessão ativa. Sem cobrança configurada ainda nesta instalação — não há
+  // botão de "assinar" porque isso não processaria pagamento nenhum; virar
+  // Pro é liberado manualmente (ver docs/etapa5-planos.md) até uma etapa
+  // futura conectar um meio de pagamento de verdade.
+  function planComparisonHTML() {
+    return (
+      '<div class="plan-compare">' +
+      '<div class="plan-card">' +
+      '<div class="plan-card-title">Gratuito</div>' +
+      '<ul class="plan-features">' +
+      '<li>Análise harmônica completa (todos os instrumentos)</li>' +
+      '<li>Fraseados nível Iniciante e Intermediário</li>' +
+      '<li>Áudio da progressão e dos fraseados</li>' +
+      '<li>Histórico, Favoritos e Meus Exercícios</li>' +
+      '</ul>' +
+      '</div>' +
+      '<div class="plan-card plan-card-pro">' +
+      '<div class="plan-card-title">Pro</div>' +
+      '<ul class="plan-features">' +
+      '<li>Tudo do Gratuito, mais:</li>' +
+      '<li>Fraseados nível <strong>Avançado</strong> (3ª escala recomendada por acorde e frases de tensão)</li>' +
+      '<li><span class="soon">Laboratório</span> — chega numa próxima etapa</li>' +
+      '</ul>' +
+      '</div>' +
+      '</div>' +
+      '<p class="muted-note">Ainda não há cobrança configurada nesta instalação — ' +
+      'o plano Pro é liberado manualmente por quem administra o site enquanto ' +
+      'isso (veja <code>docs/etapa5-planos.md</code>). Nenhum botão aqui pede ' +
+      'pagamento.</p>'
+    );
+  }
+
   function renderConfigView() {
     var wrap = $('config-conteudo');
     if (!currentUser) {
-      wrap.innerHTML = '<p class="muted-note">Entre na sua conta para ver suas configurações.</p>';
+      wrap.innerHTML =
+        '<p class="muted-note">Entre na sua conta para ver suas configurações.</p>' +
+        planComparisonHTML();
       return;
     }
-    var plano = currentProfile && currentProfile.plano === 'pro' ? 'Pro' : 'Gratuito';
+    var isPro = currentProfile && currentProfile.plano === 'pro';
+    var plano = isPro ? 'Pro' : 'Gratuito';
     wrap.innerHTML =
       '<div class="config-row"><span class="config-label">E-mail</span><span>' + currentUser.email + '</span></div>' +
-      '<div class="config-row"><span class="config-label">Plano</span><span>' + plano +
-      ' <span class="soon">Planos pagos na Etapa 5</span></span></div>' +
-      '<button class="btn-secondary btn-config-sair" id="btn-sair-config">Sair da conta</button>';
+      '<div class="config-row"><span class="config-label">Plano</span><span class="plan-badge' +
+      (isPro ? ' plan-badge-pro' : '') + '">' + plano + '</span></div>' +
+      '<button class="btn-secondary btn-config-sair" id="btn-sair-config">Sair da conta</button>' +
+      planComparisonHTML();
     $('btn-sair-config').addEventListener('click', handleSignOut);
   }
 
@@ -334,16 +382,27 @@
 
   // ---------------- Boot ----------------
 
+  function notifyAccountChange() {
+    // Deixa a Etapa 5 (Planos) revalidar o que depende do plano — ex.: o
+    // nível "Avançado" na tela de análise — sempre que login/logout/plano
+    // mudarem.
+    if (window.IL.ui && typeof window.IL.ui.onAccountChange === 'function') {
+      window.IL.ui.onAccountChange();
+    }
+  }
+
   function refreshUserAndProfile(session) {
     currentUser = session ? session.user : null;
     if (!currentUser) {
       currentProfile = null;
       renderHeader();
+      notifyAccountChange();
       return;
     }
     db.getProfile(currentUser.id).then(function (res) {
       currentProfile = res.data || null;
       renderHeader();
+      notifyAccountChange();
     });
   }
 

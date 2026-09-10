@@ -24,6 +24,19 @@
   var SIX_STRING_INSTRUMENTS = { guitarra: true, violao: true };
   function isSixStringInstrument(instrument) { return !!SIX_STRING_INSTRUMENTS[instrument]; }
 
+  // ---------------- Planos (Etapa 5): nível Avançado é exclusivo Pro ----------------
+  // window.IL.account é publicado por js/auth-ui.js (Etapa 4) e reflete o
+  // usuário/perfil atuais em tempo real. Sem ele (ainda carregando, ou
+  // Supabase indisponível), tratamos como "não Pro" — é só uma trava de
+  // interface (o gerador de fraseados roda 100% no navegador, então não
+  // existe uma barreira de servidor aqui; ver docs/etapa5-planos.md).
+  var PLAN_GATED_LEVELS = { avancado: true };
+  function isProUser() {
+    var acc = window.IL.account;
+    return !!(acc && typeof acc.isPro === 'function' && acc.isPro());
+  }
+  function nivelIsGated(nivel) { return !!PLAN_GATED_LEVELS[nivel] && !isProUser(); }
+
   // Estado da aba Fraseados (Etapa 2) e do último resultado analisado (Etapa 3)
   var state = {
     phrases: [],
@@ -182,6 +195,34 @@
     box.textContent = message;
   }
 
+  // Sincroniza a UI do seletor de Nível com o plano da conta: atualiza o
+  // rótulo da opção "Avançado", mostra/esconde o aviso de plano Pro e, se a
+  // seleção atual não é mais permitida (ex.: usuário saiu da conta), rebaixa
+  // para Intermediário. Não decide sozinha se deve reanalisar — quem chama
+  // decide isso (ver updateNivelGateUI / runAnalysis).
+  function syncNivelGate() {
+    var select = document.getElementById('input-nivel');
+    var opt = document.getElementById('opt-nivel-avancado');
+    var note = document.getElementById('nivel-gate-note');
+    var pro = isProUser();
+
+    if (opt) opt.textContent = pro ? 'Avançado' : 'Avançado 🔒 (Pro)';
+    if (note) note.hidden = pro;
+
+    if (nivelIsGated(select.value)) {
+      select.value = 'intermediario';
+      return true; // a seleção foi rebaixada
+    }
+    return false;
+  }
+
+  // Chamado ao carregar a página, ao trocar o Nível e sempre que o estado da
+  // conta muda (login/logout/plano) — ver window.IL.ui.onAccountChange.
+  function updateNivelGateUI() {
+    var downgraded = syncNivelGate();
+    if (downgraded && state.lastResult) runAnalysis();
+  }
+
   function runAnalysis() {
     if (audio) { audio.stopAll(); resetAudioButtons(); }
     var raw = document.getElementById('input-progressao').value;
@@ -194,6 +235,7 @@
     var tonalidadeValue = document.getElementById('input-tonalidade').value.split('|');
     var tonic = tonalidadeValue[0];
     var mode = tonalidadeValue[1];
+    syncNivelGate(); // defesa extra: cobre o caso de o plano ter mudado entre a seleção e o clique em "Analisar"
     var nivel = document.getElementById('input-nivel').value;
 
     var result = theory.analyzeProgression(chordSymbols, tonic, mode, nivel);
@@ -456,6 +498,21 @@
     highlightInstrumentBar();
   }
 
+  // Planos (Etapa 5): reage à troca manual de Nível e ao link "Ver planos"
+  // dentro do aviso de bloqueio (leva direto para Configurações).
+  function setupPlanGate() {
+    document.getElementById('input-nivel').addEventListener('change', updateNivelGateUI);
+    var link = document.querySelector('#nivel-gate-note a[data-nav="config"]');
+    if (link) {
+      link.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        var navConfig = document.querySelector('.nav-item[data-nav="config"]');
+        if (navConfig) navConfig.click();
+      });
+    }
+    updateNivelGateUI();
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     buildTonalidadeOptions();
     setupTabs();
@@ -464,6 +521,7 @@
     setupFraseados();
     setupAudioProgressao();
     setupInstrumentBar();
+    setupPlanGate();
     runAnalysis(); // já mostra um exemplo ao abrir, como no layout de referência
   });
 
@@ -473,6 +531,9 @@
   window.IL.ui = {
     getState: function () { return state; },
     runAnalysis: runAnalysis,
+    // Etapa 5 (Planos): js/auth-ui.js chama isso após login/logout/troca de
+    // plano para revalidar o nível Avançado (exclusivo Pro).
+    onAccountChange: updateNivelGateUI,
     switchTab: function (tabName) {
       document.querySelectorAll('.tab').forEach(function (t) {
         t.classList.toggle('active', t.getAttribute('data-tab') === tabName);

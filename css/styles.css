@@ -420,6 +420,35 @@ select, input[type="text"] {
 .config-label { color: var(--text-muted); }
 .btn-config-sair { margin-top: 1rem; max-width: 220px; }
 
+/* Planos (Etapa 5) */
+.plan-badge {
+  display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+  background: var(--bg-elevated); border: 1px solid var(--border); font-weight: 600; font-size: 0.78rem;
+}
+.plan-badge-pro { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.plan-compare {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; margin: 1.1rem 0 0.7rem;
+}
+.plan-card {
+  border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem;
+  background: var(--bg-elevated);
+}
+.plan-card-pro { border-color: var(--accent); }
+.plan-card-title { font-weight: 700; margin-bottom: 0.5rem; }
+.plan-card-pro .plan-card-title { color: var(--accent); }
+.plan-features { margin: 0; padding-left: 1.1rem; font-size: 0.8rem; color: var(--text-dim); display: flex; flex-direction: column; gap: 0.35rem; }
+
+.plan-gate-note {
+  background: var(--bg-elevated); border: 1px dashed var(--border); border-radius: 10px;
+  padding: 0.7rem 0.9rem; font-size: 0.8rem; color: var(--text-muted); margin: -0.3rem 0 0.9rem;
+}
+.plan-gate-note a { color: var(--accent); }
+
+@media (max-width: 640px) {
+  .plan-compare { grid-template-columns: 1fr; }
+}
+
 /* Modal de login/cadastro */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(4, 8, 16, 0.65);
