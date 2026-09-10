@@ -540,3 +540,21 @@ select, input[type="text"] {
   .nav { flex-direction: row; }
   .upsell-card { display: none; }
 }
+
+/* Biblioteca de Fraseados */
+.lib-controls { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end; margin: 0.4rem 0 0.9rem; }
+.lib-controls .field { flex: 1 1 150px; min-width: 140px; }
+.lib-controls .btn-primary { height: 38px; flex: 0 0 auto; }
+.lib-lista { display: flex; flex-direction: column; gap: 0.9rem; margin-top: 0.6rem; }
+.lib-card { border: 1px solid var(--border); border-radius: 10px; background: var(--bg-elevated); padding: 0.9rem 1rem; }
+.lib-card-head { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.lib-card-title { font-weight: 700; font-size: 0.9rem; }
+.lib-card-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.lib-badges { display: flex; gap: 0.35rem; flex-wrap: wrap; margin: 0.45rem 0 0.3rem; }
+.lib-badge { font-size: 0.68rem; color: var(--text-muted); background: var(--bg-card); border: 1px solid var(--border); border-radius: 999px; padding: 0.1rem 0.5rem; }
+.lib-card-body { overflow-x: auto; }
+.lib-staff svg { display: block; }
+.lib-explicacao { font-size: 0.8rem; line-height: 1.5; color: var(--text-dim); margin: 0.4rem 0 0; }
+.lib-mais { display: flex; justify-content: center; margin-top: 1rem; }
+.lib-mais .btn-secondary { width: auto; padding: 0.55rem 1.4rem; }
+.lib-play.playing { background: #dc2626; border-color: #dc2626; color: #fff; }

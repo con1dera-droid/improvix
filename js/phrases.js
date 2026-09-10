@@ -889,6 +889,20 @@
   }
 
   return {
+    // utilidades reaproveitadas pela Biblioteca de Fraseados (js/library.js)
+    util: {
+      buildLadder: buildLadder,
+      stepFrom: stepFrom,
+      nearestInLadder: nearestInLadder,
+      findPc: findPc,
+      chromBelow: chromBelow,
+      chromAbove: chromAbove,
+      chromBelow2: chromBelow2,
+      chromAbove2: chromAbove2,
+      superPentFor: superPentFor,
+      TENSION_ARPEGGIO: TENSION_ARPEGGIO,
+      TENSION_DESC: TENSION_DESC
+    },
     CATEGORY_LABELS: CATEGORY_LABELS,
     BAR: BAR,
     motifChoices: motifChoices,

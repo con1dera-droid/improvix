@@ -237,6 +237,40 @@ bebop acertando os tempos, variações, padrão fixo, varredura de musicalidade
 em 12 progressões × 3 níveis × 6 variações sem notas repetidas nem saltos
 maiores que uma oitava) e um novo smoke test `tests/fraseados.smoke.js`.
 
+## Biblioteca de Fraseados — ✅ Concluída (2026-09-10)
+Item "🎼 Biblioteca de Fraseados" do menu (antes "em breve") agora
+funciona: gera frases para **qualquer escala/modo** (26 escalas: modos da
+maior, da menor melódica, da menor harmônica, simétricas, bebop,
+pentatônicas e blues), **em qualquer tom** (ou nos 12 tons, no ciclo de
+4ªs) e em **6 estilos**: Bebop (estilo Parker), Jazz moderno, Blues,
+Modal/Fusion, Rock/Pentatônica e Baião/Nordestino.
+
+- Cada frase tem 1 ou 2 compassos + a nota de chegada (longa), com ritmo de
+  verdade: colcheias com swing, tercinas (grupeto), semicolcheias, pausas e
+  a síncope do baião. Os dominantes resolvem no acorde de chegada (G7 → C7M,
+  E7(b9/b13) → Am7, SubV7 → meio tom abaixo).
+- As frases são **calculadas**, não copiadas: o motor (`js/library.js`)
+  combina "roteiros" de cada estilo (arco sobe-e-desce, cerco + arpejo,
+  arpejo circular encadeado, grupeto + escala bebop...) com 24 células de
+  vocabulário, sorteia dezenas de candidatas por frase e fica com a melhor
+  segundo um filtro de musicalidade (notas do acorde nos tempos fortes,
+  cromatismo sempre resolvendo, saltos compensados, um ponto culminante,
+  âmbito tocável, chegada numa nota estável). Determinístico por semente:
+  dá para pedir quantas páginas quiser ("Mais 12 frases").
+- Cada frase: partitura com ritmo (colchetes, tercinas, pausas, cifra),
+  tablatura, notas, áudio com andamento/swing e acompanhamento, e a
+  explicação do vocabulário usado. A grafia escolhe o enarmônico mais
+  simples (lócrio de C#, não de Db) e evita acidentes dobrados.
+- Livre para todos; o nível Avançado (arpejo circular, escala bebop,
+  tensões, pentatônica superposta, quartas) segue a trava do plano Pro.
+
+Testes: `tests/library.test.js` (14 testes; varre 26 escalas × 6 estilos ×
+3 níveis × 2 tamanhos × 12 tons = 11.232 frases em ~6 s: ritmo fecha,
+grafia coerente, sem saltos maiores que 1 oitava, cromatismo resolvendo,
+iniciante e modal sem cromatismo, ≥70% dos tempos fortes em nota do acorde
+no bebop avançado, determinismo e 48 frases distintas em 4 páginas) e
+`tests/biblioteca.smoke.js`.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
@@ -257,17 +291,17 @@ ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
 Fora isso, itens documentados como simplificação assumida (não fazem parte
 do escopo cobrado, mas vale registrar): leitura transposta de sax/trompete
 (Etapa 5, parte 1) e Bibliotecas de Escalas/Fraseados de navegação livre
-(`docs/modulos.md`).
+(`docs/modulos.md`) — a Biblioteca de Fraseados já saiu; falta a de Escalas.
 
 ## Arquivos do projeto
 `index.html`, `css/styles.css`, `js/data.js`, `js/theory.js`, `js/phrases.js`,
-`js/notation.js`, `js/audio.js`, `js/lab.js`, `js/lessons.js`, `js/app.js`,
+`js/notation.js`, `js/audio.js`, `js/lab.js`, `js/lessons.js`, `js/library.js`, `js/app.js`, `js/library-ui.js`,
 `js/config.js`, `js/supabaseClient.js`, `js/auth-ui.js`, `sql/schema.sql`,
 `tests/theory.test.js`, `tests/phrases.test.js`, `tests/lab.test.js`,
-`tests/lessons.test.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
+`tests/lessons.test.js`, `tests/library.test.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
 `tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`, `tests/etapa5.smoke.js`,
 `tests/etapa5.planos.smoke.js`, `tests/etapa5.laboratorio.smoke.js`,
-`tests/etapa5.aulas.smoke.js`, `tests/fraseados.smoke.js`, `tests/screenshot*.js` (dev only),
+`tests/etapa5.aulas.smoke.js`, `tests/fraseados.smoke.js`, `tests/biblioteca.smoke.js`, `tests/screenshot*.js` (dev only),
 `docs/PRD.md`, `docs/mapa-do-sistema.md`, `docs/matriz-rbac.md`,
 `docs/modulos.md`, `docs/status.md`, `docs/etapa4-supabase.md`,
 `docs/etapa5-planos.md`, `docs/fraseados-referencias.md`, `README.md`.

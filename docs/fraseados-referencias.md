@@ -43,10 +43,23 @@ mesmos conceitos, mas não pode redistribuir o conteúdo dos livros.
    melódica/harmônica e o dominante) e duas foram atualizadas (cifras;
    como o sistema monta os fraseados).
 
+## Biblioteca de Fraseados
+
+A Biblioteca (`js/library.js`) usa os mesmos princípios, organizados como
+os livros de padrões organizam o estudo: por escala, em todos os tons (ciclo
+de 4ªs) e por estilo. Os "roteiros" de cada estilo são desenhos genéricos de
+frase (arco sobe-e-desce, cerco + arpejo, arpejo circular encadeado,
+grupeto + escala bebop, pergunta-e-resposta no blues, síncope do baião),
+preenchidos por células calculadas para o acorde e a escala da vez — nenhum
+lick dos livros foi transcrito. O filtro de musicalidade aplica as regras
+dos materiais: notas do acorde nos tempos fortes, cromatismo de passagem
+resolvendo por semitom, cerco da nota-alvo, resolução numa nota estável.
+
 ## Ideias dos materiais que ficaram para depois
 
-- Visão quartal / blocos de 4ªs e "escala-arpejo" com notas vizinhas
-  (Visão Especial Guitarra).
+- "Escala-arpejo" com notas vizinhas e os desenhos de 4 notas por corda
+  (Visão Especial Guitarra) — as 4ªs justas já entraram na Biblioteca
+  (célula "arpejo em quartas").
 - Voicings de acompanhamento (drop 2, shell voicings) no áudio da
   progressão, em vez de acorde "cheio" (Voicings Sofisticados).
 - Leitura transposta para sax/trompete (já registrada antes).

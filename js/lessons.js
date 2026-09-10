@@ -113,7 +113,8 @@
         'Escala bebop: a escala do acorde com uma nota cromática de passagem (7M no dominante, #5 no maior, 7M no menor). Descendo em colcheias a partir de uma nota do acorde, essa nota extra faz as notas do acorde caírem certinho nos tempos fortes.',
         'Padrão 1-2-3-5 (célula "digital"): quatro notas a partir da fundamental de cada acorde (em C: C–D–E–G). É um dos padrões mais usados para atravessar progressões rápidas — fixe-o no seletor "Padrão" e ouça ele se adaptando a cada acorde.',
         'Pentatônica superposta: tocar uma pentatônica que não é a "óbvia" do acorde para destacar as cores dele — a pentatônica maior da 5ª sobre o 7M (G sobre C7M: 7ª, 9ª e 13ª), a pentatônica menor da b3 sobre o dominante alterado (Bb menor sobre G7alt: #9, b5, b13, b7 e b9), a pentatônica menor da 2ª sobre o m7 dórico.',
-        'Cerco (bordadura, ou "infra/ultrapolação" em volta da nota do acorde): atacar a nota-alvo por cima e por baixo antes de chegar nela — com uma nota da escala por cima e uma cromática por baixo, ou com as duas cromáticas. É o jeito mais clássico de "cair" na nota certa no tempo certo.'
+        'Cerco (bordadura, ou "infra/ultrapolação" em volta da nota do acorde): atacar a nota-alvo por cima e por baixo antes de chegar nela — com uma nota da escala por cima e uma cromática por baixo, ou com as duas cromáticas. É o jeito mais clássico de "cair" na nota certa no tempo certo.',
+        'Para praticar cada técnica isolada, em qualquer escala e nos 12 tons, use a Biblioteca de Fraseados (menu lateral): escolha o estilo (Bebop, Jazz moderno, Blues, Modal, Rock, Baião), a escala e o tom, e peça quantas frases quiser — cada uma com partitura, tab, áudio e a explicação de qual vocabulário ela usa.'
       ],
       exemplo: { tonalidade: 'C', modo: 'maior', progressao: 'Dm7 | G7 | C7M' }
     },

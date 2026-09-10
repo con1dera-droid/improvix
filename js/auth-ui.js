@@ -130,6 +130,7 @@
     historico: 'historico',
     laboratorio: 'laboratorio',
     aulas: 'aulas',
+    'biblioteca-fraseados': 'biblioteca-fraseados',
     config: 'config'
   };
 
@@ -146,6 +147,7 @@
         else if (view === 'config') renderConfigView();
         else if (view === 'laboratorio') renderLaboratorioView();
         else if (view === 'aulas' && window.IL.ui.renderAulasView) window.IL.ui.renderAulasView();
+        else if (view === 'biblioteca-fraseados' && window.IL.ui.renderBibliotecaView) window.IL.ui.renderBibliotecaView();
       });
     });
   }

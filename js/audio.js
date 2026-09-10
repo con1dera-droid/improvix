@@ -213,8 +213,49 @@
     if (onDone) activeTimers.push(setTimeout(onDone, barPhrases.length * barLen * 1000 + 200));
   }
 
+  /**
+   * Toca uma frase com ritmo (Biblioteca de Fraseados): respeita durações,
+   * pausas e tercinas, com swing opcional nas colcheias e o acorde por baixo.
+   * opts: { bpm, swing, chords: [{beat, beats, root, tones}] }
+   */
+  function playEvents(events, instrument, opts, onDone) {
+    stopAll();
+    opts = opts || {};
+    var audioCtx = getCtx();
+    var timbre = TIMBRES[instrument] || TIMBRES.teclado;
+    var spb = 60 / (opts.bpm || 110);
+    function swung(beat) {
+      if (!opts.swing) return beat;
+      var b = Math.floor(beat + 1e-6), f = beat - b;
+      return Math.abs(f - 0.5) < 1e-6 ? b + 2 / 3 : beat;
+    }
+    var master = audioCtx.createGain(); master.gain.value = 0.9; master.connect(audioCtx.destination);
+    var comp = audioCtx.createGain(); comp.gain.value = 0.3; comp.connect(audioCtx.destination);
+    var t0 = audioCtx.currentTime + 0.08;
+
+    var noteEvents = events.filter(function (e) { return !e.rest; });
+    var realized = notation.realizeForInstrument(noteEvents.map(function (e) { return e.name; }), instrument,
+      noteEvents.map(function (e) { return e.midi; }));
+    noteEvents.forEach(function (e, i) {
+      var st = swung(e.onset), en = swung(e.onset + e.dur);
+      scheduleNote(audioCtx, midiToFreq(realized[i].midi), t0 + st * spb, Math.max(0.06, (en - st) * spb * 0.92), timbre, master);
+    });
+    var end = 0;
+    events.forEach(function (e) { end = Math.max(end, e.onset + e.dur); });
+    (opts.chords || []).forEach(function (ch) {
+      var dur = (ch.beats || 4) * spb * 0.95;
+      var bass = notation.realizeForInstrument([ch.root], 'baixo');
+      scheduleNote(audioCtx, midiToFreq(bass[0].midi - 12), t0 + ch.beat * spb, dur, TIMBRES.baixo, comp);
+      notation.realizeForInstrument(ch.tones, 'teclado').forEach(function (n) {
+        scheduleNote(audioCtx, midiToFreq(n.midi - 12), t0 + ch.beat * spb, dur, TIMBRES.teclado, comp);
+      });
+    });
+    if (onDone) activeTimers.push(setTimeout(onDone, end * spb * 1000 + 250));
+  }
+
   root.IL = root.IL || {};
   root.IL.audio = {
+    playEvents: playEvents,
     playProgression: playProgression,
     playPhrase: playPhrase,
     playLine: playLine,

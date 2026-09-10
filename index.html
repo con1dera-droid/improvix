@@ -27,7 +27,7 @@
       <a href="#" class="nav-item" data-nav="favoritos">❤ Favoritos</a>
       <a href="#" class="nav-item" data-nav="historico">🕘 Histórico</a>
       <a href="#" class="nav-item is-soon" data-nav="biblioteca-escalas">📚 Biblioteca de Escalas <span class="soon">Etapa 5</span></a>
-      <a href="#" class="nav-item is-soon" data-nav="biblioteca-fraseados">🎼 Biblioteca de Fraseados <span class="soon">Etapa 5</span></a>
+      <a href="#" class="nav-item" data-nav="biblioteca-fraseados">🎼 Biblioteca de Fraseados</a>
       <a href="#" class="nav-item" data-nav="laboratorio">🧪 Laboratório <span class="soon">Pro</span></a>
       <a href="#" class="nav-item" data-nav="aulas">🎓 Aulas</a>
       <a href="#" class="nav-item" data-nav="config">⚙ Configurações</a>
@@ -370,6 +370,57 @@
       </div>
     </div>
 
+    <!-- View: Biblioteca de Fraseados -->
+    <div class="content view" data-view="biblioteca-fraseados" hidden>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-icon">🎼</span>
+          <div>
+            <div class="card-title">Biblioteca de Fraseados</div>
+            <div class="card-subtitle">Frases geradas para qualquer escala, em qualquer tom — no estilo que você escolher. Clique em "Mais frases" quantas vezes quiser.</div>
+          </div>
+        </div>
+        <div class="lib-controls">
+          <div class="field"><label for="lib-estilo">Estilo</label><select id="lib-estilo"></select></div>
+          <div class="field"><label for="lib-escala">Escala / modo</label><select id="lib-escala"></select></div>
+          <div class="field"><label for="lib-tom">Tom</label><select id="lib-tom"></select></div>
+          <div class="field"><label for="lib-nivel">Nível</label>
+            <select id="lib-nivel">
+              <option value="iniciante">Iniciante</option>
+              <option value="intermediario" selected>Intermediário</option>
+              <option value="avancado" id="lib-opt-avancado">Avançado</option>
+            </select>
+          </div>
+          <div class="field"><label for="lib-tamanho">Tamanho</label>
+            <select id="lib-tamanho">
+              <option value="1">1 compasso + resolução</option>
+              <option value="2">2 compassos + resolução</option>
+            </select>
+          </div>
+          <div class="field"><label for="lib-instrumento">Instrumento</label>
+            <select id="lib-instrumento">
+              <option value="guitarra">Guitarra</option>
+              <option value="teclado">Teclado / Piano</option>
+              <option value="baixo">Baixo</option>
+              <option value="violao">Violão</option>
+              <option value="sax">Sax</option>
+              <option value="trompete">Trompete</option>
+              <option value="violino">Violino</option>
+              <option value="flauta">Flauta</option>
+            </select>
+          </div>
+          <button class="btn-primary" id="btn-lib-gerar">🎲 Gerar frases</button>
+        </div>
+        <p class="plan-gate-note" id="lib-gate-note" hidden>
+          🔒 O nível <strong>Avançado</strong> da biblioteca (arpejo circular, escala bebop, tensões, pentatônicas superpostas)
+          é exclusivo do plano <strong>Pro</strong>. <a href="#" data-nav="config">Ver planos</a>
+        </p>
+        <div id="lib-resumo" class="muted-note"></div>
+        <div id="lib-lista" class="lib-lista"></div>
+        <div class="lib-mais"><button class="btn-secondary" id="btn-lib-mais" hidden>➕ Mais 12 frases</button></div>
+      </div>
+    </div>
+
     <!-- View: Aulas (Etapa 5, parte 4) -->
     <div class="content view" data-view="aulas" hidden>
       <div class="card">
@@ -431,7 +482,9 @@
 <script src="js/audio.js"></script>
 <script src="js/lab.js"></script>
 <script src="js/lessons.js"></script>
+<script src="js/library.js"></script>
 <script src="js/app.js"></script>
+<script src="js/library-ui.js"></script>
 
 <!-- Etapa 4: contas de usuário (Supabase). Se js/config.js ainda tiver os
      valores de exemplo, ou se não houver internet, o login fica desativado

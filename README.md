@@ -49,6 +49,10 @@ Com isso, todo o escopo da Etapa 5 previsto em `docs/PRD.md` está entregue.
   (arpejo circular, 3-5-7-9, bebop, 1-2-3-5, pentatônica superposta, cerco),
   "Outra ideia", "Padrão" fixo e "Tocar a linha inteira". Ver
   `docs/fraseados-referencias.md`.
+- **Biblioteca de Fraseados**: frases para qualquer escala (26), em
+  qualquer tom ou nos 12 tons, em 6 estilos (Bebop/Parker, Jazz moderno,
+  Blues, Modal, Rock, Baião), com ritmo (swing, tercinas, pausas), partitura,
+  tab, áudio com acompanhamento e explicação — "Mais 12 frases" sem fim.
 
 O site continua sendo 100% estático (sem servidor próprio) — mesmo com login,
 quem guarda os dados é o Supabase (gratuito), acessado direto do navegador.
@@ -79,6 +83,8 @@ js/notation.js        Realização de oitavas, tablatura e partitura simplificad
 js/audio.js           Síntese de áudio via Web Audio API (Etapa 3): progressão e fraseados
 js/lab.js             Gerador de progressões do Laboratório (Etapa 5, parte 3): modelos por estilo
 js/lessons.js         Conteúdo das Aulas (Etapa 5, parte 4): lições + exemplos práticos
+js/library.js         Motor da Biblioteca de Fraseados (escala × tom × estilo, com ritmo)
+js/library-ui.js      Tela da Biblioteca de Fraseados
 js/app.js             Liga a tela aos motores (sem framework, JS puro)
 js/config.js          Configuração do Supabase (Etapa 4) — troque pelos dados do seu projeto
 js/supabaseClient.js  Camada fina sobre o supabase-js: auth + CRUD de analises/favoritos/exercicios
@@ -99,6 +105,8 @@ tests/etapa5.aulas.smoke.js Smoke test das Aulas (acesso livre, lista, exemplo -
 tests/lab.test.js      Testes automáticos do gerador de progressões (node tests/lab.test.js)
 tests/lessons.test.js  Testes automáticos do conteúdo das Aulas (node tests/lessons.test.js)
 tests/fraseados.smoke.js Smoke test dos fraseados (cifra brasileira, Outra ideia, Padrão, linha inteira)
+tests/library.test.js  Testes do motor da Biblioteca (varre 11.232 frases) — node tests/library.test.js
+tests/biblioteca.smoke.js Smoke test da tela da Biblioteca de Fraseados
 tests/screenshot*.js   Scripts opcionais de checagem visual com Playwright (dev only)
 docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos, status e guias do Supabase/Planos
 ```
@@ -110,6 +118,7 @@ node tests/theory.test.js
 node tests/phrases.test.js
 node tests/lab.test.js
 node tests/lessons.test.js
+node tests/library.test.js
 ```
 
 `tests/audio.smoke.js`, `tests/etapa4.smoke.js`, `tests/etapa4.smoke2.js`,
@@ -127,6 +136,7 @@ node tests/etapa5.planos.smoke.js
 node tests/etapa5.laboratorio.smoke.js
 node tests/etapa5.aulas.smoke.js
 node tests/fraseados.smoke.js
+node tests/biblioteca.smoke.js
 ```
 
 Todos os testes devem passar antes de qualquer alteração ser considerada

@@ -702,6 +702,9 @@
     // Etapa 5 (Aulas): js/auth-ui.js chama isso ao navegar para "Aulas" —
     // módulo livre, sem depender de conta/plano.
     renderAulasView: renderAulasView,
+    // Biblioteca de Fraseados (js/library-ui.js) reaproveita o desenho da tablatura.
+    buildTabText: buildTabText,
+    isFrettedInstrument: isFrettedInstrument,
     switchTab: function (tabName) {
       document.querySelectorAll('.tab').forEach(function (t) {
         t.classList.toggle('active', t.getAttribute('data-tab') === tabName);
