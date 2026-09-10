@@ -81,6 +81,31 @@ test('toTab devolve trastes válidos (0-15) para baixo', function () {
     assert.ok(t.string >= 0 && t.string <= 3);
   });
 });
+
+console.log('notation.js — Etapa 5 (mais instrumentos)');
+test('violão usa a mesma afinação de 6 cordas da guitarra', function () {
+  assert.deepStrictEqual(notation.TUNINGS.violao, notation.TUNINGS.guitarra);
+});
+test('toTab devolve trastes válidos (0-15) para violão', function () {
+  var realized = notation.realizeForInstrument(['G', 'B', 'D', 'F#', 'D', 'B', 'G'], 'violao');
+  var tab = notation.toTab(realized, 'violao');
+  tab.forEach(function (t) {
+    assert.ok(t.fret >= 0 && t.fret <= 15, 'fret fora do alcance: ' + t.fret);
+    assert.ok(t.string >= 0 && t.string <= 5);
+  });
+});
+['sax', 'trompete', 'violino', 'flauta'].forEach(function (instrumento) {
+  test('toTab retorna null para ' + instrumento + ' (instrumento sem traste, sem tablatura)', function () {
+    var realized = notation.realizeForInstrument(['C', 'E', 'G'], instrumento);
+    assert.strictEqual(notation.toTab(realized, instrumento), null);
+  });
+  test('realizeForInstrument mantém a classe de altura correta para ' + instrumento, function () {
+    var realized = notation.realizeForInstrument(['G', 'B', 'D', 'F#'], instrumento);
+    realized.forEach(function (n) {
+      assert.strictEqual(theory.pitchClassOf(n.name), n.midi % 12);
+    });
+  });
+});
 test('staffPosition: E4 é a linha de baixo (posição 0)', function () {
   assert.strictEqual(notation.staffPosition('E', 64), 0);
 });

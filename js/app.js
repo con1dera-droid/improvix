@@ -15,6 +15,15 @@
   var NOTE_ORDER = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   var FLAT_SPELLING = { 'C#': 'Db', 'D#': 'Eb', 'F#': 'Gb', 'G#': 'Ab', 'A#': 'Bb' };
 
+  // Instrumentos com trastes/cordas soltas fixas — só eles têm tablatura
+  // (sopros e cordas de arco tocam uma nota por vez, sem "casas").
+  var FRETTED_INSTRUMENTS = { guitarra: true, violao: true, baixo: true };
+  function isFrettedInstrument(instrument) { return !!FRETTED_INSTRUMENTS[instrument]; }
+  // Guitarra e violão têm a mesma afinação de 6 cordas; os demais instrumentos
+  // com traste (baixo) usam 4 cordas.
+  var SIX_STRING_INSTRUMENTS = { guitarra: true, violao: true };
+  function isSixStringInstrument(instrument) { return !!SIX_STRING_INSTRUMENTS[instrument]; }
+
   // Estado da aba Fraseados (Etapa 2) e do último resultado analisado (Etapa 3)
   var state = {
     phrases: [],
@@ -209,7 +218,7 @@
     var instrumento = document.getElementById('input-instrumento').value;
     state.phrases = phrasesMod.generatePhrases(result, nivel);
     state.selectedPhraseIndex = 0;
-    state.selectedView = instrumento === 'teclado' ? 'partitura' : 'tab';
+    state.selectedView = isFrettedInstrument(instrumento) ? 'tab' : 'partitura';
     renderFraseadosList();
     renderFraseadoDetalhe();
   }
@@ -226,8 +235,9 @@
   }
 
   function buildTabText(tab, instrument) {
-    var order = instrument === 'guitarra' ? [5, 4, 3, 2, 1, 0] : [3, 2, 1, 0];
-    var labels = instrument === 'guitarra' ? ['e', 'B', 'G', 'D', 'A', 'E'] : ['G', 'D', 'A', 'E'];
+    var sixString = isSixStringInstrument(instrument);
+    var order = sixString ? [5, 4, 3, 2, 1, 0] : [3, 2, 1, 0];
+    var labels = sixString ? ['e', 'B', 'G', 'D', 'A', 'E'] : ['G', 'D', 'A', 'E'];
     var colWidth = 4;
     var rows = order.map(function () { return ''; });
     tab.forEach(function (note) {
@@ -282,18 +292,18 @@
     titulo.textContent = phrase.title;
     subtitulo.textContent = 'Escala: ' + phrase.scaleLabel + ' · Nível: ' + nivel;
 
-    // Tab só existe para guitarra/baixo.
+    // Tab só existe para instrumentos com traste (guitarra/violão/baixo).
     var tabBtn = document.querySelector('.view-btn[data-view="tab"]');
-    var isFretted = instrumento === 'guitarra' || instrumento === 'baixo';
+    var isFretted = isFrettedInstrument(instrumento);
     tabBtn.disabled = !isFretted;
-    tabBtn.title = isFretted ? '' : 'Tablatura só se aplica a guitarra/baixo';
+    tabBtn.title = isFretted ? '' : 'Tablatura só se aplica a instrumentos com traste (guitarra, violão, baixo)';
     if (!isFretted && state.selectedView === 'tab') state.selectedView = 'partitura';
 
     document.querySelectorAll('.view-btn').forEach(function (btn) {
       btn.classList.toggle('active', btn.getAttribute('data-view') === state.selectedView);
     });
 
-    var realized = notation.realizeForInstrument(phrase.notes, isFretted ? instrumento : 'teclado');
+    var realized = notation.realizeForInstrument(phrase.notes, instrumento);
 
     if (state.selectedView === 'tab' && isFretted) {
       var tab = notation.toTab(realized, instrumento);
@@ -422,6 +432,30 @@
     });
   }
 
+  // Rodapé com os instrumentos (Etapa 5): clicar num instrumento "ativo"
+  // seleciona ele no formulário e já atualiza a aba Fraseados.
+  function highlightInstrumentBar() {
+    var current = document.getElementById('input-instrumento').value;
+    document.querySelectorAll('.instrument-bar .instr[data-instr]').forEach(function (span) {
+      span.classList.toggle('selected', span.getAttribute('data-instr') === current);
+    });
+  }
+
+  function setupInstrumentBar() {
+    document.querySelectorAll('.instrument-bar .instr[data-instr]').forEach(function (span) {
+      if (span.classList.contains('soon')) return;
+      span.addEventListener('click', function () {
+        var select = document.getElementById('input-instrumento');
+        select.value = span.getAttribute('data-instr');
+        // Dispara o listener de "change" já existente (recalcula a
+        // realização/tab/partitura da aba Fraseados para o novo instrumento).
+        select.dispatchEvent(new Event('change'));
+      });
+    });
+    document.getElementById('input-instrumento').addEventListener('change', highlightInstrumentBar);
+    highlightInstrumentBar();
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     buildTonalidadeOptions();
     setupTabs();
@@ -429,6 +463,7 @@
     setupForm();
     setupFraseados();
     setupAudioProgressao();
+    setupInstrumentBar();
     runAnalysis(); // já mostra um exemplo ao abrir, como no layout de referência
   });
 

@@ -1,15 +1,16 @@
-# ImprovisaLab — Etapas 1 a 4
+# ImprovisaLab — Etapas 1 a 5 (mais instrumentos)
 
 Sistema online de improvisação: transforma uma progressão de acordes em
 análise harmônica completa (campo harmônico, função de cada acorde, escalas,
 arpejos e notas-alvo recomendados) e em fraseados prontos com tablatura,
-partitura simplificada e cifra — para teclado, guitarra e baixo.
+partitura simplificada e cifra — para teclado, guitarra, baixo, violão, sax,
+trompete, violino e flauta.
 
 Concluído até agora (ver `docs/PRD.md` e `docs/status.md`):
 - **Etapa 1**: motor de análise harmônica (aba Visão Geral/Escalas/Arpejos/Notas-alvo).
 - **Etapa 2**: aba Fraseados — uma frase por acorde da progressão (melódica,
   blue, conectando, tensão) mais uma frase de resolução, exibidas em
-  Tab (guitarra/baixo), Partitura simplificada ou Cifra.
+  Tab (instrumentos com traste), Partitura simplificada ou Cifra.
 - **Etapa 3**: áudio — "Ouça a progressão" toca o backing sintetizado da
   harmonia (com destaque do acorde que está soando) e cada fraseado pode
   ser tocado pelo botão 🔊 Áudio, tudo via Web Audio API (sem gravações).
@@ -17,6 +18,11 @@ Concluído até agora (ver `docs/PRD.md` e `docs/status.md`):
   análises, favoritos e "Meus Exercícios", usando Supabase (Postgres + Auth
   + Row Level Security) gratuito. Sem configurar o Supabase, o site continua
   funcionando 100% como nas Etapas 1–3, só sem salvar nada entre visitas.
+- **Etapa 5 (parte 1 — mais instrumentos)**: violão, sax, trompete, violino e
+  flauta, além de teclado/guitarra/baixo. Violão usa a mesma afinação de 6
+  cordas da guitarra (tablatura igual); sax/trompete/violino/flauta tocam uma
+  nota por vez, então usam Partitura/Cifra em vez de Tab. Dá pra escolher o
+  instrumento tanto no formulário quanto clicando direto no rodapé.
 
 O site continua sendo 100% estático (sem servidor próprio) — mesmo com login,
 quem guarda os dados é o Supabase (gratuito), acessado direto do navegador.
@@ -58,6 +64,7 @@ tests/etapa4.smoke2.js Smoke test: mensagem correta quando o SDK carrega mas fal
 tests/etapa4.e2e.js    Teste completo de cadastro/login/salvar/favoritar/exercícios/logout
                        (com um cliente Supabase falso, em memória — não substitui testar com
                        um projeto Supabase real, mas cobre toda a lógica de UI)
+tests/etapa5.smoke.js  Smoke test dos novos instrumentos (select, rodapé, tab/partitura, áudio)
 tests/screenshot*.js   Scripts opcionais de checagem visual com Playwright (dev only)
 docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos, status e guia do Supabase
 ```
@@ -79,6 +86,7 @@ desenvolvimento. Rodam assim:
 node tests/etapa4.smoke.js
 node tests/etapa4.smoke2.js
 node tests/etapa4.e2e.js
+node tests/etapa5.smoke.js
 ```
 
 Todos os testes devem passar antes de qualquer alteração ser considerada
@@ -92,7 +100,16 @@ habilitar contas de usuário, histórico, favoritos e "Meus Exercícios", siga
 o passo a passo em **`docs/etapa4-supabase.md`** — leva uns 10 minutos e não
 tem custo.
 
+## Instrumentos sem traste (sax, trompete, violino, flauta)
+
+Esses instrumentos tocam uma nota de cada vez, então a aba Fraseados mostra
+Partitura ou Cifra (o botão "Tab" fica desabilitado). Para simplificar, o
+áudio e as notas exibidas estão sempre em tom concertante (o que soa é
+exatamente o que está escrito) — sax e trompete são instrumentos
+transpositores na partitura tradicional deles, mas essa "leitura transposta"
+fica para uma etapa futura, se fizer falta.
+
 ## Roadmap
 
-Ver `docs/PRD.md` para o roadmap completo. Falta: Etapa 5 (mais
-instrumentos, Laboratório, Aulas, plano Pro).
+Ver `docs/PRD.md` para o roadmap completo. Falta, na Etapa 5: plano Pro
+pago, Laboratório e Aulas.

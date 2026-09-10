@@ -15,8 +15,16 @@
 
   var TIMBRES = {
     guitarra: { type: 'triangle', attack: 0.005, decay: 0.35, sustainLevel: 0.15, release: 0.15, gain: 0.22 },
+    violao: { type: 'triangle', attack: 0.008, decay: 0.55, sustainLevel: 0.12, release: 0.25, gain: 0.22 },
     baixo: { type: 'triangle', attack: 0.01, decay: 0.5, sustainLevel: 0.2, release: 0.2, gain: 0.28 },
-    teclado: { type: 'sine', attack: 0.01, decay: 0.9, sustainLevel: 0.25, release: 0.3, gain: 0.2, detuneLayer: true }
+    teclado: { type: 'sine', attack: 0.01, decay: 0.9, sustainLevel: 0.25, release: 0.3, gain: 0.2, detuneLayer: true },
+    // Sopros e cordas de arco: ataque um pouco mais lento (não é dedilhado/
+    // percutido) e sustentação mais alta, já que a nota é "sustentada" pela
+    // respiração/arco em vez de decair sozinha como uma corda dedilhada.
+    sax: { type: 'sawtooth', attack: 0.04, decay: 0.25, sustainLevel: 0.55, release: 0.12, gain: 0.16 },
+    trompete: { type: 'sawtooth', attack: 0.02, decay: 0.15, sustainLevel: 0.7, release: 0.08, gain: 0.17 },
+    violino: { type: 'sawtooth', attack: 0.06, decay: 0.2, sustainLevel: 0.6, release: 0.15, gain: 0.16, detuneLayer: true },
+    flauta: { type: 'sine', attack: 0.05, decay: 0.15, sustainLevel: 0.65, release: 0.15, gain: 0.19 }
   };
 
   var ctx = null;

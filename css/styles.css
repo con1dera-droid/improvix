@@ -320,7 +320,9 @@ select, input[type="text"] {
 }
 .instruments { display: flex; gap: 1.1rem; flex-wrap: wrap; }
 .instr.soon { opacity: 0.45; }
-.instr.active { color: var(--text); }
+.instr.active { color: var(--text); cursor: pointer; border-radius: 6px; padding: 0.15rem 0.4rem; transition: background 0.15s ease, color 0.15s ease; }
+.instr.active:hover { background: var(--bg-card, rgba(255,255,255,0.06)); }
+.instr.active.selected { color: var(--accent); }
 
 /* ============ Fraseados (Etapa 2) ============ */
 .fraseados-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 1.25rem; align-items: start; }

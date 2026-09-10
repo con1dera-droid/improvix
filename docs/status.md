@@ -66,8 +66,40 @@ gratuito, rodar `sql/schema.sql` e colar a URL + chave anônima em
 criar uma conta em outro serviço. Guia completo em
 `docs/etapa4-supabase.md`.
 
+## Etapa 5 (parte 1 — mais instrumentos) — ✅ Concluída (2026-09-10)
+Expande o motor e a tela para os 5 instrumentos que faltavam no rodapé do
+layout de referência: **violão, sax, trompete, violino e flauta** (além de
+teclado/guitarra/baixo, já prontos desde a Etapa 1).
+
+- Como o motor de teoria (campo harmônico, escalas, arpejos, notas-alvo) já
+  era 100% independente de instrumento, essa expansão ficou concentrada em
+  notação/áudio/UI — nada mudou em `js/theory.js`/`js/data.js`/`js/phrases.js`.
+- **Violão**: mesma afinação padrão de 6 cordas da guitarra → ganha
+  tablatura igual.
+- **Sax, trompete, violino, flauta**: tocam uma nota de cada vez (sem
+  "casas"/trastes), então a aba Fraseados mostra Partitura ou Cifra — o
+  botão "Tab" fica desabilitado com uma explicação, e a visualização cai
+  automaticamente para Partitura ao trocar para um desses instrumentos.
+- Cada instrumento novo ganhou uma tessitura (faixa de notas) e um timbre de
+  áudio próprios em `js/notation.js`/`js/audio.js`.
+- Rodapé com os 8 instrumentos agora é clicável: clicar em qualquer um
+  seleciona ele no formulário (antes era só decorativo/"em breve").
+- **Simplificação assumida**: tudo em tom concertante (o que soa é o que
+  está escrito) — sax e trompete são instrumentos transpositores na
+  partitura tradicional deles, mas essa "leitura transposta" fica de fora
+  por ora (não afeta a análise harmônica nem o áudio, só a forma como um
+  saxofonista/trompetista experiente esperaria ler a partitura). Registrado
+  no README para não ser esquecido.
+
+Testes automáticos: 10 novos testes em `tests/phrases.test.js` (tablatura do
+violão idêntica à guitarra, `toTab` retorna `null` para os 4 instrumentos
+sem traste, realização de oitava correta para todos) e um novo smoke test
+via Chromium headless, `tests/etapa5.smoke.js` (select e rodapé atualizados,
+Tab desabilitado/Partitura automática nos instrumentos sem traste, tab
+funcionando no violão, áudio tocando sem erros nos 5 instrumentos novos).
+
 ## Próxima etapa
-Etapa 5 — mais instrumentos, módulo Laboratório, Aulas e plano Pro (ver
+Etapa 5 (partes 2, 3 e 4) — Laboratório, Aulas e plano Pro pago (ver
 `docs/PRD.md` para o escopo completo).
 
 ## Arquivos do projeto
@@ -76,9 +108,9 @@ Etapa 5 — mais instrumentos, módulo Laboratório, Aulas e plano Pro (ver
 `js/supabaseClient.js`, `js/auth-ui.js`, `sql/schema.sql`,
 `tests/theory.test.js`, `tests/phrases.test.js`, `tests/audio.smoke.js`,
 `tests/etapa4.smoke.js`, `tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`,
-`tests/screenshot*.js` (dev only), `docs/PRD.md`, `docs/mapa-do-sistema.md`,
-`docs/matriz-rbac.md`, `docs/modulos.md`, `docs/status.md`,
-`docs/etapa4-supabase.md`, `README.md`.
+`tests/etapa5.smoke.js`, `tests/screenshot*.js` (dev only), `docs/PRD.md`,
+`docs/mapa-do-sistema.md`, `docs/matriz-rbac.md`, `docs/modulos.md`,
+`docs/status.md`, `docs/etapa4-supabase.md`, `README.md`.
 
 Entregue na pasta local do usuário: `IMPROVIX/` (repositório git, um commit
 por etapa).

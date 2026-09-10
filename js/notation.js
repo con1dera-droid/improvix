@@ -23,16 +23,36 @@
   var NOTE_LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 
   // Afinação padrão, do bordão (grave) para a prima (aguda). Números = MIDI.
+  // Só existe para instrumentos com trastes/cordas soltas fixas (onde faz
+  // sentido mostrar tablatura). Sopros e cordas friccionadas (arco) tocam
+  // uma nota de cada vez e usam partitura/cifra, não tablatura.
   var TUNINGS = {
     guitarra: [40, 45, 50, 55, 59, 64], // E2 A2 D3 G3 B3 E4
+    violao: [40, 45, 50, 55, 59, 64],   // mesma afinação padrão da guitarra
     baixo: [28, 33, 38, 43],            // E1 A1 D2 G2
-    teclado: null
+    teclado: null,
+    sax: null,
+    trompete: null,
+    violino: null,
+    flauta: null
   };
 
+  // Centro de tessitura (MIDI) usado para "realizar" a oitava de cada nota —
+  // mantém a linha melódica dentro da faixa confortável de cada instrumento.
+  // Aqui trabalhamos sempre em tom concertante (soa como está escrito); sax
+  // e trompete são instrumentos transpositores na partitura tradicional
+  // deles, mas isso fica para uma etapa futura — por ora o áudio e as notas
+  // mostradas já soam/estão certas, só a "leitura transposta" de quem toca
+  // sax/trompete fica de fora.
   var INSTRUMENT_CENTER = {
     guitarra: 62,
+    violao: 62,
     baixo: 41,
-    teclado: 64
+    teclado: 64,
+    sax: 65,      // sax alto, região confortável em torno de F4
+    trompete: 70, // trompete, região confortável em torno de Bb4
+    violino: 69,  // cordas soltas G3 D4 A4 E5, centro perto de A4
+    flauta: 72    // flauta transversal, região confortável em torno de C5
   };
 
   function nearestMidiForPitchClass(pc, prevMidi) {
