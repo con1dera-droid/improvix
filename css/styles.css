@@ -18,6 +18,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 
 html, body {
   margin: 0;
@@ -238,7 +239,7 @@ select, input[type="text"] {
 .col-main { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
 .col-side { display: flex; flex-direction: column; gap: 1.25rem; }
 
-.card-head { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 1rem; }
+.card-head { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 1rem; flex-wrap: wrap; }
 .card-head.small { margin-bottom: 0.7rem; }
 .card-icon { font-size: 1.3rem; }
 .card-title { font-weight: 700; font-size: 0.95rem; }
@@ -371,6 +372,76 @@ select, input[type="text"] {
 @media (max-width: 980px) {
   .fraseados-grid { grid-template-columns: 1fr; }
 }
+
+/* ============ Contas de usuário (Etapa 4) ============ */
+.btn-logout {
+  background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+  border-radius: 8px; width: 32px; height: 32px; font-size: 0.9rem;
+}
+.btn-logout:hover { background: var(--bg-elevated); color: var(--text); }
+
+.btn-chip-action {
+  background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text);
+  padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.78rem; font-weight: 600;
+}
+.btn-chip-action:hover:not(:disabled) { border-color: var(--accent); }
+.btn-chip-action:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-chip-action.btn-danger { color: #f87171; }
+.btn-inline-end { margin-left: auto; flex-shrink: 0; }
+
+.fraseado-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+
+.auth-gate {
+  background: var(--bg-elevated); border: 1px dashed var(--border); border-radius: 10px;
+  padding: 0.9rem; font-size: 0.83rem; color: var(--text-muted); margin-bottom: 1rem;
+}
+
+.record-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.record-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; flex-wrap: wrap;
+  border: 1px solid var(--border); border-radius: 10px; padding: 0.7rem 0.9rem;
+}
+.record-info { min-width: 0; }
+.record-title { font-size: 0.85rem; font-weight: 600; }
+.record-sub { font-size: 0.74rem; color: var(--text-muted); margin-top: 0.15rem; }
+.record-actions { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.record-status-select {
+  background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text);
+  border-radius: 8px; padding: 0.35rem 0.5rem; font-size: 0.76rem;
+}
+
+.config-row {
+  display: flex; justify-content: space-between; gap: 1rem; padding: 0.7rem 0;
+  border-bottom: 1px solid var(--border); font-size: 0.85rem;
+}
+.config-row:last-of-type { border-bottom: none; }
+.config-label { color: var(--text-muted); }
+.btn-config-sair { margin-top: 1rem; max-width: 220px; }
+
+/* Modal de login/cadastro */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(4, 8, 16, 0.65);
+  display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem;
+}
+.modal {
+  position: relative; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.75rem; width: 100%; max-width: 380px;
+}
+.modal h2 { margin: 0 0 1.1rem; font-size: 1.15rem; }
+.modal .field { margin-bottom: 0.9rem; }
+.modal .btn-primary { width: 100%; padding: 0.65rem; margin-top: 0.3rem; }
+.modal-close {
+  position: absolute; top: 0.9rem; right: 0.9rem; background: transparent; border: none;
+  color: var(--text-muted); font-size: 1rem; width: 28px; height: 28px; border-radius: 6px;
+}
+.modal-close:hover { background: var(--bg-elevated); color: var(--text); }
+.auth-modal-msg {
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px;
+  padding: 0.6rem 0.8rem; font-size: 0.8rem; margin-bottom: 1rem; color: var(--text-muted);
+}
+.auth-modal-msg.is-error { border-color: rgba(248,113,113,0.4); color: #f87171; background: rgba(248,113,113,0.08); }
+.auth-toggle { text-align: center; font-size: 0.82rem; color: var(--text-muted); margin: 1rem 0 0; }
+.auth-toggle a { color: var(--accent); font-weight: 600; }
 
 /* Responsive */
 @media (max-width: 980px) {

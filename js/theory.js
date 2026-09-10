@@ -56,7 +56,8 @@
     var root = parseNoteName(rootName);
     if (!root) throw new Error('Nota inválida: ' + rootName);
     var rootLetterIdx = NOTE_LETTERS.indexOf(root.letter);
-    var targetLetterIdx = (rootLetterIdx + letterSteps) % NOTE_LETTERS.length;
+    var n = NOTE_LETTERS.length;
+    var targetLetterIdx = ((rootLetterIdx + letterSteps) % n + n) % n;
     var targetLetter = NOTE_LETTERS[targetLetterIdx];
     var naturalTargetPitch = LETTER_SEMITONES[targetLetter];
     var desiredPitch = mod12(root.pitchClass + semitones);

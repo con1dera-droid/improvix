@@ -431,4 +431,31 @@
     setupAudioProgressao();
     runAnalysis(); // já mostra um exemplo ao abrir, como no layout de referência
   });
+
+  // API mínima para a Etapa 4 (js/auth-ui.js) ler o estado atual e
+  // acionar telas/ações sem duplicar a lógica de análise/fraseados aqui.
+  window.IL = window.IL || {};
+  window.IL.ui = {
+    getState: function () { return state; },
+    runAnalysis: runAnalysis,
+    switchTab: function (tabName) {
+      document.querySelectorAll('.tab').forEach(function (t) {
+        t.classList.toggle('active', t.getAttribute('data-tab') === tabName);
+      });
+      document.querySelectorAll('.panel').forEach(function (p) {
+        p.hidden = p.getAttribute('data-panel') !== tabName;
+      });
+    },
+    switchView: function (viewName) {
+      document.querySelectorAll('.content.view').forEach(function (v) {
+        v.hidden = v.getAttribute('data-view') !== viewName;
+      });
+    },
+    selectPhrase: function (index) {
+      if (index < 0 || index >= state.phrases.length) return;
+      state.selectedPhraseIndex = index;
+      renderFraseadosList();
+      renderFraseadoDetalhe();
+    }
+  };
 })();

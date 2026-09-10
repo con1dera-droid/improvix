@@ -23,14 +23,14 @@
     <nav class="nav">
       <a href="#" class="nav-item active" data-nav="inicio">🏠 Início</a>
       <a href="#" class="nav-item" data-nav="nova-analise">📊 Nova Análise</a>
-      <a href="#" class="nav-item is-soon" data-nav="meus-exercicios">📋 Meus Exercícios <span class="soon">Etapa 4</span></a>
-      <a href="#" class="nav-item is-soon" data-nav="favoritos">❤ Favoritos <span class="soon">Etapa 4</span></a>
-      <a href="#" class="nav-item is-soon" data-nav="historico">🕘 Histórico <span class="soon">Etapa 4</span></a>
+      <a href="#" class="nav-item" data-nav="meus-exercicios">📋 Meus Exercícios</a>
+      <a href="#" class="nav-item" data-nav="favoritos">❤ Favoritos</a>
+      <a href="#" class="nav-item" data-nav="historico">🕘 Histórico</a>
       <a href="#" class="nav-item is-soon" data-nav="biblioteca-escalas">📚 Biblioteca de Escalas <span class="soon">Etapa 5</span></a>
       <a href="#" class="nav-item is-soon" data-nav="biblioteca-fraseados">🎼 Biblioteca de Fraseados <span class="soon">Etapa 5</span></a>
       <a href="#" class="nav-item is-soon" data-nav="laboratorio">🧪 Laboratório <span class="soon">Etapa 5</span></a>
       <a href="#" class="nav-item is-soon" data-nav="aulas">🎓 Aulas <span class="soon">Etapa 5</span></a>
-      <a href="#" class="nav-item is-soon" data-nav="config">⚙ Configurações <span class="soon">Etapa 4</span></a>
+      <a href="#" class="nav-item" data-nav="config">⚙ Configurações</a>
     </nav>
 
     <div class="upsell-card">
@@ -52,17 +52,13 @@
       </div>
       <div class="topbar-right">
         <span class="bell" title="Notificações">🔔</span>
-        <div class="user">
-          <div class="avatar">A</div>
-          <div class="user-info">
-            <div class="user-name">Alex</div>
-            <div class="user-plan">Plano Gratuito</div>
-          </div>
+        <div class="user" id="user-area">
+          <button class="btn-primary" id="btn-entrar">Entrar</button>
         </div>
       </div>
     </header>
 
-    <div class="content">
+    <div class="content view" data-view="inicio">
 
       <!-- Hero + formulário -->
       <section class="hero card">
@@ -131,6 +127,7 @@
                   <div class="card-title">Análise da Harmonia</div>
                   <div class="card-subtitle" id="analise-subtitulo">—</div>
                 </div>
+                <button class="btn-chip-action btn-inline-end" id="btn-salvar-historico" disabled title="Entre para salvar no histórico">💾 Salvar</button>
               </div>
 
               <div class="chord-chain" id="chord-chain"></div>
@@ -207,6 +204,11 @@
                   <button class="view-btn" data-view="partitura">Partitura</button>
                   <button class="view-btn" data-view="cifra">Cifra</button>
                   <button class="view-btn" data-view="audio" title="Tocar este fraseado">🔊 Áudio</button>
+                </div>
+
+                <div class="fraseado-actions">
+                  <button class="btn-chip-action" id="btn-favoritar" disabled title="Entre para favoritar">☆ Favoritar</button>
+                  <button class="btn-chip-action" id="btn-exercicio" disabled title="Entre para adicionar aos exercícios">➕ Adicionar aos exercícios</button>
                 </div>
 
                 <div id="fraseado-conteudo" class="fraseado-conteudo"></div>
@@ -290,6 +292,74 @@
       </div>
     </div>
 
+    <!-- View: Histórico (Etapa 4) -->
+    <div class="content view" data-view="historico" hidden>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-icon">🕘</span>
+          <div class="card-title">Histórico de análises</div>
+        </div>
+        <div id="auth-gate-historico" class="auth-gate" hidden>Entre na sua conta para ver seu histórico de análises.</div>
+        <div id="lista-historico" class="record-list"></div>
+      </div>
+    </div>
+
+    <!-- View: Favoritos (Etapa 4) -->
+    <div class="content view" data-view="favoritos" hidden>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-icon">❤</span>
+          <div class="card-title">Favoritos</div>
+        </div>
+        <div id="auth-gate-favoritos" class="auth-gate" hidden>Entre na sua conta para ver seus fraseados favoritos.</div>
+        <div id="lista-favoritos" class="record-list"></div>
+      </div>
+    </div>
+
+    <!-- View: Meus Exercícios (Etapa 4) -->
+    <div class="content view" data-view="exercicios" hidden>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-icon">📋</span>
+          <div class="card-title">Meus Exercícios</div>
+        </div>
+        <div id="auth-gate-exercicios" class="auth-gate" hidden>Entre na sua conta para ver seus exercícios.</div>
+        <div id="lista-exercicios" class="record-list"></div>
+      </div>
+    </div>
+
+    <!-- View: Configurações (Etapa 4) -->
+    <div class="content view" data-view="config" hidden>
+      <div class="card" style="max-width:480px;">
+        <div class="card-head">
+          <span class="card-icon">⚙</span>
+          <div class="card-title">Configurações</div>
+        </div>
+        <div id="config-conteudo"><p class="muted-note">Entre na sua conta para ver suas configurações.</p></div>
+      </div>
+    </div>
+
+    <!-- Modal de login/cadastro (Etapa 4) -->
+    <div class="modal-overlay" id="auth-modal" hidden>
+      <div class="modal">
+        <button class="modal-close" id="auth-modal-close">✕</button>
+        <h2 id="auth-modal-title">Entrar</h2>
+        <div id="auth-modal-msg" class="auth-modal-msg" hidden></div>
+        <form id="auth-form">
+          <div class="field">
+            <label>E-mail</label>
+            <input type="email" id="auth-email" required />
+          </div>
+          <div class="field">
+            <label>Senha</label>
+            <input type="password" id="auth-password" required minlength="6" />
+          </div>
+          <button type="submit" class="btn-primary" id="auth-submit-btn">Entrar</button>
+        </form>
+        <p class="auth-toggle"><span id="auth-toggle-text">Não tem conta?</span> <a href="#" id="auth-toggle-link">Criar conta</a></p>
+      </div>
+    </div>
+
     <!-- Rodapé com instrumentos -->
     <footer class="instrument-bar">
       <div class="foot-brand">🎵 ImprovisaLab · Sua evolução musical, um acorde de cada vez.</div>
@@ -314,5 +384,13 @@
 <script src="js/notation.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/app.js"></script>
+
+<!-- Etapa 4: contas de usuário (Supabase). Se js/config.js ainda tiver os
+     valores de exemplo, ou se não houver internet, o login fica desativado
+     com uma mensagem — o resto do site continua funcionando normalmente. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/auth-ui.js"></script>
 </body>
 </html>
