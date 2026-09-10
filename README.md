@@ -53,6 +53,7 @@ Com isso, todo o escopo da Etapa 5 previsto em `docs/PRD.md` está entregue.
   qualquer tom ou nos 12 tons, em 6 estilos (Bebop/Parker, Jazz moderno,
   Blues, Modal, Rock, Baião), com ritmo (swing, tercinas, pausas), partitura,
   tab, áudio com acompanhamento e explicação — "Mais 12 frases" sem fim.
+  Todos os níveis liberados, inclusive o Avançado (estilo Parker completo).
 
 O site continua sendo 100% estático (sem servidor próprio) — mesmo com login,
 quem guarda os dados é o Supabase (gratuito), acessado direto do navegador.

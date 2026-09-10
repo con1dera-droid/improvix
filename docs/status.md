@@ -261,8 +261,12 @@ Modal/Fusion, Rock/Pentatônica e Baião/Nordestino.
   tablatura, notas, áudio com andamento/swing e acompanhamento, e a
   explicação do vocabulário usado. A grafia escolhe o enarmônico mais
   simples (lócrio de C#, não de Db) e evita acidentes dobrados.
-- Livre para todos; o nível Avançado (arpejo circular, escala bebop,
-  tensões, pentatônica superposta, quartas) segue a trava do plano Pro.
+- Livre para todos, **inclusive o nível Avançado** (arpejo circular,
+  escala bebop, tensões, pentatônica superposta, quartas): a pedido do
+  usuário, enquanto não houver cobrança configurada, a Biblioteca não tem
+  trava de plano. Para voltar a exigir o Pro, basta trocar
+  `ADVANCED_FREE` para `false` em `js/library-ui.js`. (Na aba Fraseados da
+  análise o Avançado continua exclusivo Pro.)
 
 Testes: `tests/library.test.js` (14 testes; varre 26 escalas × 6 estilos ×
 3 níveis × 2 tamanhos × 12 tons = 11.232 frases em ~6 s: ritmo fecha,

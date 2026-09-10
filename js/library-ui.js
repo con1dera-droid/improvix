@@ -3,8 +3,8 @@
  *
  * Liga os filtros (estilo, escala, tom, nível, tamanho, instrumento) ao
  * motor js/library.js e mostra cada frase com partitura rítmica, tablatura,
- * notas, áudio (com acompanhamento) e explicação. Módulo livre; só o nível
- * Avançado exige o plano Pro (mesma trava do resto do site).
+ * notas, áudio (com acompanhamento) e explicação. Módulo livre, inclusive o
+ * nível Avançado (ver ADVANCED_FREE).
  */
 (function () {
   'use strict';
@@ -14,6 +14,11 @@
   var audio = window.IL.audio;
 
   var PER_PAGE = 12;
+
+  // Enquanto não há cobrança configurada, o nível Avançado da Biblioteca fica
+  // liberado para todos (decisão do dono do projeto em 10/09/2026). Para
+  // voltar a exigir o plano Pro, basta mudar para false.
+  var ADVANCED_FREE = true;
   var state = { list: [], built: false, playingId: null, userPickedScale: false };
 
   // Escalas que mais combinam com cada estilo (aparecem primeiro no seletor).
@@ -46,7 +51,7 @@
   }
 
   function syncGate() {
-    var pro = isPro();
+    var pro = ADVANCED_FREE || isPro();
     var opt = $('lib-opt-avancado');
     if (opt) opt.textContent = pro ? 'Avançado' : 'Avançado 🔒 (Pro)';
     var note = $('lib-gate-note');

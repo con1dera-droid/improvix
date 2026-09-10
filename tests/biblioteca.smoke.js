@@ -3,8 +3,8 @@
  *
  * Confirma: abre sem login; gera 12 frases com partitura rítmica; "Mais 12
  * frases" acrescenta; Tab/Notas trocam a visualização; "Ouvir" toca e para;
- * trocar estilo troca a escala sugerida; nível Avançado travado para quem
- * não é Pro e liberado para Pro.
+ * trocar estilo troca a escala sugerida; nível Avançado liberado para todos
+ * (inclusive visitante, sem login).
  */
 const { chromium } = require('playwright');
 const path = require('path');
@@ -57,7 +57,6 @@ const path = require('path');
   console.log('Visitante escolheu Avançado → nível ficou:', await page.$eval('#lib-nivel', (e) => e.value),
     '| aviso Pro visível:', await page.$eval('#lib-gate-note', (e) => !e.hidden));
 
-  await page.evaluate(() => { window.IL.account.isPro = () => true; window.IL.ui.onAccountChange(); });
   await page.selectOption('#lib-estilo', 'bebop');
   await page.selectOption('#lib-escala', 'mixolidio');
   await page.selectOption('#lib-tom', 'G');
@@ -65,8 +64,8 @@ const path = require('path');
   await page.waitForTimeout(200);
   const titulos = await page.$$eval('.lib-card .lib-card-title', (e) => e.slice(0, 3).map((x) => x.textContent));
   const tecnicas = await page.$$eval('.lib-card .lib-explicacao', (e) => e.map((x) => x.textContent).join(' '));
-  console.log('Pro — nível:', await page.$eval('#lib-nivel', (e) => e.value), '| títulos:', JSON.stringify(titulos));
-  console.log('Pro — aparece arpejo circular (Parker)?', /arpejo circular/.test(tecnicas), '| escala bebop?', /bebop/.test(tecnicas));
+  console.log('Visitante (Avançado) — nível:', await page.$eval('#lib-nivel', (e) => e.value), '| títulos:', JSON.stringify(titulos));
+  console.log('Visitante (Avançado) — aparece arpejo circular (Parker)?', /arpejo circular/.test(tecnicas), '| escala bebop?', /bebop/.test(tecnicas));
 
   console.log('Erros de página:', JSON.stringify(errors));
   await browser.close();
