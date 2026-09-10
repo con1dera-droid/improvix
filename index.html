@@ -111,7 +111,7 @@
         <button class="tab" data-tab="escalas">📋 Escalas</button>
         <button class="tab" data-tab="arpejos">🔷 Arpejos</button>
         <button class="tab" data-tab="notas-alvo">🎯 Notas-alvo</button>
-        <button class="tab is-soon" data-tab="fraseados" title="Chega na Etapa 2">🎵 Fraseados</button>
+        <button class="tab" data-tab="fraseados">🎵 Fraseados</button>
         <button class="tab is-soon" data-tab="exercicios" title="Chega na Etapa 4">📖 Exercícios</button>
         <button class="tab is-soon" data-tab="teoria" title="Chega na Etapa 5">📄 Teoria</button>
       </nav>
@@ -179,12 +179,48 @@
             </div>
           </section>
 
-          <!-- Painéis futuros -->
+          <!-- Painel: Fraseados -->
           <section class="panel" data-panel="fraseados" hidden>
-            <div class="card placeholder-card">
-              <div class="placeholder-icon">🎵</div>
-              <div class="placeholder-title">Fraseados prontos chegam na Etapa 2</div>
-              <p>Biblioteca de frases por acorde/escala, com tablatura, cifra e partitura — como no layout de referência.</p>
+            <div class="fraseados-grid">
+              <div class="card fraseados-list-card">
+                <div class="card-head small">
+                  <span class="card-icon">🎵</span>
+                  <div>
+                    <div class="card-title">Fraseados e Exercícios</div>
+                    <div class="card-subtitle">Uma frase por acorde da progressão, gerada automaticamente</div>
+                  </div>
+                </div>
+                <div id="lista-fraseados" class="phrase-list"></div>
+              </div>
+
+              <div class="card fraseado-detalhe-card">
+                <div class="card-head small">
+                  <span class="card-icon">🎼</span>
+                  <div>
+                    <div class="card-title" id="fraseado-titulo">—</div>
+                    <div class="card-subtitle" id="fraseado-subtitulo">—</div>
+                  </div>
+                </div>
+
+                <div class="view-toggle" id="view-toggle">
+                  <button class="view-btn" data-view="tab">Tab</button>
+                  <button class="view-btn" data-view="partitura">Partitura</button>
+                  <button class="view-btn" data-view="cifra">Cifra</button>
+                  <button class="view-btn" data-view="audio" disabled title="Chega na Etapa 3">🔊 Áudio</button>
+                </div>
+
+                <div id="fraseado-conteudo" class="fraseado-conteudo"></div>
+
+                <div class="fraseado-notas">
+                  <div class="fraseado-notas-label">Notas utilizadas</div>
+                  <div id="fraseado-notas-chips" class="notes-chips"></div>
+                </div>
+
+                <div class="fraseado-explicacao">
+                  <div class="fraseado-notas-label">Explicação</div>
+                  <p id="fraseado-explicacao-texto">—</p>
+                </div>
+              </div>
             </div>
           </section>
           <section class="panel" data-panel="exercicios" hidden>
@@ -201,20 +237,6 @@
               <p>Explicações completas de campo harmônico, modos e improvisação.</p>
             </div>
           </section>
-
-          <!-- Fraseados e exercícios (placeholder, layout de referência) -->
-          <div class="two-col">
-            <div class="card placeholder-card small">
-              <div class="placeholder-icon">🎵</div>
-              <div class="placeholder-title">Fraseados e Exercícios</div>
-              <p>5 frases por acorde para praticar — Etapa 2.</p>
-            </div>
-            <div class="card placeholder-card small">
-              <div class="placeholder-icon">🎼</div>
-              <div class="placeholder-title">Exemplo de Fraseado</div>
-              <p>Tab · Partitura · Cifra · Áudio — Etapa 2 e 3.</p>
-            </div>
-          </div>
 
         </div>
 
@@ -288,6 +310,8 @@
 
 <script src="js/data.js"></script>
 <script src="js/theory.js"></script>
+<script src="js/phrases.js"></script>
+<script src="js/notation.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

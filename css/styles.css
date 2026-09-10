@@ -317,6 +317,57 @@ select, input[type="text"] {
 .instr.soon { opacity: 0.45; }
 .instr.active { color: var(--text); }
 
+/* ============ Fraseados (Etapa 2) ============ */
+.fraseados-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 1.25rem; align-items: start; }
+
+.phrase-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.phrase-item {
+  display: flex; align-items: center; gap: 0.7rem;
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 0.6rem 0.7rem; cursor: pointer;
+}
+.phrase-item:hover { background: var(--bg-elevated); }
+.phrase-item.active { border-color: var(--accent); background: var(--bg-elevated); }
+.phrase-num {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--accent); color: #fff; font-size: 0.75rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.phrase-info { flex: 1; min-width: 0; }
+.phrase-title { font-size: 0.83rem; font-weight: 600; }
+.phrase-sub { font-size: 0.72rem; color: var(--text-muted); }
+.phrase-play { color: var(--text-dim); }
+
+.view-toggle { display: flex; gap: 0.4rem; margin-bottom: 0.9rem; flex-wrap: wrap; }
+.view-btn {
+  background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-muted);
+  padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.78rem;
+}
+.view-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.view-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.fraseado-conteudo {
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px;
+  padding: 0.9rem; margin-bottom: 1rem; min-height: 120px; display: flex; align-items: center; overflow-x: auto;
+}
+.tab-block { font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.82rem; line-height: 1.5; margin: 0; white-space: pre; }
+.cifra-block { font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.95rem; letter-spacing: 0.02em; }
+.staff-block { width: 100%; }
+.staff-block svg { display: block; }
+
+.fraseado-notas, .fraseado-explicacao { margin-bottom: 0.9rem; }
+.fraseado-notas-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); margin-bottom: 0.4rem; }
+.notes-chips { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.note-chip {
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 999px;
+  padding: 0.25rem 0.7rem; font-size: 0.78rem; font-weight: 600;
+}
+.fraseado-explicacao p { font-size: 0.83rem; color: var(--text-muted); margin: 0; }
+
+@media (max-width: 980px) {
+  .fraseados-grid { grid-template-columns: 1fr; }
+}
+
 /* Responsive */
 @media (max-width: 980px) {
   .grid { grid-template-columns: 1fr; }

@@ -8,9 +8,18 @@
   'use strict';
 
   var theory = window.IL.theory;
+  var phrasesMod = window.IL.phrases;
+  var notation = window.IL.notation;
 
   var NOTE_ORDER = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   var FLAT_SPELLING = { 'C#': 'Db', 'D#': 'Eb', 'F#': 'Gb', 'G#': 'Ab', 'A#': 'Bb' };
+
+  // Estado da aba Fraseados (Etapa 2)
+  var state = {
+    phrases: [],
+    selectedPhraseIndex: 0,
+    selectedView: 'tab'
+  };
 
   function buildTonalidadeOptions() {
     var select = document.getElementById('input-tonalidade');
@@ -182,6 +191,128 @@
     renderScaleLike('lista-escalas', result, 'escalas');
     renderScaleLike('lista-arpejos', result, 'arpejos');
     renderTargetNotes(result);
+
+    var instrumento = document.getElementById('input-instrumento').value;
+    state.phrases = phrasesMod.generatePhrases(result, nivel);
+    state.selectedPhraseIndex = 0;
+    state.selectedView = instrumento === 'teclado' ? 'partitura' : 'tab';
+    renderFraseadosList();
+    renderFraseadoDetalhe();
+  }
+
+  // ===================== Fraseados (Etapa 2) =====================
+
+  function uniqueNotes(notes) {
+    var seen = {};
+    var out = [];
+    notes.forEach(function (n) {
+      if (!seen[n]) { seen[n] = true; out.push(n); }
+    });
+    return out;
+  }
+
+  function buildTabText(tab, instrument) {
+    var order = instrument === 'guitarra' ? [5, 4, 3, 2, 1, 0] : [3, 2, 1, 0];
+    var labels = instrument === 'guitarra' ? ['e', 'B', 'G', 'D', 'A', 'E'] : ['G', 'D', 'A', 'E'];
+    var colWidth = 4;
+    var rows = order.map(function () { return ''; });
+    tab.forEach(function (note) {
+      order.forEach(function (stringIdx, rowI) {
+        var text = (note.string === stringIdx) ? String(note.fret) : '';
+        rows[rowI] += text.padEnd(colWidth, '-');
+      });
+    });
+    return labels.map(function (l, i) { return l + '|' + rows[i] + '|'; }).join('\n');
+  }
+
+  function renderFraseadosList() {
+    var wrap = document.getElementById('lista-fraseados');
+    wrap.innerHTML = '';
+    state.phrases.forEach(function (p, i) {
+      var item = el('div', 'phrase-item' + (i === state.selectedPhraseIndex ? ' active' : ''));
+      item.setAttribute('data-phrase-index', i);
+      item.innerHTML =
+        '<span class="phrase-num">' + p.index + '</span>' +
+        '<div class="phrase-info">' +
+        '<div class="phrase-title">' + p.title + '</div>' +
+        '<div class="phrase-sub">' + p.scaleLabel + '</div>' +
+        '</div>' +
+        '<span class="phrase-play">▶</span>';
+      wrap.appendChild(item);
+    });
+  }
+
+  function renderFraseadoDetalhe() {
+    var phrase = state.phrases[state.selectedPhraseIndex];
+    var titulo = document.getElementById('fraseado-titulo');
+    var subtitulo = document.getElementById('fraseado-subtitulo');
+    var conteudo = document.getElementById('fraseado-conteudo');
+    var chips = document.getElementById('fraseado-notas-chips');
+    var explicacao = document.getElementById('fraseado-explicacao-texto');
+    var instrumento = document.getElementById('input-instrumento').value;
+    var nivel = document.getElementById('input-nivel').value;
+
+    if (!phrase) {
+      titulo.textContent = 'Nenhum fraseado disponível';
+      subtitulo.textContent = 'Analise uma progressão para gerar fraseados.';
+      conteudo.innerHTML = '';
+      chips.innerHTML = '';
+      explicacao.textContent = '—';
+      return;
+    }
+
+    titulo.textContent = phrase.title;
+    subtitulo.textContent = 'Escala: ' + phrase.scaleLabel + ' · Nível: ' + nivel;
+
+    // Tab só existe para guitarra/baixo.
+    var tabBtn = document.querySelector('.view-btn[data-view="tab"]');
+    var isFretted = instrumento === 'guitarra' || instrumento === 'baixo';
+    tabBtn.disabled = !isFretted;
+    tabBtn.title = isFretted ? '' : 'Tablatura só se aplica a guitarra/baixo';
+    if (!isFretted && state.selectedView === 'tab') state.selectedView = 'partitura';
+
+    document.querySelectorAll('.view-btn').forEach(function (btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-view') === state.selectedView);
+    });
+
+    var realized = notation.realizeForInstrument(phrase.notes, isFretted ? instrumento : 'teclado');
+
+    if (state.selectedView === 'tab' && isFretted) {
+      var tab = notation.toTab(realized, instrumento);
+      conteudo.innerHTML = '<pre class="tab-block">' + buildTabText(tab, instrumento) + '</pre>';
+    } else if (state.selectedView === 'cifra') {
+      conteudo.innerHTML = '<div class="cifra-block">' + phrase.notes.join(' – ') + '</div>';
+    } else {
+      conteudo.innerHTML = '<div class="staff-block">' + notation.toStaffSVG(realized) + '</div>';
+    }
+
+    chips.innerHTML = '';
+    uniqueNotes(phrase.notes).forEach(function (n) {
+      chips.appendChild(el('span', 'note-chip', n));
+    });
+
+    explicacao.textContent = phrase.explanation;
+  }
+
+  function setupFraseados() {
+    document.getElementById('lista-fraseados').addEventListener('click', function (ev) {
+      var item = ev.target.closest('[data-phrase-index]');
+      if (!item) return;
+      state.selectedPhraseIndex = Number(item.getAttribute('data-phrase-index'));
+      renderFraseadosList();
+      renderFraseadoDetalhe();
+    });
+
+    document.getElementById('view-toggle').addEventListener('click', function (ev) {
+      var btn = ev.target.closest('.view-btn');
+      if (!btn || btn.disabled) return;
+      state.selectedView = btn.getAttribute('data-view');
+      renderFraseadoDetalhe();
+    });
+
+    document.getElementById('input-instrumento').addEventListener('change', function () {
+      if (state.phrases.length > 0) renderFraseadoDetalhe();
+    });
   }
 
   function setupTabs() {
@@ -226,6 +357,7 @@
     setupTabs();
     setupNav();
     setupForm();
+    setupFraseados();
     runAnalysis(); // já mostra um exemplo ao abrir, como no layout de referência
   });
 })();
