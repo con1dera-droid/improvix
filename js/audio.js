@@ -481,7 +481,8 @@
       events = events.concat(phraseEvents(p, b * 4));
       chords.push({ beat: b * 4, beats: 4, root: p.chord.root, tones: p.chord.tones });
     });
-    return playEvents(events, instrument, { bpm: extra.bpm || 100, metronome: !!extra.metronome, swing: true, humanize: true, chords: chords, onChord: onBarStart }, onDone);
+    var swing = barPhrases[0].rhythm ? barPhrases[0].rhythm === 'colcheias' : true;
+    return playEvents(events, instrument, { bpm: extra.bpm || 100, metronome: !!extra.metronome, swing: swing, humanize: true, chords: chords, onChord: onBarStart }, onDone);
   }
 
   function setSoundMode(mode) {

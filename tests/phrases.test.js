@@ -243,6 +243,46 @@ test('toStaffSVG gera um SVG válido (contém <svg> e uma nota por elipse)', fun
   assert.strictEqual(count, 3);
 });
 
+test('estilos (Bebop, Jazz, Blues, Modal, Rock, Baião, Fusion, Intervalado): ritmo fecha, notas no âmbito, técnicas do estilo', function () {
+  var progs = [
+    [['Dm7', 'G7', 'Cmaj7', 'A7'], 'C', 'maior'],
+    [['Am7', 'D7', 'Gmaj7', 'Cmaj7', 'F#m7b5', 'B7', 'Em7'], 'E', 'menor'],
+    [['C7', 'F7', 'C7', 'G7'], 'C', 'maior']
+  ];
+  var choices = phrasesMod.styleChoices();
+  assert.ok(choices.length >= 9);
+  choices.forEach(function (st) {
+    ['iniciante', 'intermediario', 'avancado'].forEach(function (lv) {
+      progs.forEach(function (pr) {
+        var r = theory.analyzeProgression(pr[0], pr[1], pr[2], lv);
+        var ps = phrasesMod.generatePhrases(r, lv, { style: st.key });
+        ps.forEach(function (p) {
+          if (p.category === 'resolucao') return;
+          var sum = p.events.reduce(function (a, e) { return a + e.dur; }, 0);
+          assert.ok(Math.abs(sum - 4) < 1e-6, st.key + ' ' + p.title + ' soma ' + sum);
+          assert.strictEqual(p.events.length, 8, st.key + ' ' + p.title);
+          p.events.forEach(function (e) {
+            assert.strictEqual(pc(e.name), ((e.midi % 12) + 12) % 12, p.title + ' ' + e.name);
+            assert.ok(e.midi >= 43 && e.midi <= 91, p.title + ' fora do âmbito');
+          });
+          if (st.key !== 'automatico') assert.ok(p.title.indexOf(st.label) >= 0, p.title);
+          if (st.key === 'intervalado') assert.ok(/diatônicas|grau conjunto|Arpejo|Padrão|Pentatônica/.test(p.technique), p.technique);
+          if (st.key === 'baiao') assert.strictEqual(p.rhythm, 'baiao');
+          if (st.key === 'rock' || st.key === 'blues') assert.strictEqual(p.category, 'blues');
+        });
+        if (st.key === 'intervalado' && lv !== 'iniciante') {
+          assert.ok(ps.some(function (p) { return /diatônicas/.test(p.technique); }), 'intervalado sem intervalos');
+        }
+        if (st.key === 'fusion' && lv !== 'iniciante') {
+          assert.ok(ps.some(function (p) { return p.events.some(function (e) { return e.tabHint; }); }), 'fusion sem sweep');
+        }
+      });
+    });
+  });
+  var t = phrasesMod.generatePhrases(theory.analyzeProgression(['Dm7', 'G7', 'Cmaj7'], 'C', 'maior', 'avancado'), 'avancado', { style: 'bebop' });
+  assert.strictEqual(phrasesMod.parseTitle(t[0].title).style, 'bebop');
+});
+
 console.log('\n' + passed + ' teste(s) passaram.');
 if (process.exitCode) {
   console.error('Há testes falhando — corrija antes de publicar.');

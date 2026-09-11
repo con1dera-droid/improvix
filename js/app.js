@@ -40,6 +40,7 @@
 
   // Estado da aba Fraseados (Etapa 2) e do último resultado analisado (Etapa 3)
   var state = {
+    style: 'automatico', // estilo das frases (Bebop, Fusion, Intervalado...)
     phrases: [],
     selectedPhraseIndex: 0,
     selectedView: 'tab',
@@ -319,7 +320,7 @@
     var instrumento = document.getElementById('input-instrumento').value;
     state.variations = [];
     renderMotifOptions(nivel);
-    state.phrases = phrasesMod.generatePhrases(result, nivel, { variations: state.variations, motif: state.motif });
+    state.phrases = phrasesMod.generatePhrases(result, nivel, { variations: state.variations, motif: state.motif, style: state.style });
     state.selectedPhraseIndex = 0;
     state.selectedView = isFrettedInstrument(instrumento) ? 'tab' : 'partitura';
     renderFraseadosList();
@@ -330,7 +331,7 @@
   function regeneratePhrases() {
     if (!state.lastResult) return;
     var nivel = document.getElementById('input-nivel').value;
-    state.phrases = phrasesMod.generatePhrases(state.lastResult, nivel, { variations: state.variations, motif: state.motif });
+    state.phrases = phrasesMod.generatePhrases(state.lastResult, nivel, { variations: state.variations, motif: state.motif, style: state.style });
     if (state.selectedPhraseIndex >= state.phrases.length) state.selectedPhraseIndex = 0;
     renderFraseadosList();
     renderFraseadoDetalhe();
@@ -503,6 +504,21 @@
         if (!phrase || phrase.category === 'resolucao') return;
         var i = state.selectedPhraseIndex;
         state.variations[i] = (state.variations[i] || 0) + 1;
+        regeneratePhrases();
+      });
+    }
+
+    var estilo = document.getElementById('input-estilo-fraseado');
+    if (estilo && phrasesMod.styleChoices) {
+      estilo.innerHTML = phrasesMod.styleChoices().map(function (c) {
+        return '<option value="' + c.key + '">' + c.label + '</option>';
+      }).join('');
+      estilo.value = state.style || 'automatico';
+      estilo.addEventListener('change', function () {
+        state.style = estilo.value;
+        state.variations = [];
+        audio && audio.stopAll && audio.stopAll();
+        resetAudioButtons();
         regeneratePhrases();
       });
     }
@@ -822,8 +838,11 @@
     selectPhrase: function (index, titulo) {
       if (titulo && phrasesMod.parseTitle) {
         var info = phrasesMod.parseTitle(titulo);
-        if (info.variation || info.motif) {
+        if (info.variation || info.motif || info.style) {
           state.motif = info.motif || '';
+          state.style = info.style || 'automatico';
+          var selEst = document.getElementById('input-estilo-fraseado');
+          if (selEst) selEst.value = state.style;
           renderMotifOptions(document.getElementById('input-nivel').value);
           state.variations = [];
           state.variations[index] = info.variation;

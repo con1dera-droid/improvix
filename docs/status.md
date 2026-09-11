@@ -453,6 +453,20 @@ frase. As escolhas ficam guardadas no navegador. `audio.js`:
 `playEvents` agenda os cliques (`scheduleClick`). Teste:
 `tests/transporte.smoke.js`.
 
+## Estilo nos fraseados da análise — ✅ (2026-09-11)
+Na aba **Fraseados** da análise, novo seletor **Estilo** (acima de
+"Padrão"): Automático (pela função do acorde, como antes), Bebop (Parker),
+Jazz moderno, Blues, Modal, Rock/pentatônica, Baião/nordestino, Fusion
+(sweep) e Intervalado (3ªs, 4ªs, 6ªs). O estilo escolhe as técnicas de
+cada compasso (`STYLES` em `js/phrases.js`, respeitando o nível), o ritmo
+(swing, colcheias retas ou a célula do baião), a escala (baião: mixolídio /
+lídio b7 nos dominantes; blues/rock: pentatônica/blues em todos os acordes)
+e o sotaque das articulações. Novos corpos de frase: terças/quartas/sextas
+diatônicas e arpejo varrido (com as dicas de sweep para a tablatura).
+O estilo vai no título da frase e é restaurado nos favoritos/exercícios.
+Testes: `tests/phrases.test.js` (novo teste de estilos) e
+`tests/estilos-fraseados.smoke.js`.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

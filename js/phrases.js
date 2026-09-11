@@ -498,6 +498,81 @@
     dorico_b2: 'o arpejo 4ª-b7-b9'
   };
 
+  // ---------------------------------------------------------------------
+  // Corpos usados pelos estilos (Intervalado e Fusion)
+  // ---------------------------------------------------------------------
+
+  // Intervalos diatônicos em pares: k = passos na escala (2 = 3ªs, 3 = 4ªs, 5 = 6ªs).
+  function intervalBody(k, label, word) {
+    return {
+      label: label,
+      motion: 'up',
+      needs: 'heptatonic',
+      build: function (cx, s, dir) {
+        var out = [s], base = s;
+        out.push(stepFrom(cx.scale, base.midi, dir * k));
+        for (var i = 0; i < 2; i++) {
+          base = stepFrom(cx.scale, base.midi, dir);
+          out.push(base);
+          out.push(stepFrom(cx.scale, base.midi, dir * k));
+        }
+        return out;
+      },
+      describe: function (cx, n) {
+        return 'Três pares de ' + word + ' diatônicas na escala ' + cx.scaleLabel + ' (' + names(n.slice(0, 2)) + ', ' +
+          names(n.slice(2, 4)) + ', ' + names(n.slice(4, 6)) + '), andando por grau: o estudo intervalado dentro do acorde';
+      }
+    };
+  }
+  BODIES.intervalos_3 = intervalBody(2, 'Terças diatônicas', 'terças');
+  BODIES.intervalos_4 = intervalBody(3, 'Quartas diatônicas', 'quartas');
+  BODIES.intervalos_6 = intervalBody(5, 'Sextas diatônicas', 'sextas');
+
+  // Arpejo "varrido" (sweep): 1-3-5-7 e a 9ª numa passada, voltando pela escala.
+  BODIES.arpejo_sweep = {
+    label: 'Arpejo varrido (sweep)',
+    motion: 'up',
+    sweep: true,
+    build: function (cx, s, dir) {
+      var ext = cx.arpExt || cx.arp;
+      var out = [s];
+      for (var i = 0; i < 4; i++) out.push(stepFrom(ext, out[out.length - 1].midi, dir));
+      out.push(stepFrom(cx.scale, out[4].midi, -dir));
+      return out;
+    },
+    describe: function (cx, n) {
+      return 'Arpejo varrido do ' + cx.chord.symbol + ' com a 9ª (' + names(n.slice(0, 5)) + ' — uma nota por corda, numa só ' +
+        'palhetada) e volta pela escala (' + n[5].name + ')';
+    }
+  };
+
+  // Estilos: técnicas preferidas (em ordem) e como a frase é tocada.
+  var STYLES = {
+    automatico: { label: 'Automático (pela função do acorde)' },
+    bebop: { label: 'Bebop (estilo Parker)', recipes: ['parker', 'bebop_desc', 'guia_3579', 'digital_1235', 'arpejo_escala'], swing: true, art: 'bebop' },
+    jazz: { label: 'Jazz moderno', recipes: ['penta_superposta', 'guia_3579', 'sus2_seq', 'tensao_superior', 'intervalos_4'], swing: true, art: 'jazz' },
+    blues: { label: 'Blues', forceBlues: true, recipes: ['penta_grupos3', 'penta_desc'], swing: true, art: 'blues' },
+    modal: { label: 'Modal', recipes: ['sus2_seq', 'escala_desc', 'arpejo_escala', 'intervalos_4'], swing: false, art: 'modal' },
+    rock: { label: 'Rock / pentatônica', forceBlues: true, recipes: ['penta_desc', 'penta_grupos3'], swing: false, art: 'rock' },
+    baiao: { label: 'Baião / nordestino', recipes: ['escala_desc', 'intervalos_3', 'sus2_seq', 'arpejo_escala'], swing: false, art: 'baiao', baiao: true },
+    fusion: { label: 'Fusion (sweep, Gambale)', recipes: ['arpejo_sweep', 'penta_superposta', 'sus2_seq', 'intervalos_4', 'guia_3579'], swing: false, art: 'fusion' },
+    intervalado: { label: 'Intervalado (3ªs, 4ªs, 6ªs)', recipes: ['intervalos_3', 'intervalos_4', 'intervalos_6'], swing: false, art: 'intervalado' }
+  };
+  // Técnicas liberadas em cada nível (as dos estilos entram a partir destes).
+  var STYLE_LEVEL = {
+    iniciante: ['arpejo_escala', 'escala_desc', 'digital_1235', 'penta_desc', 'penta_grupos3', 'intervalos_3', 'intervalos_4'],
+    intermediario: ['arpejo_escala', 'escala_desc', 'digital_1235', 'penta_desc', 'penta_grupos3', 'guia_3579', 'sus2_seq',
+      'intervalos_3', 'intervalos_4', 'intervalos_6', 'arpejo_sweep']
+  };
+  function styleRecipes(style, level, cat) {
+    var st = STYLES[style];
+    if (!st || !st.recipes) return null;
+    if (cat === 'blues' && !st.forceBlues) return null; // blues de verdade continua na pentatônica
+    var ok = STYLE_LEVEL[level];
+    var list = st.recipes.filter(function (k) { return !ok || ok.indexOf(k) >= 0; });
+    return list.length ? list : null;
+  }
+
   // Ordem das técnicas por categoria e nível (a primeira é a "de cara";
   // as demais aparecem ao pedir outra variação e alternam entre compassos).
   var RECIPES = {
@@ -662,11 +737,16 @@
   }
 
   /** Decide a escala e a técnica de um compasso (antes de montar as notas). */
-  function planBar(chord, cat, level, barIndex, variation, motif) {
+  function planBar(chord, cat, level, barIndex, variation, motif, style) {
     var scaleKey = scaleKeyFor(chord, cat);
+    if (style === 'baiao' && isDominantQuality(chord.quality) && cat !== 'blues') scaleKey = barIndex % 2 ? 'lidio_b7' : 'mixolidio';
     var cx = makeCx(chord, scaleKey);
     cx.superPent = superPentFor(chord, scaleKey);
-    var list = recipeList(level, cat).filter(function (key) { return recipeUsable(key, cx); });
+    var ninth = theory.noteAt(chord.root, 1, 2);
+    cx.arpExt = buildLadder(chord.tones.concat(cx.scale.some(function (n) { return pcOf(n.name) === pcOf(ninth); }) ? [ninth] : []));
+    var styled = styleRecipes(style, level, cat);
+    var list = (styled || recipeList(level, cat)).filter(function (key) { return recipeUsable(key, cx); });
+    if (!list.length) list = recipeList(level, cat).filter(function (key) { return recipeUsable(key, cx); });
     var recipeKey;
     if (motif && BODIES[motif] && recipeUsable(motif, cx) && cat !== 'blues') {
       recipeKey = motif;
@@ -712,6 +792,24 @@
       approachKind: approach.kind,
       target: target
     };
+  }
+
+  // Ritmo do compasso: colcheias (com ou sem swing) ou a célula do baião
+  // (colcheia pontuada + semicolcheia + 2 colcheias, duas vezes).
+  var BAIAO_DUR = [0.75, 0.25, 0.5, 0.5, 0.75, 0.25, 0.5, 0.5];
+  function barEvents(bar, stInfo, barIndex) {
+    var onset = 0;
+    var sweepId = 'sw' + barIndex;
+    return bar.notes.map(function (n, j) {
+      var d = stInfo.baiao ? BAIAO_DUR[j] : 0.5;
+      var ev = { name: n.name, midi: n.midi, onset: onset, dur: d };
+      if (BODIES[bar.recipeKey].sweep && j >= 1 && j <= 4) {
+        ev.tabHint = { sweep: sweepId, dir: bar.notes[4].midi > bar.notes[0].midi ? 1 : -1 };
+      }
+      if (BODIES[bar.recipeKey].sweep && j === 0) ev.tabHint = { sweep: sweepId, dir: bar.notes[4].midi > bar.notes[0].midi ? 1 : -1 };
+      onset += d;
+      return ev;
+    });
   }
 
   function barExplanation(bar, chord, nextChord, isLast) {
@@ -783,6 +881,8 @@
 
     var phrases = [];
     var motif = options.motif || null;
+    var style = STYLES[options.style] ? options.style : 'automatico';
+    var stInfo = STYLES[style];
 
     // 1º passo: escolhe categoria, escala e técnica de cada compasso (a
     // técnica define em que nota o compasso "quer" começar).
@@ -793,7 +893,9 @@
       // e power chords — continua na pentatônica/escala blues).
       var bluesOfVerdade = (chord.context && chord.context.isBluesDominant) || chord.quality === 'power5';
       if (motif && cat === 'blues' && !bluesOfVerdade) cat = 'melodica';
-      var plan = planBar(chord, cat, level, i, variations[i] || 0, motif);
+      if (stInfo.forceBlues) cat = 'blues';
+      else if (stInfo.recipes && cat === 'blues' && !bluesOfVerdade) cat = 'melodica';
+      var plan = planBar(chord, cat, level, i, variations[i] || 0, motif, style);
       plan.cat = cat;
       return plan;
     });
@@ -816,6 +918,7 @@
         categoryLabel: CATEGORY_LABELS[cat],
         title: 'Frase ' + (i + 1) + ' – ' + chord.symbol + ' (' + CATEGORY_LABELS[cat] + ')' +
           (motif && bar.recipeKey === motif ? ' · ' + BODIES[motif].label : '') +
+          (style !== 'automatico' ? ' · ' + stInfo.label : '') +
           (variation > 0 ? ' · ideia ' + (variation + 1) : ''),
         technique: BODIES[bar.recipeKey].label,
         techniqueKey: bar.recipeKey,
@@ -824,8 +927,9 @@
         scaleLabel: bar.cx.scaleLabel,
         notes: bar.notes.map(function (n) { return n.name; }),
         midi: bar.notes.map(function (n) { return n.midi; }),
-        rhythm: 'colcheias',
-        events: bar.notes.map(function (n, j) { return { name: n.name, midi: n.midi, onset: j * 0.5, dur: 0.5 }; }),
+        rhythm: stInfo.baiao ? 'baiao' : (stInfo.swing === false ? 'retas' : 'colcheias'),
+        style: style,
+        events: barEvents(bar, stInfo, i),
         nextTarget: { name: bar.target.name, midi: bar.target.midi, chordSymbol: next.symbol },
         variation: variation,
         explanation: barExplanation(bar, chord, next, i === chords.length - 1 && chords.length > 1)
@@ -882,18 +986,23 @@
     for (var i = 0; i < key.length; i++) seed = (seed * 31 + key.charCodeAt(i)) >>> 0;
     var rng = function () { seed = (seed + 0x6D2B79F5) >>> 0; var t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
     var scalePcs = theory.scaleNotes(phrase.chord.root, phrase.scaleKey).map(pcOf);
-    return ART.articulate(phrase.events, { style: CATEGORY_STYLE[phrase.category] || 'jazz', level: level, instrument: instrument, rng: rng, scalePcs: scalePcs });
+    var st = phrase.style && STYLES[phrase.style] && STYLES[phrase.style].art;
+    var locked = [];
+    phrase.events.forEach(function (e, i) { if (e.tabHint) locked.push(i); });
+    return ART.articulate(phrase.events, { style: st || CATEGORY_STYLE[phrase.category] || 'jazz', level: level, instrument: instrument, rng: rng, scalePcs: scalePcs, noLegatoIdx: locked });
   }
 
   /** Quantas variações diferentes existem para uma frase (para o botão "outra ideia"). */
   function variationCount(phrase, level) {
     if (!phrase || phrase.category === 'resolucao') return 1;
-    return recipeList(level, phrase.category).length * (APPROACHES[level] || APPROACHES.avancado).length;
+    var styled = styleRecipes(phrase.style, level, phrase.category);
+    return (styled || recipeList(level, phrase.category)).length * (APPROACHES[level] || APPROACHES.avancado).length;
   }
 
   /** Recupera variação/técnica fixa a partir do título salvo (favoritos/exercícios). */
   function parseTitle(title) {
-    var out = { variation: 0, motif: null };
+    var out = { variation: 0, motif: null, style: null };
+    Object.keys(STYLES).forEach(function (k) { if (k !== 'automatico' && title.indexOf(' · ' + STYLES[k].label) >= 0) out.style = k; });
     if (!title) return out;
     var m = / · ideia (\d+)/.exec(title);
     if (m) out.variation = Math.max(0, parseInt(m[1], 10) - 1);
@@ -926,6 +1035,7 @@
     CATEGORY_LABELS: CATEGORY_LABELS,
     BAR: BAR,
     motifChoices: motifChoices,
+    styleChoices: function () { return Object.keys(STYLES).map(function (k) { return { key: k, label: STYLES[k].label }; }); },
     parseTitle: parseTitle,
     articulateFor: articulateFor,
     categoryForFunction: categoryForFunction,

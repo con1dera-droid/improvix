@@ -633,3 +633,8 @@ select, input[type="text"] {
 .tr-bpm-input::-webkit-inner-spin-button, .tr-bpm-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .tr-bpm-input { -moz-appearance: textfield; }
 .tab-legend { flex-basis: 100%; width: 100%; }
+/* Controles da aba Fraseados: rótulo + seletor em cada linha */
+.fraseados-controles { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0.5rem 0.6rem; }
+.fraseados-controles select { min-width: 0; width: 100%; }
+.fraseados-controles .btn-secondary, .fraseados-controles .transport { grid-column: 1 / -1; justify-self: start; }
+.fraseado-conteudo { flex-wrap: wrap; }
