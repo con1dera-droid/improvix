@@ -257,8 +257,110 @@
       landing: 'q qr hr',
       cells: [['scaleDown', 3], ['scaleUp', 3], ['charNote', 4], ['arpUp', 2], ['neighbor', 2], ['repeat', 2]],
       intro: 'Síncope do baião e a nota característica do modo (a b7 do mixolídio, a #4 do lídio b7) bem marcada'
+    },
+    // Estudo intervalado: a escala tocada em saltos fixos (2ªs, 3ªs, 4ªs...).
+    // Não passa pelo sorteio de células — é gerado por intervalPhrase().
+    intervalado: {
+      label: 'Intervalado (2ªs, 3ªs, 4ªs... na escala)',
+      bpm: 96, swing: false, repeatsOk: false, strongChordTones: false,
+      rhythms: { iniciante: ['e e e e e e e e'], intermediario: ['e e e e e e e e'], avancado: ['e e e e e e e e'] },
+      landing: 'h hr',
+      cells: [],
+      intro: 'Estudo intervalado: a escala inteira tocada em saltos fixos, para ouvir e digitar cada intervalo dentro do modo',
+      intervalic: true
     }
   };
+
+  // ---------------------------------------------------------------------
+  // Estilo "Intervalado"
+  // ---------------------------------------------------------------------
+  var INTERVAL_NAMES = { 2: '2ªs', 3: '3ªs', 4: '4ªs', 5: '5ªs', 6: '6ªs', 7: '7ªs' };
+  var INTERVAL_WORD = { 2: 'segundas', 3: 'terças', 4: 'quartas', 5: 'quintas', 6: 'sextas', 7: 'sétimas' };
+  // Desenhos: como cada par (ou trio) de notas é tocado enquanto a linha anda
+  // pela escala — sobe no 1º compasso e volta no 2º (arco), para caber no braço.
+  var INTERVAL_SHAPES = {
+    pares: { label: 'em pares (nota de baixo → nota de cima)', min: 0, size: 2 },
+    invertido: { label: 'em pares invertidos (nota de cima → nota de baixo)', min: 1, size: 2 },
+    alternado: { label: 'alternando a direção a cada par', min: 1, size: 2 },
+    empilhado: { label: 'empilhado em grupos de 3 (tercinas)', min: 2, size: 3 }
+  };
+  var SHAPE_ORDER = ['pares', 'invertido', 'alternado', 'empilhado'];
+
+  /** Frase intervalada nº i. opts.interval: 2..7 ou 'todos'. */
+  function intervalPhrase(c, i, level, bars, interval, tonic) {
+    var lv = LEVEL_IDX[level];
+    var allowed = level === 'iniciante' ? [2, 3] : (level === 'intermediario' ? [2, 3, 4, 5, 6] : [2, 3, 4, 5, 6, 7]);
+    var iv = interval && interval !== 'todos' ? Number(interval) : allowed[i % allowed.length];
+    var shapes = SHAPE_ORDER.filter(function (k) { return INTERVAL_SHAPES[k].min <= lv; });
+    var cycleLen = interval && interval !== 'todos' ? 1 : allowed.length;
+    var shapeKey = shapes[Math.floor(i / cycleLen) % shapes.length];
+    if (shapeKey === 'empilhado' && iv >= 6) shapeKey = 'alternado'; // 6ªs/7ªs empilhadas passariam de duas oitavas
+    var shape = INTERVAL_SHAPES[shapeKey];
+    var descending = Math.floor(i / (cycleLen * shapes.length)) % 2 === 1; // metade das frases começa descendo
+    var ladder = c.scale;
+    var nScale = c.scaleNames.length;
+    var k = Math.min(iv - 1, nScale - 1); // passos na escala (em pentatônicas o salto é limitado)
+    var perBar = shape.size === 3 ? 4 : 4; // 4 grupos por compasso
+    var groups = bars * perBar;
+    // grau de partida: fundamental na região média
+    var rootIdx = 0, best = Infinity;
+    ladder.forEach(function (n, idx) {
+      if (pcOf(n.name) === pcOf(c.root)) { var d = Math.abs(n.midi - (descending ? 74 : 62)); if (d < best) { best = d; rootIdx = idx; } }
+    });
+    var seq = [];
+    for (var g = 0; g < groups; g++) {
+      // arco: sobe no 1º compasso e volta no 2º (ou o contrário, se descendo)
+      var pos = bars === 2 ? (g <= perBar ? g : 2 * perBar - g) : g; // 0 1 2 3 4 3 2 1
+      var base = rootIdx + (descending ? -pos : pos);
+      var idxs;
+      if (shape.size === 3) idxs = [base, base + k, base + 2 * k];
+      else if (shapeKey === 'pares' && k === 1) idxs = [base + 1, base]; // 2ªs "em pares" repetiriam nota: desce o par
+      else if (shapeKey === 'pares') idxs = [base, base + k];
+      else if (shapeKey === 'invertido') idxs = [base + k, base];
+      else idxs = g % 2 === 0 ? [base, base + k] : [base + k, base];
+      if (descending && shape.size === 3) idxs = idxs.reverse();
+      // nunca repete a nota que acabou de tocar: inverte o grupo se precisar
+      if (seq.length && (idxs[0] - seq[seq.length - 1]) % nScale === 0) idxs = idxs.slice().reverse();
+      idxs.forEach(function (ix) { seq.push(ix); });
+    }
+    // encaixa no âmbito: desloca por oitavas (nScale passos) se precisar
+    var shift = 0;
+    function mid(ix) { var j = Math.max(0, Math.min(ladder.length - 1, ix + shift)); return ladder[j].midi; }
+    for (var tries = 0; tries < 4; tries++) {
+      var lo = Math.min.apply(null, seq.map(mid)), hi = Math.max.apply(null, seq.map(mid));
+      if (lo < LOW + 3) shift += nScale; else if (hi > HIGH - 2) shift -= nScale; else break;
+    }
+    var dur = shape.size === 3 ? 1 / 3 : 0.5;
+    var events = [];
+    var onset = 0;
+    seq.forEach(function (ix) {
+      var n = ladder[Math.max(0, Math.min(ladder.length - 1, ix + shift))];
+      var ev = { name: n.name, midi: n.midi, dur: dur, onset: onset, triplet: dur < 0.4 };
+      if (dur < 0.4) ev.tuplet = 3;
+      events.push(ev);
+      onset += dur;
+    });
+    // chegada: a nota do acorde de chegada mais próxima da última nota
+    var land = c.resolve || { root: c.root, tones: c.tones };
+    var lastMidi = events[events.length - 1].midi;
+    var target = null, bd = Infinity;
+    U.buildLadder(land.tones).forEach(function (n) {
+      var d = Math.abs(n.midi - lastMidi);
+      if (d === 0) d = 6; // prefere mover-se
+      if (d < bd && n.midi >= LOW && n.midi <= HIGH) { bd = d; target = n; }
+    });
+    events.push({ name: target.name, midi: target.midi, dur: 2, onset: onset, triplet: false, landing: true });
+    events.push({ rest: true, dur: 2, onset: onset + 2, triplet: false });
+    var seven = nScale === 7;
+    var example = seq.slice(0, shape.size * 2).map(function (ix) { return ladder[Math.max(0, Math.min(ladder.length - 1, ix + shift))].name; });
+    var ivLabel = seven ? INTERVAL_NAMES[iv] : 'saltos de ' + k + ' nota' + (k > 1 ? 's' : '') + ' da escala';
+    var explanation = 'A escala ' + DATA.SCALES[c.scaleKey].label.toLowerCase() + ' de ' + tonic + ' tocada em ' +
+      (seven ? INTERVAL_WORD[iv] + ' diatônicas' : ivLabel) + ', ' + shape.label + (bars === 2 ? (descending ? ', descendo e voltando (arco)' : ', subindo e voltando (arco)') : (descending ? ', descendo' : ', subindo')) +
+      ': ' + example.join('–') + '… ' + (seven ? 'Cada salto fica dentro do modo, então o tamanho exato muda (' +
+      (iv === 3 ? 'terças maiores e menores' : iv === 4 ? 'quartas justas e a aumentada/diminuta' : iv === 5 ? 'quintas justas e a diminuta' : iv === 2 ? 'tons e semitons' : iv === 6 ? 'sextas maiores e menores' : 'sétimas maiores e menores') +
+      ') — é isso que treina o ouvido para o som do modo.' : 'Como a escala não tem 7 notas, o salto é contado em notas da escala.') + ' No fim repousa em ' + target.name + ', nota do ' + (c.resolve ? c.resolve.symbol : c.symbol) + '.';
+    return { events: events, target: target, interval: iv, shapeKey: shapeKey, ivLabel: ivLabel, explanation: explanation };
+  }
 
   // Nível mínimo de cada célula.
   var CELL_LEVEL = {
@@ -953,6 +1055,35 @@
       var tonic = bestSpelling(opts.tonic && opts.tonic !== 'todos' ? opts.tonic : KEYS_CYCLE[i % 12], scaleKey);
       var seedBase = [scaleKey, opts.tonic || 'todos', style, level, bars, i].join('|');
       var c = buildCtx(tonic, scaleKey, style, level);
+      if (STYLES[style].intervalic) {
+        var ip = intervalPhrase(c, i, level, bars, opts.interval, tonic);
+        var ipKeep = {};
+        c.scaleNames.concat(c.tones, c.resolve ? c.resolve.tones : []).forEach(function (n) { ipKeep[n] = true; });
+        ip.events.forEach(function (e) { if (!e.rest) e.name = respell(e.name, ipKeep); });
+        var ipNotes = ip.events.filter(function (e) { return !e.rest; });
+        var ipChords = [{ beat: 0, symbol: c.symbol, root: c.root, tones: c.tones, beats: bars * 4 }];
+        ipChords.push(c.resolve ? { beat: bars * 4, symbol: c.resolve.symbol, root: c.resolve.root, tones: c.resolve.tones, beats: 4 }
+          : { beat: bars * 4, symbol: c.symbol, root: c.root, tones: c.tones, beats: 4 });
+        out.push({
+          index: i + 1,
+          id: hashStr(seedBase + '|iv' + (opts.interval || 'todos')).toString(36),
+          tonic: tonic, scaleKey: scaleKey, scaleLabel: DATA.SCALES[scaleKey].label,
+          style: style, styleLabel: STYLES[style].label, level: level, bars: bars,
+          chordSymbol: c.symbol, resolveSymbol: c.resolve ? c.resolve.symbol : null,
+          title: 'Frase ' + (i + 1) + ' — ' + c.symbol + (c.resolve ? ' → ' + c.resolve.symbol : '') + ' · ' + DATA.SCALES[scaleKey].curta + ' em ' + ip.ivLabel,
+          events: ip.events,
+          notes: ipNotes.map(function (e) { return e.name; }),
+          midi: ipNotes.map(function (e) { return e.midi; }),
+          chords: ipChords,
+          bpm: STYLES[style].bpm, swing: STYLES[style].swing,
+          cells: ['intervalo_' + ip.interval, ip.shapeKey],
+          interval: ip.interval,
+          scalePcs: c.scaleNames.map(pcOf),
+          score: 0,
+          explanation: ip.explanation
+        });
+        continue;
+      }
       var best = null, bestScore = -Infinity;
       // Cada frase recebe um roteiro próprio (variedade na página); a maior
       // parte das candidatas segue esse roteiro e algumas são livres.
@@ -1040,7 +1171,7 @@
   function styleList() { return Object.keys(STYLES).map(function (k) { return { key: k, label: STYLES[k].label }; }); }
 
   // Escala sugerida ao trocar de estilo.
-  var STYLE_DEFAULT_SCALE = { bebop: 'bebop_dominante', jazz: 'dorico', blues: 'blues_menor', modal: 'dorico', rock: 'pentatonica_menor', baiao: 'mixolidio', fusion: 'mixolidio' };
+  var STYLE_DEFAULT_SCALE = { bebop: 'bebop_dominante', jazz: 'dorico', blues: 'blues_menor', modal: 'dorico', rock: 'pentatonica_menor', baiao: 'mixolidio', fusion: 'mixolidio', intervalado: 'jonio' };
 
   return {
     KEYS: KEYS,
@@ -1052,6 +1183,7 @@
     STYLE_DEFAULT_SCALE: STYLE_DEFAULT_SCALE,
     styleList: styleList,
     articulateFor: articulateFor,
+    INTERVAL_NAMES: INTERVAL_NAMES,
     generate: generate
   };
 });

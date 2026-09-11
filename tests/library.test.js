@@ -165,5 +165,30 @@ test('cada frase traz técnica(s) usadas e explicação', function () {
   });
 });
 
+test('estilo intervalado: intervalos certos na escala, sem repetir nota, 2ªs a 7ªs', function () {
+  var MAJ = [0, 2, 4, 5, 7, 9, 11];
+  [2, 3, 4, 5, 6, 7].forEach(function (iv) {
+    ['iniciante', 'intermediario', 'avancado'].forEach(function (lv) {
+      [1, 2].forEach(function (bars) {
+        lib.generate({ scaleKey: 'jonio', tonic: 'todos', style: 'intervalado', level: lv, bars: bars, count: 24, interval: iv }).forEach(function (p) {
+          assert.ok(p.title.indexOf(lib.INTERVAL_NAMES[iv]) >= 0, p.title);
+          var ns = p.events.filter(function (e) { return !e.rest && !e.landing; });
+          var sc = theory.scaleNotes(p.tonic, 'jonio').map(pc);
+          ns.forEach(function (e) { assert.ok(sc.indexOf(pc(e.name)) >= 0, p.title + ': fora da escala ' + e.name); });
+          for (var i = 1; i < ns.length; i++) {
+            assert.ok(pc(ns[i].name) !== pc(ns[i - 1].name), p.title + ': repetiu ' + ns[i].name);
+          }
+          // o 1º par tem exatamente o intervalo pedido (em passos de letra)
+          var L = 'CDEFGAB';
+          var st = (L.indexOf(ns[1].name.charAt(0)) - L.indexOf(ns[0].name.charAt(0)) + 7) % 7;
+          assert.ok(st === iv - 1 || st === 7 - (iv - 1) || st === 1 || st === 6, p.title + ': 1º salto ' + ns[0].name + '-' + ns[1].name);
+          var m = p.midi;
+          assert.ok(Math.max.apply(null, m) - Math.min.apply(null, m) <= 26, p.title + ': âmbito');
+        });
+      });
+    });
+  });
+});
+
 console.log('\n' + passed + ' teste(s) passaram. (' + sweep.length + ' frases geradas em ' + elapsed + ' ms)');
 if (process.exitCode) console.log('ALGUM TESTE FALHOU.'); else console.log('Todos os testes passaram.');

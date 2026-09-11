@@ -426,6 +426,23 @@ Biblioteca (etiquetas de cada acorde), ficha da escala, Exercícios de Padrões
 (título de cada tom, fórmula e vista Notas) e Laboratório.
 Teste novo em `tests/theory.test.js`.
 
+## Biblioteca: estilo "Intervalado" — ✅ (2026-09-11)
+Novo estilo **Intervalado (2ªs, 3ªs, 4ªs... na escala)** na Biblioteca de
+Fraseados: a escala escolhida tocada em saltos fixos. Aparece um campo
+**Intervalo** (Todos, 2ªs, 3ªs, 4ªs, 5ªs, 6ªs, 7ªs), só nesse estilo.
+
+- Desenhos: em pares (baixo → cima), pares invertidos, alternando a
+  direção e empilhado em grupos de 3 (tercinas; só até 5ªs). Com 2
+  compassos a linha sobe e volta (arco) para caber no braço; metade das
+  frases começa descendo. Nunca repete a nota que acabou de tocar.
+- Nível: iniciante = 2ªs e 3ªs em pares; intermediário = até 6ªs; avançado
+  = até 7ªs e grupos de 3.
+- Intervalos diatônicos (dentro do modo): em escalas de 7 notas o nome é
+  exato (3ªs maiores e menores etc.); em pentatônicas/bebop o salto é
+  contado em notas da escala. Resolve numa nota do acorde de chegada.
+- Implementado em `intervalPhrase()` (`js/library.js`), fora do sorteio de
+  células. Teste novo em `tests/library.test.js`.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

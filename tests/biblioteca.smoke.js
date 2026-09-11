@@ -67,6 +67,22 @@ const path = require('path');
   console.log('Visitante (Avançado) — nível:', await page.$eval('#lib-nivel', (e) => e.value), '| títulos:', JSON.stringify(titulos));
   console.log('Visitante (Avançado) — aparece arpejo circular (Parker)?', /arpejo circular/.test(tecnicas), '| escala bebop?', /bebop/.test(tecnicas));
 
+  await page.selectOption('#lib-estilo', 'intervalado');
+  await page.waitForTimeout(250);
+  console.log('Intervalado — campo Intervalo visível:', await page.$eval('#lib-intervalo-field', (e) => !e.hidden),
+    '| escala:', await page.$eval('#lib-escala', (e) => e.value),
+    '| títulos:', JSON.stringify(await page.$$eval('.lib-card-title', (e) => e.slice(0, 3).map((x) => x.textContent))));
+  await page.selectOption('#lib-intervalo', '4');
+  await page.waitForTimeout(250);
+  console.log('Só 4ªs:', JSON.stringify(await page.$$eval('.lib-card-title', (e) => e.slice(0, 2).map((x) => x.textContent))));
+  await page.click('.lib-card:first-child button[data-play]');
+  await page.waitForTimeout(400);
+  await page.click('.lib-card:first-child button[data-play]');
+  await page.$eval('.lib-card', (e) => e.scrollIntoView());
+  await page.screenshot({ path: path.resolve(__dirname, '../../intervalado.png') });
+  await page.selectOption('#lib-estilo', 'bebop');
+  await page.waitForTimeout(150);
+  console.log('Voltou ao bebop — campo Intervalo escondido:', await page.$eval('#lib-intervalo-field', (e) => e.hidden));
   console.log('Erros de página:', JSON.stringify(errors));
   await browser.close();
 })();

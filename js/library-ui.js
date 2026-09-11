@@ -29,7 +29,8 @@
     modal: ['dorico', 'frigio', 'lidio', 'mixolidio', 'eolio', 'lidio_b7'],
     rock: ['pentatonica_menor', 'blues_menor', 'eolio', 'dorico', 'mixolidio'],
     baiao: ['mixolidio', 'lidio_b7', 'dorico', 'jonio'],
-    fusion: ['mixolidio', 'lidio', 'dorico', 'jonio', 'eolio', 'lidio_b7', 'menor_melodica', 'alterada']
+    fusion: ['mixolidio', 'lidio', 'dorico', 'jonio', 'eolio', 'lidio_b7', 'menor_melodica', 'alterada'],
+    intervalado: ['jonio', 'dorico', 'frigio', 'lidio', 'mixolidio', 'eolio', 'locrio', 'menor_melodica', 'menor_harmonica']
   };
 
   function $(id) { return document.getElementById(id); }
@@ -74,7 +75,8 @@
     var mainInstr = $('input-instrumento');
     if (mainInstr) $('lib-instrumento').value = mainInstr.value;
 
-    $('lib-estilo').addEventListener('change', function () { fillScaleSelect(); regenerate(); });
+    $('lib-estilo').addEventListener('change', function () { fillScaleSelect(); syncIntervalField(); regenerate(); });
+    $('lib-intervalo').addEventListener('change', regenerate);
     $('lib-escala').addEventListener('change', function () { state.userPickedScale = true; regenerate(); });
     ['lib-tom', 'lib-tamanho'].forEach(function (id) { $(id).addEventListener('change', regenerate); });
     $('lib-nivel').addEventListener('change', function () { syncGate(); regenerate(); });
@@ -102,8 +104,14 @@
     syncGate();
   }
 
+  function syncIntervalField() {
+    var f = $('lib-intervalo-field');
+    if (f) f.hidden = $('lib-estilo').value !== 'intervalado';
+  }
+
   function currentOpts(start) {
     return {
+      interval: $('lib-estilo').value === 'intervalado' ? $('lib-intervalo').value : undefined,
       scaleKey: $('lib-escala').value,
       tonic: $('lib-tom').value,
       style: $('lib-estilo').value,
@@ -122,6 +130,7 @@
 
   function regenerate() {
     stopAudio();
+    syncIntervalField();
     syncGate();
     state.list = lib.generate(currentOpts(0));
     renderList();

@@ -38,7 +38,8 @@
     modal: { h: 0.22, p: 0.22, sl: 0.2, bend: 0.12, vib: 0.75, ghost: 0.05, maxChain: 2 },
     rock: { h: 0.28, p: 0.32, sl: 0.22, bend: 0.55, vib: 0.9, ghost: 0.05, maxChain: 2 },
     baiao: { h: 0.1, p: 0.14, sl: 0.3, bend: 0.0, vib: 0.5, ghost: 0.1, maxChain: 1 },
-    fusion: { h: 0.5, p: 0.5, sl: 0.28, bend: 0.18, vib: 0.85, ghost: 0.06, maxChain: 3 }
+    fusion: { h: 0.5, p: 0.5, sl: 0.28, bend: 0.18, vib: 0.85, ghost: 0.06, maxChain: 3 },
+    intervalado: { h: 0.06, p: 0.06, sl: 0.04, bend: 0.0, vib: 0.6, ghost: 0.0, maxChain: 1 }
   };
   var LEVEL_FACTOR = { iniciante: 0.35, intermediario: 0.8, avancado: 1 };
 
