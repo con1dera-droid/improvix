@@ -617,3 +617,19 @@ select, input[type="text"] {
 .lib-badge-chord strong { color: var(--text); margin-right: 0.25rem; }
 .lab-card-notas { display: flex; flex-wrap: wrap; gap: 0.35rem 0.9rem; margin: 0.4rem 0 0.2rem; font-size: 0.85rem; color: var(--text-muted); }
 .lab-card-notas strong { color: var(--text); }
+
+/* Barra de transporte: metrônomo, andamento e repetir */
+.transport { display: inline-flex; align-items: center; gap: 0.3rem; margin: 0.2rem 0 0.6rem; flex-wrap: wrap; }
+.tr-btn {
+  width: 34px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card);
+  color: var(--text); font-size: 1rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0;
+}
+.tr-btn:hover { border-color: var(--accent); }
+.tr-btn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tr-bpm { display: inline-flex; align-items: baseline; gap: 0.2rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; height: 32px; padding: 0 0.45rem; }
+.tr-bpm-input { width: 3.1rem; background: transparent; border: none; color: var(--text); font-weight: 700; font-size: 0.95rem; text-align: right; padding: 0; line-height: 30px; }
+.tr-bpm-input:focus { outline: none; }
+.tr-bpm small { color: var(--text-muted); font-size: 0.72rem; }
+.tr-bpm-input::-webkit-inner-spin-button, .tr-bpm-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.tr-bpm-input { -moz-appearance: textfield; }
+.tab-legend { flex-basis: 100%; width: 100%; }

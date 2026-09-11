@@ -398,8 +398,29 @@
         playChord(ac, ch, st, dur, comp, useSamples);
         if (opts.onChord) timer(function () { opts.onChord(ci); }, (st - ac.currentTime) * 1000);
       });
+      // metrônomo: um clique por tempo, mais forte no tempo 1 de cada compasso
+      if (opts.metronome) {
+        var bpb = opts.beatsPerBar || 4;
+        for (var b = 0; b < Math.ceil(end - 1e-6); b++) scheduleClick(ac, t0 + b * spb, b % bpb === 0, out);
+      }
       if (onDone) timer(onDone, (timeOf(end) - ac.currentTime) * 1000 + 250);
     });
+  }
+
+  /** Clique de metrônomo (sintetizado, curto). */
+  function scheduleClick(ac, t, accent, dest) {
+    var osc = ac.createOscillator();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(accent ? 1760 : 1175, t);
+    var g = ac.createGain();
+    var peak = accent ? 0.22 : 0.13;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(peak, t + 0.002);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+    osc.connect(g).connect(dest);
+    osc.start(t);
+    osc.stop(t + 0.07);
+    activeNodes.push(osc, g);
   }
 
   function playChord(ac, ch, st, dur, dest, useSamples) {
@@ -423,12 +444,14 @@
   }
 
   /** Toca a progressão inteira como acompanhamento (acorde + baixo). */
-  function playProgression(analysisResult, instrument, onChordStart, onDone) {
+  // extra (opcional): { bpm, metronome, beatsPerChord }
+  function playProgression(analysisResult, instrument, onChordStart, onDone, extra) {
+    extra = extra || {};
     var chords = analysisResult.chords.filter(function (c) { return !c.error; });
-    var beats = 2;
+    var beats = extra.beatsPerChord || 2;
     var list = chords.map(function (c, i) { return { beat: i * beats, beats: beats, root: c.root, tones: c.tones }; });
     return playEvents([{ rest: true, onset: 0, dur: chords.length * beats }], instrument,
-      { bpm: 110, chords: list, onChord: onChordStart }, onDone);
+      { bpm: extra.bpm || 110, metronome: !!extra.metronome, chords: list, onChord: onChordStart }, onDone);
   }
 
   /** Converte uma frase de 8 colcheias (aba Fraseados) em eventos, se preciso. */
@@ -441,14 +464,16 @@
   }
 
   /** Toca um fraseado da aba Fraseados. */
-  function playPhrase(phrase, instrument, onNoteStart, onDone) {
+  function playPhrase(phrase, instrument, onNoteStart, onDone, extra) {
+    extra = extra || {};
     var ev = phraseEvents(phrase, 0);
     var chords = phrase.chord ? [{ beat: 0, beats: 4, root: phrase.chord.root, tones: phrase.chord.tones }] : [];
-    return playEvents(ev, instrument, { bpm: 100, swing: phrase.rhythm === 'colcheias', humanize: true, chords: chords, onNote: onNoteStart }, onDone);
+    return playEvents(ev, instrument, { bpm: extra.bpm || 100, metronome: !!extra.metronome, swing: phrase.rhythm === 'colcheias', humanize: true, chords: chords, onNote: onNoteStart }, onDone);
   }
 
   /** Toca a LINHA INTEIRA (todas as frases de compasso) com acompanhamento. */
-  function playLine(barPhrases, instrument, onBarStart, onDone) {
+  function playLine(barPhrases, instrument, onBarStart, onDone, extra) {
+    extra = extra || {};
     if (!barPhrases.length) return;
     var events = [];
     var chords = [];
@@ -456,7 +481,7 @@
       events = events.concat(phraseEvents(p, b * 4));
       chords.push({ beat: b * 4, beats: 4, root: p.chord.root, tones: p.chord.tones });
     });
-    return playEvents(events, instrument, { bpm: 100, swing: true, humanize: true, chords: chords, onChord: onBarStart }, onDone);
+    return playEvents(events, instrument, { bpm: extra.bpm || 100, metronome: !!extra.metronome, swing: true, humanize: true, chords: chords, onChord: onBarStart }, onDone);
   }
 
   function setSoundMode(mode) {

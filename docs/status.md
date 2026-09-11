@@ -443,6 +443,16 @@ Fraseados: a escala escolhida tocada em saltos fixos. Aparece um campo
 - Implementado em `intervalPhrase()` (`js/library.js`), fora do sorteio de
   células. Teste novo em `tests/library.test.js`.
 
+## Metrônomo, andamento e repetir — ✅ (2026-09-11)
+Barra de ícones em **Ouça a progressão** e em **Fraseados e Exercícios**:
+⏱ metrônomo (clique por tempo, acento no tempo 1), − / andamento em bpm
+(40–240, digitável) / +, e 🔁 repetir (toca em loop até parar). A barra
+dos fraseados vale para "Tocar a linha inteira" e para o 🔊 Áudio de cada
+frase. As escolhas ficam guardadas no navegador. `audio.js`:
+`playProgression/playPhrase/playLine` aceitam `{ bpm, metronome }` e
+`playEvents` agenda os cliques (`scheduleClick`). Teste:
+`tests/transporte.smoke.js`.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

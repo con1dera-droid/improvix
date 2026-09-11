@@ -51,6 +51,49 @@
     motif: ''
   };
 
+  // ---------------- Metrônomo / andamento / repetir ----------------
+  // Duas barras: "prog" (Ouça a progressão) e "linha" (Fraseados e Exercícios).
+  var transport = {
+    prog: { metro: false, bpm: 110, loop: false },
+    linha: { metro: false, bpm: 100, loop: false }
+  };
+  try {
+    var savedTr = JSON.parse(window.localStorage.getItem('il_transport') || 'null');
+    if (savedTr) ['prog', 'linha'].forEach(function (k) { if (savedTr[k]) Object.assign(transport[k], savedTr[k]); });
+  } catch (e) { /* sem storage */ }
+  function saveTransport() { try { window.localStorage.setItem('il_transport', JSON.stringify(transport)); } catch (e) { /* ignora */ } }
+  function transportOpts(key) { var t = transport[key]; return { bpm: t.bpm, metronome: t.metro }; }
+
+  function setupTransport() {
+    document.querySelectorAll('.transport[data-transport]').forEach(function (bar) {
+      var key = bar.getAttribute('data-transport');
+      var t = transport[key];
+      if (!t) return;
+      var input = bar.querySelector('.tr-bpm-input');
+      function sync() {
+        bar.querySelector('[data-act="metro"]').classList.toggle('on', t.metro);
+        bar.querySelector('[data-act="metro"]').setAttribute('aria-pressed', String(t.metro));
+        bar.querySelector('[data-act="loop"]').classList.toggle('on', t.loop);
+        bar.querySelector('[data-act="loop"]').setAttribute('aria-pressed', String(t.loop));
+        input.value = t.bpm;
+      }
+      function setBpm(v) { t.bpm = Math.max(40, Math.min(240, Math.round(Number(v) || t.bpm))); sync(); saveTransport(); }
+      bar.addEventListener('click', function (ev) {
+        var b = ev.target.closest('[data-act]');
+        if (!b) return;
+        var act = b.getAttribute('data-act');
+        if (act === 'metro') t.metro = !t.metro;
+        else if (act === 'loop') t.loop = !t.loop;
+        else if (act === 'menos') return setBpm(t.bpm - 5);
+        else if (act === 'mais') return setBpm(t.bpm + 5);
+        sync(); saveTransport();
+      });
+      input.addEventListener('change', function () { setBpm(input.value); });
+      input.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { setBpm(input.value); input.blur(); } });
+      sync();
+    });
+  }
+
   function resetAudioButtons() {
     var playBtn = document.getElementById('btn-play-progressao');
     if (playBtn) { playBtn.classList.remove('playing'); playBtn.textContent = '▶ Tocar progressão'; }
@@ -488,15 +531,19 @@
         resetAudioButtons();
         lineBtn.classList.add('playing');
         lineBtn.textContent = '⏸ Tocando... (clique para parar)';
-        audio.playLine(bars, instrumento, function (b) {
-          highlightChord(b);
-          document.querySelectorAll('#lista-fraseados .phrase-item').forEach(function (el, idx) {
-            el.classList.toggle('playing', idx === b);
-          });
-        }, function () {
-          resetAudioButtons();
-          document.querySelectorAll('#lista-fraseados .phrase-item.playing').forEach(function (el) { el.classList.remove('playing'); });
-        });
+        (function playOnce() {
+          audio.playLine(bars, instrumento, function (b) {
+            highlightChord(b);
+            document.querySelectorAll('#lista-fraseados .phrase-item').forEach(function (el, idx) {
+              el.classList.toggle('playing', idx === b);
+            });
+          }, function () {
+            // repetir: recomeça enquanto o botão continuar "tocando"
+            if (transport.linha.loop && lineBtn.classList.contains('playing')) { playOnce(); return; }
+            resetAudioButtons();
+            document.querySelectorAll('#lista-fraseados .phrase-item.playing').forEach(function (el) { el.classList.remove('playing'); });
+          }, transportOpts('linha'));
+        })();
       });
     }
   }
@@ -517,10 +564,13 @@
     btn.classList.add('playing');
     btn.textContent = '⏸ Tocando...';
     var pr = preparedPhrase(phrase, instrumento, document.getElementById('input-nivel').value);
-    audio.playPhrase(Object.assign({}, phrase, { events: pr.events }), instrumento, null, function () {
-      btn.classList.remove('playing');
-      btn.textContent = '🔊 Áudio';
-    });
+    (function playOnce() {
+      audio.playPhrase(Object.assign({}, phrase, { events: pr.events }), instrumento, null, function () {
+        if (transport.linha.loop && btn.classList.contains('playing')) { playOnce(); return; }
+        btn.classList.remove('playing');
+        btn.textContent = '🔊 Áudio';
+      }, transportOpts('linha'));
+    })();
   }
 
   // ===================== Aulas (Etapa 5, parte 4) =====================
@@ -621,9 +671,12 @@
       var instrumento = document.getElementById('input-instrumento').value;
       btn.classList.add('playing');
       btn.textContent = '⏸ Tocando... (clique para parar)';
-      audio.playProgression(state.lastResult, instrumento, highlightChord, function () {
-        resetAudioButtons();
-      });
+      (function playOnce() {
+        audio.playProgression(state.lastResult, instrumento, highlightChord, function () {
+          if (transport.prog.loop && btn.classList.contains('playing')) { playOnce(); return; }
+          resetAudioButtons();
+        }, transportOpts('prog'));
+      })();
     });
   }
 
@@ -710,6 +763,7 @@
     setupForm();
     setupFraseados();
     setupAudioProgressao();
+    setupTransport();
     setupInstrumentBar();
     setupPlanGate();
     setupAulas();
