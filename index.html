@@ -29,6 +29,7 @@
       <a href="#" class="nav-item is-soon" data-nav="biblioteca-escalas">📚 Biblioteca de Escalas <span class="soon">Etapa 5</span></a>
       <a href="#" class="nav-item" data-nav="biblioteca-fraseados">🎼 Biblioteca de Fraseados</a>
       <a href="#" class="nav-item nav-sub" data-nav="biblioteca-fusion">🎸 Fusion — sweep (Gambale)</a>
+      <a href="#" class="nav-item" data-nav="padroes">📘 Exercícios de Padrões</a>
       <a href="#" class="nav-item" data-nav="laboratorio">🧪 Laboratório <span class="soon">Pro</span></a>
       <a href="#" class="nav-item" data-nav="aulas">🎓 Aulas</a>
       <a href="#" class="nav-item" data-nav="config">⚙ Configurações</a>
@@ -428,6 +429,73 @@
       </div>
     </div>
 
+    <!-- View: Exercícios de Padrões -->
+    <div class="content view" data-view="padroes" hidden>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-icon">📘</span>
+          <div>
+            <div class="card-title">Exercícios de Padrões</div>
+            <div class="card-subtitle">Um padrão por vez, nos 12 tons pelo ciclo de 4ªs — com partitura, tablatura e áudio com acompanhamento.</div>
+          </div>
+        </div>
+        <div class="lib-controls">
+          <div class="field"><label for="pad-categoria">Categoria</label><select id="pad-categoria"></select></div>
+          <div class="field field-wide"><label for="pad-padrao">Padrão</label><select id="pad-padrao"></select></div>
+          <div class="field"><label for="pad-tom">Tom</label><select id="pad-tom"></select></div>
+          <div class="field"><label for="pad-instrumento">Instrumento</label>
+            <select id="pad-instrumento">
+              <option value="guitarra">Guitarra</option>
+              <option value="teclado">Teclado / Piano</option>
+              <option value="baixo">Baixo</option>
+              <option value="violao">Violão</option>
+              <option value="sax">Sax</option>
+              <option value="trompete">Trompete</option>
+              <option value="violino">Violino</option>
+              <option value="flauta">Flauta</option>
+            </select>
+          </div>
+          <div class="field field-small"><label for="pad-bpm">Andamento</label>
+            <select id="pad-bpm">
+              <option value="60">60 bpm</option><option value="80">80 bpm</option><option value="100" selected>100 bpm</option>
+              <option value="120">120 bpm</option><option value="140">140 bpm</option><option value="160">160 bpm</option><option value="200">200 bpm</option>
+            </select>
+          </div>
+          <div class="field field-small"><label for="pad-swing">Colcheias</label>
+            <select id="pad-swing"><option value="1">Com swing</option><option value="0">Retas</option></select>
+          </div>
+        </div>
+        <div class="pad-nav">
+          <button class="btn-secondary" id="btn-pad-ant" title="Padrão anterior">◀ Anterior</button>
+          <button class="btn-primary" id="btn-pad-tocar">▶ Tocar todos os tons</button>
+          <button class="btn-secondary" id="btn-pad-prox" title="Próximo padrão">Próximo ▶</button>
+          <span class="pad-view-toggle">
+            <button class="view-btn pad-view active" data-v="partitura">Partitura</button>
+            <button class="view-btn pad-view" data-v="tab">Tab</button>
+            <button class="view-btn pad-view" data-v="notas">Notas</button>
+          </span>
+        </div>
+        <div id="pad-info" class="pad-info"></div>
+        <details class="scale-info pad-custom" id="pad-custom">
+          <summary>✍️ <strong>Padrão próprio</strong> — digite os graus e o sistema escreve nos 12 tons</summary>
+          <div class="si-body">
+            <div class="lib-controls">
+              <div class="field field-wide"><label for="pad-graus">Graus (separados por espaço)</label>
+                <input id="pad-graus" type="text" placeholder="ex.: 1 2 3 5   ou   3 5 b7 b9" autocomplete="off"/></div>
+              <div class="field field-small"><label for="pad-acorde">Acorde</label>
+                <select id="pad-acorde"><option value="maj">Maior (7M)</option><option value="dom">Dominante (7)</option><option value="min">Menor (m7)</option></select></div>
+              <div class="field field-small"><label for="pad-ritmo">Ritmo</label>
+                <select id="pad-ritmo"><option value="q">Semínimas</option><option value="e" selected>Colcheias</option><option value="t">Tercinas</option></select></div>
+              <button class="btn-primary" id="btn-pad-custom">Gerar nos 12 tons</button>
+            </div>
+            <p class="si-legend">Graus de 1 a 13, com b ou #: 1 2 b3 3 4 #4 5 b6 6 b7 7, e as tensões 9 b9 #9 11 #11 13 b13 (uma oitava acima). Útil para praticar em todos os tons um exercício que você está estudando.</p>
+            <p class="pad-erro" id="pad-erro" hidden></p>
+          </div>
+        </details>
+        <div id="pad-lista" class="lib-lista"></div>
+      </div>
+    </div>
+
     <!-- View: Aulas (Etapa 5, parte 4) -->
     <div class="content view" data-view="aulas" hidden>
       <div class="card">
@@ -492,8 +560,10 @@
 <script src="js/lessons.js"></script>
 <script src="js/library.js"></script>
 <script src="js/scale-info.js"></script>
+<script src="js/patterns.js"></script>
 <script src="js/app.js"></script>
 <script src="js/library-ui.js"></script>
+<script src="js/patterns-ui.js"></script>
 
 <!-- Etapa 4: contas de usuário (Supabase). Se js/config.js ainda tiver os
      valores de exemplo, ou se não houver internet, o login fica desativado

@@ -356,6 +356,38 @@ Medido no Chromium (pico na saída): Real 0,64–0,84, Drive 0,71, Sintetizado
 0,76, em todos os 8 instrumentos (antes: Real 0,05–0,11). Teste:
 `tests/som.smoke.js`.
 
+## Exercícios de Padrões — ✅ Concluída (2026-09-11)
+Novo item do menu **"📘 Exercícios de Padrões"** (`js/patterns.js` +
+`js/patterns-ui.js`): o método clássico de estudo do jazz — um padrão curto
+repetido nos 12 tons pelo ciclo de 4ªs (C F Bb Eb Ab Db F# B E A D G), com a
+cifra em cada compasso.
+
+- **57 padrões em 8 categorias**: preliminares no acorde maior, no dominante,
+  acorde menor, II–V, II–V–I, II–V–i menor, V7alt → I e tercinas/grupetos,
+  do nível preliminar (semínimas) ao avançado (cromatismo, b9, alterada).
+- **Autoria**: o usuário pediu para copiar os exercícios do livro de padrões
+  que enviou (com poucas notas trocadas). Isso não foi feito: seria
+  reproduzir material com direitos autorais. Aproveitou-se só a organização
+  didática (categorias, ciclo de 4ªs, progressão de dificuldade); todas as
+  frases foram escritas para o ImprovisaLab com vocabulário comum do jazz
+  (graus do acorde, notas-guia, cercos, escala bebop, tensões).
+- Cada padrão mostra a **fórmula em graus por acorde** (ex.: Dm7 `b3 b7` →
+  G7 `3 b7` → C7M `3 7`) e uma dica; cada tom vem numa linha com
+  partitura, tablatura ou notas e botão de ouvir; **"Tocar todos os tons"**
+  toca o ciclo inteiro com acompanhamento, destacando a linha atual.
+  Andamento (60–200 bpm) e colcheias com swing ou retas.
+- **Padrão próprio**: o usuário digita graus (`1 2 3 5`, `3 5 b7 b9`, com
+  tensões 9/11/13), escolhe acorde e ritmo, e o sistema escreve e toca nos
+  12 tons — assim dá para praticar em todos os tons qualquer exercício que
+  ele esteja estudando.
+- Correção na partitura: B#/Cb agora ficam na linha certa (a oitava da
+  posição passa a descontar o acidente).
+
+Testes: `tests/patterns.test.js` (8 testes em 684 linhas: ritmo fecha,
+grafia sem acidentes dobrados, âmbito, transposição preserva o desenho,
+cifras no ciclo, fórmulas, tempos fortes em nota do acorde/tensão, padrão
+próprio) e `tests/padroes.smoke.js`.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
@@ -380,10 +412,10 @@ do escopo cobrado, mas vale registrar): leitura transposta de sax/trompete
 
 ## Arquivos do projeto
 `index.html`, `css/styles.css`, `js/data.js`, `js/theory.js`, `js/phrases.js`,
-`js/notation.js`, `js/audio.js`, `js/articulation.js`, `js/scale-info.js`, `sounds/*.js` (+ `sounds/CREDITOS.md`), `js/lab.js`, `js/lessons.js`, `js/library.js`, `js/app.js`, `js/library-ui.js`,
+`js/notation.js`, `js/audio.js`, `js/articulation.js`, `js/scale-info.js`, `js/patterns.js`, `js/patterns-ui.js`, `sounds/*.js` (+ `sounds/CREDITOS.md`), `js/lab.js`, `js/lessons.js`, `js/library.js`, `js/app.js`, `js/library-ui.js`,
 `js/config.js`, `js/supabaseClient.js`, `js/auth-ui.js`, `sql/schema.sql`,
 `tests/theory.test.js`, `tests/phrases.test.js`, `tests/lab.test.js`,
-`tests/lessons.test.js`, `tests/library.test.js`, `tests/articulation.test.js`, `tests/fusion.smoke.js`, `tests/scaleinfo.test.js`, `tests/scaleinfo.smoke.js`, `tests/som.smoke.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
+`tests/lessons.test.js`, `tests/library.test.js`, `tests/articulation.test.js`, `tests/fusion.smoke.js`, `tests/scaleinfo.test.js`, `tests/scaleinfo.smoke.js`, `tests/som.smoke.js`, `tests/patterns.test.js`, `tests/padroes.smoke.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
 `tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`, `tests/etapa5.smoke.js`,
 `tests/etapa5.planos.smoke.js`, `tests/etapa5.laboratorio.smoke.js`,
 `tests/etapa5.aulas.smoke.js`, `tests/fraseados.smoke.js`, `tests/biblioteca.smoke.js`, `tests/screenshot*.js` (dev only),

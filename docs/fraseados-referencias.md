@@ -77,6 +77,16 @@ bebop e baião quase não usam bend (linguagem de sopro/rabeca) e o bebop
 usa notas fantasma nos contratempos. Hammer-on/pull-off só entre notas de
 1 a 4 semitons; no teclado nada disso — só dinâmica.
 
+## Exercícios de Padrões
+
+O livro de padrões enviado (250 Jazz Patterns) inspirou só a organização do
+módulo: categorias por acorde/cadência, ciclo de 4ªs e dificuldade
+crescente. Os exercícios não foram copiados nem "levemente alterados" —
+todos os 57 padrões foram escritos do zero com vocabulário comum (graus,
+notas-guia, cercos, escala bebop, b9, alterada). Para estudar um exercício
+específico do livro, o usuário pode digitar os graus no "padrão próprio" e
+praticar nos 12 tons.
+
 ## Ideias dos materiais que ficaram para depois
 
 - "Escala-arpejo" com notas vizinhas e os desenhos de 4 notas por corda

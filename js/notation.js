@@ -127,7 +127,10 @@
   function staffPosition(name, midi) {
     var letter = name.charAt(0).toUpperCase();
     var letterIdx = NOTE_LETTERS.indexOf(letter);
-    var octave = Math.floor(midi / 12) - 1;
+    // o acidente não muda a linha: B#4 soa como C5 mas é escrito no lugar do B4
+    var acc = 0;
+    for (var ai = 1; ai < name.length; ai++) acc += name.charAt(ai) === '#' ? 1 : (name.charAt(ai) === 'b' ? -1 : 0);
+    var octave = Math.floor((midi - acc) / 12) - 1;
     var absoluteIdx = octave * 7 + letterIdx;
     var referenceIdx = 4 * 7 + NOTE_LETTERS.indexOf('E'); // E4 = linha de baixo
     return absoluteIdx - referenceIdx;

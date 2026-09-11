@@ -56,6 +56,9 @@ Com isso, todo o escopo da Etapa 5 previsto em `docs/PRD.md` está entregue.
 - **Fusion — sweep (inspirado em Gambale)**: arpejos varridos, arpejos
   superpostos, 3 notas por corda e slides; todas as frases com hammer-on,
   pull-off, slide, bend, vibrato e dinâmica (tab com palhetada D/U).
+- **Exercícios de Padrões**: 57 padrões (preliminares, dominante, menor,
+  II–V, II–V–I, II–V–i, V7alt, tercinas) nos 12 tons pelo ciclo de 4ªs, com
+  fórmula em graus, partitura/tab e áudio; e "padrão próprio" digitando graus.
 - **Ficha da escala**: ao escolher a escala/modo na Biblioteca aparecem a
   fórmula (1 2 b3 4 5 6 b7), os intervalos (2M 3m 4J...), tons e semitons,
   as notas no tom, a sonoridade, a nota característica e onde usar.
@@ -94,6 +97,8 @@ js/lab.js             Gerador de progressões do Laboratório (Etapa 5, parte 3)
 js/lessons.js         Conteúdo das Aulas (Etapa 5, parte 4): lições + exemplos práticos
 js/library.js         Motor da Biblioteca de Fraseados (escala × tom × estilo, com ritmo)
 js/library-ui.js      Tela da Biblioteca de Fraseados
+js/patterns.js        Exercícios de Padrões (57 padrões nos 12 tons + padrão próprio)
+js/patterns-ui.js     Tela dos Exercícios de Padrões
 js/scale-info.js      Ficha de cada escala/modo (fórmula, intervalos, características)
 js/articulation.js    Articulações (hammer-on, pull-off, slide, bend, vibrato) e dinâmica
 sounds/*.js           Samples de instrumentos reais (FluidR3_GM, CC BY 3.0 — ver sounds/CREDITOS.md)
@@ -121,9 +126,12 @@ tests/library.test.js  Testes do motor da Biblioteca (varre 11.232 frases) — n
 tests/biblioteca.smoke.js Smoke test da tela da Biblioteca de Fraseados
 tests/articulation.test.js Testes de articulações, tab com técnicas e Fusion — node tests/articulation.test.js
 node tests/scaleinfo.test.js
+node tests/patterns.test.js
 tests/fusion.smoke.js  Smoke test do menu Fusion e do som com samples
 tests/scaleinfo.test.js Testes da ficha das escalas — node tests/scaleinfo.test.js
 tests/scaleinfo.smoke.js Smoke test da ficha da escala na Biblioteca
+tests/patterns.test.js Testes dos Exercícios de Padrões — node tests/patterns.test.js
+tests/padroes.smoke.js Smoke test da tela de Exercícios de Padrões
 tests/som.smoke.js     Mede o volume real na saída de áudio em cada modo e instrumento
 tests/screenshot*.js   Scripts opcionais de checagem visual com Playwright (dev only)
 docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos, status e guias do Supabase/Planos
