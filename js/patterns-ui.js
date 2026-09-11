@@ -104,6 +104,9 @@
     fillKeySelect();
     renderInfo();
     renderLines();
+    // mostra o resultado (a lista fica abaixo do formulário)
+    var info = $('pad-info');
+    if (info && info.scrollIntoView) info.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function renderInfo() {
@@ -114,7 +117,7 @@
     $('pad-info').innerHTML =
       '<div class="pad-info-title">' + num + esc(p.title) + '</div>' +
       '<div class="lib-badges"><span class="lib-badge">' + esc(form.label) + '</span>' +
-      '<span class="lib-badge">nível ' + LEVEL_TXT[p.level] + '</span></div>' +
+      '<span class="lib-badge">' + (p.custom ? 'criado por você' : 'nível ' + LEVEL_TXT[p.level]) + '</span></div>' +
       '<p>' + esc(p.dica) + '</p>' +
       '<div class="pad-formula">' + f.map(function (x) {
         return '<span class="pad-f"><strong>' + esc(x.sym) + '</strong> <span class="chord-notes-inline">(' + esc(window.IL.theory.chordNotesText(x.sym)) + ')</span> <code>' + esc(x.degrees) + '</code></span>';

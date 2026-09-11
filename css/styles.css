@@ -597,6 +597,7 @@ select, input[type="text"] {
 .lib-controls .field-wide { flex: 2 1 260px; }
 .lib-controls .field-small { flex: 0 1 130px; min-width: 120px; }
 .pad-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0 0 0.8rem; }
+.pad-nav .btn-secondary, .pad-nav .btn-primary { width: auto; flex: 0 0 auto; height: 38px; }
 .pad-view-toggle { display: inline-flex; gap: 0.3rem; margin-left: auto; }
 .pad-view[disabled] { opacity: 0.4; cursor: not-allowed; }
 .pad-info { border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-elevated); padding: 0.8rem 1rem; margin-bottom: 0.6rem; }

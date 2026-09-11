@@ -455,8 +455,30 @@
     min: { form: 'min', label: 'Menor (m7)' }
   };
 
+  // Aceita as várias formas de escrever um grau: "b7", "7b", "7B", "B7",
+  // "♭7", "7m" (intervalo menor), "7M", "4J", "4aum", "5dim", "T"/"Tôn" (tônica).
+  function normalizeDegree(tok) {
+    var t = String(tok).trim().replace(/♭/g, 'b').replace(/♯/g, '#');
+    if (/^(t|tô?n|tonica|tônica)$/i.test(t)) return '1';
+    var iv = /^(\d{1,2})(M|m|J|j|aum|dim)$/.exec(t);
+    if (iv) {
+      var n = parseInt(iv[1], 10), q = iv[2];
+      var base = ((n - 1) % 7) + 1;
+      var perfect = base === 1 || base === 4 || base === 5;
+      if (q === 'M' || q === 'J' || q === 'j') return iv[1];
+      if (q === 'm') return 'b' + iv[1];
+      if (q === 'aum') return '#' + iv[1];
+      if (q === 'dim') return (perfect ? 'b' : 'bb') + iv[1];
+    }
+    var after = /^(\d{1,2})(bb|b|#)$/i.exec(t);
+    if (after) return after[2].toLowerCase() + after[1];
+    var before = /^(bb|b|#)(\d{1,2})$/i.exec(t);
+    if (before) return before[1].toLowerCase() + before[2];
+    return t;
+  }
+
   function parseDegree(tok) {
-    var m = /^(bb|b|#)?(\d{1,2})$/.exec(tok.trim());
+    var m = /^(bb|b|#)?(\d{1,2})$/.exec(normalizeDegree(tok));
     if (!m) return null;
     var n = parseInt(m[2], 10);
     if (n < 1 || n > 15) return null;
@@ -479,7 +501,7 @@
     var degs = [];
     for (var i = 0; i < toks.length; i++) {
       var d = parseDegree(toks[i]);
-      if (!d) return { error: 'Grau inválido: "' + toks[i] + '". Use 1 a 13 com b ou #, ex.: b3, #11, b9.' };
+      if (!d) return { error: 'Grau inválido: "' + toks[i] + '". Use 1 a 13 com b ou # (antes ou depois do número), ex.: b3, 7b, #11, b9, ou intervalos 3m, 7M, 4J.' };
       degs.push(d);
     }
     var chord = CUSTOM_FORMS[opts.chord] ? opts.chord : 'maj';

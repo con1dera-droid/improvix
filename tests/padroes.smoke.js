@@ -54,6 +54,11 @@ const path = require('path');
   await page.click('#btn-pad-custom');
   await page.waitForTimeout(200);
   console.log('Próprio:', await page.$eval('#pad-info .pad-info-title', (e) => e.textContent), '|', await page.$eval('#pad-info .pad-formula', (e) => e.textContent), '| linhas:', await page.$$eval('#pad-lista .pad-line', (e) => e.length));
+  await page.fill('#pad-graus', '1 3 2 5 4 6 5 7B');
+  await page.click('#btn-pad-custom');
+  await page.waitForTimeout(200);
+  console.log('Com "7B":', await page.$eval('#pad-info .pad-info-title', (e) => e.textContent), '| erro visível:', await page.$eval('#pad-erro', (e) => !e.hidden),
+    '| 1ª linha:', await page.$eval('#pad-lista .pad-line .lib-card-title', (e) => e.textContent));
   await page.fill('#pad-graus', '1 x 3');
   await page.click('#btn-pad-custom');
   console.log('Erro:', await page.$eval('#pad-erro', (e) => e.hidden ? '(sem)' : e.textContent));

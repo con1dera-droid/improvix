@@ -100,6 +100,15 @@ test('padrão próprio: graus viram notas nos 12 tons; erros explicados', functi
   assert.ok(!t.error);
   assert.ok(Math.abs(PAT.realize(t.pattern, 'C').beats % 4) < 1e-6);
   assert.ok(PAT.customPattern({ degrees: '1 x 3' }).error);
+  // formas alternativas de escrever os graus
+  var alt = PAT.customPattern({ degrees: '1 3 2 5 4 6 5 7B', chord: 'dom', rhythm: 'e' });
+  assert.ok(!alt.error, alt.error);
+  assert.deepStrictEqual(PAT.realize(alt.pattern, 'C').events.filter(function (e) { return !e.rest; }).map(function (e) { return e.name; }),
+    ['C', 'E', 'D', 'G', 'F', 'A', 'G', 'Bb']);
+  var iv = PAT.customPattern({ degrees: 'T 2M 3m 4J 5J 6M 7m 9b', chord: 'min', rhythm: 'e' });
+  assert.ok(!iv.error, iv.error);
+  assert.deepStrictEqual(PAT.realize(iv.pattern, 'C').events.filter(function (e) { return !e.rest; }).map(function (e) { return e.name; }),
+    ['C', 'D', 'Eb', 'F', 'G', 'A', 'Bb', 'Db']);
   assert.ok(PAT.customPattern({ degrees: '' }).error);
   assert.strictEqual(PAT.realizeAll(t.pattern)[5].key, 'C#');
 });
