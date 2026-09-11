@@ -211,8 +211,9 @@
     var pxBeat = Math.max(62, dens * 19), left = 58, barPad = 14;
     function xAt(beat) { var bar = Math.min(nBars - 1, Math.floor(beat / bpb + 1e-6)); return left + beat * pxBeat + bar * barPad + 14; }
     var width = xAt(nBars * bpb) + 10;
-    var height = 215;
-    var staffTop = 95, gap = 10;
+    var extra = (opts.chords || []).length ? 16 : 0; // espaço para as notas do acorde embaixo da cifra
+    var height = 215 + extra;
+    var staffTop = 95 + extra, gap = 10;
     var bottomLineY = staffTop + 40;
     var midY = bottomLineY - 4 * gap;
     var ink = 'var(--staff-note, #e7ecf7)', lineC = 'var(--staff-line, #5c6c8f)', label = 'var(--staff-label, #94a3c4)';
@@ -231,6 +232,9 @@
     }
     (opts.chords || []).forEach(function (ch) {
       out += '<text x="' + (xAt(ch.beat) - 6) + '" y="16" font-size="13" font-weight="700" fill="' + ink + '">' + ch.symbol + '</text>';
+      // notas que formam o acorde, embaixo da cifra
+      var tones = theory && theory.chordNotesText ? theory.chordNotesText(ch.symbol, '-') : '';
+      if (tones) out += '<text x="' + (xAt(ch.beat) - 6) + '" y="31" font-size="10" fill="' + label + '">(' + tones + ')</text>';
     });
 
     // Posições e hastes

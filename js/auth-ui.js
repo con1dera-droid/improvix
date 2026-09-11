@@ -364,6 +364,9 @@
       '<div class="lab-card">' +
       '<div class="lab-card-title">' + result.template.label + '</div>' +
       '<div class="lab-card-progressao">' + result.progressionText + '</div>' +
+      '<div class="lab-card-notas">' + result.chords.map(function (c) {
+        return '<span><strong>' + c.symbol + '</strong> (' + window.IL.theory.chordNotesText(c.symbol) + ')</span>';
+      }).join('') + '</div>' +
       '<p class="lab-card-explicacao">' + result.template.explanation + '</p>' +
       '<button class="btn-primary" id="btn-lab-analisar">Analisar esta progressão →</button>' +
       '</div>';

@@ -165,7 +165,10 @@
     }).join(' – ') + '</div>';
     else body = '<div class="staff-block lib-staff">' + notation.toRhythmStaffSVG(notation.centerForStaff(pr.events), { chords: p.chords }) + '</div>';
     var artTxt = window.IL.articulation ? window.IL.articulation.describe(pr.events) : '';
-    var badges = '<span class="lib-badge">' + p.styleLabel + '</span><span class="lib-badge">' + p.scaleLabel + '</span>' +
+    var badges = (p.chords || []).filter(function (c, i, arr) { return arr.map(function (x) { return x.symbol; }).indexOf(c.symbol) === i; }).map(function (c) {
+      return '<span class="lib-badge lib-badge-chord"><strong>' + c.symbol + '</strong> ' + window.IL.theory.chordNotesText(c.symbol) + '</span>';
+    }).join('') +
+      '<span class="lib-badge">' + p.styleLabel + '</span><span class="lib-badge">' + p.scaleLabel + '</span>' +
       '<span class="lib-badge">' + p.bpm + ' bpm' + (p.swing ? ' · swing' : '') + '</span>';
     return '<div class="lib-card" data-idx="' + idx + '">' +
       '<div class="lib-card-head"><div class="lib-card-title">' + p.title + '</div>' +
@@ -213,7 +216,7 @@
       '<div><span class="si-k">Intervalos</span> <code>' + info.intervalsText + '</code></div>' +
       '<div><span class="si-k">Tons e semitons</span> <code>' + info.steps.join(' – ') + '</code></div>' +
       '<div><span class="si-k">Em ' + tonic + (tomSel === 'todos' ? ' (exemplo)' : '') + '</span> <code>' + notes.join(' ') + '</code>' +
-      (chord ? ' · acorde <strong>' + esc(chord) + '</strong>' : '') + ' · ' + info.notesCount + ' notas</div>' +
+      (chord ? ' · acorde <strong>' + esc(chord) + '</strong> (' + esc(window.IL.theory.chordNotesText(chord)) + ')' : '') + ' · ' + info.notesCount + ' notas</div>' +
       '</div>' +
       '<p><strong>De onde vem:</strong> ' + esc(info.origem) + '</p>' +
       '<p><strong>Sonoridade:</strong> ' + esc(info.som) + '</p>' +

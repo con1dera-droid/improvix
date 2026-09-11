@@ -227,6 +227,17 @@ test('V/V (D7 em Dó) agora é dominante secundário', function () {
   assert.strictEqual(c.roman, 'V/V');
 });
 
+test('notas que formam o acorde a partir da cifra (com tensões)', function () {
+  var cases = {
+    'C7': 'C – E – G – Bb', 'C7M': 'C – E – G – B', 'Dm7(b5)': 'D – F – Ab – C', 'G7(b9)': 'G – B – D – F – Ab',
+    'G7alt': 'G – B – F – Ab – A# – C# – Eb', 'C6(9)': 'C – E – G – A – D', 'C7M(#11)': 'C – E – G – B – F#',
+    'Am(7M)': 'A – C – E – G#', 'E7(b9/b13)': 'E – G# – B – D – F – C', 'D7/F#': 'D – F# – A – C, baixo F#',
+    'Ebm7': 'Eb – Gb – Bb – Db', 'G7 → C7M': 'G – B – D – F  →  C – E – G – B'
+  };
+  Object.keys(cases).forEach(function (k) { assert.strictEqual(theory.chordNotesText(k), cases[k], k); });
+  assert.strictEqual(theory.chordNotesText('xyz'), '');
+});
+
 console.log('\n' + passed + ' teste(s) passaram.');
 if (process.exitCode) {
   console.error('Há testes falhando — corrija antes de publicar.');

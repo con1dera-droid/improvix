@@ -111,6 +111,12 @@
     return e;
   }
 
+  // Notas que formam o acorde: "C – E – G – Bb" (com as tensões da cifra).
+  function chordNotesOf(c) {
+    var t = theory.chordNotesText ? theory.chordNotesText(c.symbol) : '';
+    return t || (c.tones || []).join(' – ');
+  }
+
   function renderChordChain(result) {
     var wrap = document.getElementById('chord-chain');
     wrap.innerHTML = '';
@@ -123,7 +129,7 @@
         return;
       }
       var pill = el('div', 'chord-pill ' + functionClass(c.function));
-      pill.innerHTML = '<div class="symbol">' + c.symbol + '</div><div class="grau">' + c.roman + '</div>';
+      pill.innerHTML = '<div class="symbol">' + c.symbol + '</div><div class="chord-notes">' + chordNotesOf(c) + '</div><div class="grau">' + c.roman + '</div>';
       wrap.appendChild(pill);
     });
   }
@@ -139,7 +145,7 @@
         return;
       }
       var scalesTxt = c.scales.map(function (s) { return s.label; }).join(', ');
-      var notesTxt = c.tones.join(' ');
+      var notesTxt = chordNotesOf(c);
       tr.innerHTML =
         '<td><strong>' + c.symbol + '</strong></td>' +
         '<td>' + c.roman + '</td>' +
@@ -161,7 +167,7 @@
     result.chords.forEach(function (c) {
       if (c.error) return;
       var item = el('div', 'scale-item');
-      item.appendChild(el('div', 'chord-name', c.symbol + ' <span style="color:var(--text-dim);font-weight:400;">(' + c.roman + ' · ' + c.function + ')</span>'));
+      item.appendChild(el('div', 'chord-name', c.symbol + ' <span class="chord-notes-inline">(' + chordNotesOf(c) + ')</span> <span style="color:var(--text-dim);font-weight:400;">' + c.roman + ' · ' + c.function + '</span>'));
       var list = kind === 'escalas' ? c.scales : c.arpeggios;
       list.forEach(function (entry) {
         var row = el('div', 'scale-row');
@@ -181,7 +187,7 @@
       if (c.error) return;
       var row = el('div', 'target-row');
       row.innerHTML =
-        '<span class="chord">' + c.symbol + '</span>' +
+        '<span class="chord">' + c.symbol + ' <span class="chord-notes-inline">(' + chordNotesOf(c) + ')</span></span>' +
         '<span class="note">' + c.targetNote + ' <span class="label">(' + c.targetLabel + ')</span></span>';
       main.appendChild(row.cloneNode(true));
       side.appendChild(row);

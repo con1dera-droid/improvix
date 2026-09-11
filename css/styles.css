@@ -609,3 +609,10 @@ select, input[type="text"] {
 .pad-custom input { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 0.55rem 0.7rem; font-size: 0.95rem; }
 .pad-erro { color: #f87171; font-size: 0.88rem; margin: 0.3rem 0; }
 .pad-line.is-playing { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+
+/* Notas que formam cada acorde, ao lado/embaixo da cifra */
+.chord-pill .chord-notes { font-size: 0.72rem; color: rgba(255, 255, 255, 0.85); margin: 0.1rem 0 0.15rem; white-space: nowrap; }
+.chord-notes-inline { font-weight: 400; color: var(--text-muted); font-size: 0.85em; }
+.lib-badge-chord strong { color: var(--text); margin-right: 0.25rem; }
+.lab-card-notas { display: flex; flex-wrap: wrap; gap: 0.35rem 0.9rem; margin: 0.4rem 0 0.2rem; font-size: 0.85rem; color: var(--text-muted); }
+.lab-card-notas strong { color: var(--text); }

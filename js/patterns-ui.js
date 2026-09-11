@@ -117,7 +117,7 @@
       '<span class="lib-badge">nível ' + LEVEL_TXT[p.level] + '</span></div>' +
       '<p>' + esc(p.dica) + '</p>' +
       '<div class="pad-formula">' + f.map(function (x) {
-        return '<span class="pad-f"><strong>' + esc(x.sym) + '</strong> <code>' + esc(x.degrees) + '</code></span>';
+        return '<span class="pad-f"><strong>' + esc(x.sym) + '</strong> <span class="chord-notes-inline">(' + esc(window.IL.theory.chordNotesText(x.sym)) + ')</span> <code>' + esc(x.degrees) + '</code></span>';
       }).join('<span class="pad-arrow">→</span>') + '</div>' +
       '<p class="si-legend">Fórmula em graus de cada acorde (escrita em Dó; nos outros tons os graus são os mesmos). "—" é pausa.</p>';
   }
@@ -145,7 +145,7 @@
       var bars = [];
       line.chords.forEach(function (c) {
         var ns = line.events.filter(function (e) { return !e.rest && e.onset >= c.beat - 1e-6 && e.onset < c.beat + c.beats - 1e-6; });
-        bars.push('<strong>' + esc(c.symbol) + ':</strong> ' + ns.map(function (e) {
+        bars.push('<strong>' + esc(c.symbol) + '</strong> <span class="chord-notes-inline">(' + esc(window.IL.theory.chordNotesText(c.symbol)) + ')</span>: ' + ns.map(function (e) {
           return e.name + (e.art ? '<sup>' + e.art + '</sup>' : '') + (e.vibrato ? '~' : '');
         }).join(' – '));
       });
@@ -156,7 +156,9 @@
     var playing = state.playing === idx;
     return '<div class="lib-card pad-line" data-idx="' + idx + '">' +
       '<div class="lib-card-head"><div class="lib-card-title">' + esc(line.key) + (isMinor() ? ' menor' : '') + ' — ' +
-      line.chords.map(function (c) { return esc(c.symbol); }).join(' · ') + '</div>' +
+      line.chords.map(function (c) {
+        return esc(c.symbol) + ' <span class="chord-notes-inline">(' + esc(window.IL.theory.chordNotesText(c.symbol)) + ')</span>';
+      }).join(' · ') + '</div>' +
       '<div class="lib-card-actions"><button class="view-btn lib-play' + (playing ? ' playing' : '') + '" data-play="1">' +
       (playing ? '⏸ Parar' : '🔊 Ouvir') + '</button></div></div>' +
       '<div class="lib-card-body">' + body + '</div></div>';

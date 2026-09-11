@@ -249,6 +249,54 @@
     return { root: root, quality: quality, symbol: symbol, bass: bass, tensions: tensions };
   }
 
+  // --- Notas que formam um acorde (a partir da cifra) ----------------------
+
+  // Tensões → [passos de letra, semitons] a partir da fundamental.
+  var TENSION_SPELL = {
+    'b9': [1, 1], '9': [1, 2], '#9': [1, 3], '11': [3, 5], '#11': [3, 6], 'b13': [5, 8], '13': [5, 9]
+  };
+
+  /**
+   * Notas do acorde na ordem 1-3-5-7 + tensões, a partir da cifra.
+   * Ex.: "C7" → [C, E, G, Bb]; "G7(b9)" → [G, B, D, F, Ab];
+   * "G7alt" → [G, B, F, Ab, A#, C#, Eb] (sem 5ª justa); "C6(9)" → [C, E, G, A, D].
+   * Devolve [] se a cifra não for reconhecida.
+   */
+  function chordNotes(symbol) {
+    var p = null;
+    try { p = parseChordSymbol(symbol); } catch (e) { p = null; }
+    if (!p || !DATA.QUALITIES[p.quality]) return [];
+    var notes = chordTones(p.root, p.quality);
+    var tens = p.tensions.slice();
+    if (tens.indexOf('alt') >= 0 && p.quality.indexOf('dominant') === 0) {
+      // 7alt: 1, 3, b7 + b9, #9, #11, b13 (a 5ª justa sai)
+      var fifth = noteAt(p.root, 4, 7);
+      notes = notes.filter(function (n) { return n !== fifth; });
+      tens = ['b9', '#9', '#11', 'b13'];
+    }
+    var pcs = notes.map(pitchClassOf);
+    tens.forEach(function (t) {
+      var sp = TENSION_SPELL[t];
+      if (!sp) return;
+      var n = noteAt(p.root, sp[0], sp[1]);
+      if (pcs.indexOf(pitchClassOf(n)) >= 0) return;
+      notes.push(n);
+      pcs.push(pitchClassOf(n));
+    });
+    return notes;
+  }
+
+  /** "C – E – G – Bb" (ou com baixo: "C – E – G – Bb, baixo E"). Aceita "G7 → C7M". */
+  function chordNotesText(symbol, sep) {
+    sep = sep || ' – ';
+    return String(symbol || '').split(/\s*→\s*/).map(function (part) {
+      var ns = chordNotes(part);
+      if (!ns.length) return '';
+      var p = parseChordSymbol(part);
+      return ns.join(sep) + (p && p.bass ? ', baixo ' + p.bass : '');
+    }).filter(Boolean).join('  →  ');
+  }
+
   // --- Campo harmônico -----------------------------------------------------
 
   function keyDataFor(mode) {
@@ -558,6 +606,8 @@
     scaleNotes: scaleNotes,
     chordTones: chordTones,
     parseChordSymbol: parseChordSymbol,
+    chordNotes: chordNotes,
+    chordNotesText: chordNotesText,
     familyOf: familyOf,
     buildDiatonicField: buildDiatonicField,
     triadFromThird: triadFromThird,

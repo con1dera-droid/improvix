@@ -414,6 +414,18 @@ aparecem na tab (com legenda) e no áudio; no teclado são removidas.
 Teste novo em `tests/patterns.test.js` (6 estilos, ≥ 5 fórmulas cada,
 h sobe/p desce, bend de ½ ou 1 tom) — 9 testes, 1.092 linhas.
 
+## Notas de cada acorde junto da cifra — ✅ (2026-09-11)
+Onde aparece uma cifra, aparecem também as notas que formam o acorde, ex.:
+**C7 (C – E – G – Bb)**. Calculado da própria cifra (`theory.chordNotes` /
+`chordNotesText`), incluindo tensões: G7(b9) = G – B – D – F – Ab; G7alt =
+G – B – F – Ab – A# – C# – Eb (sem 5ª justa); C6(9) = C – E – G – A – D;
+baixo invertido: D7/F# = D – F# – A – C, baixo F#.
+Lugares: cadeia de acordes e tabela da análise, abas Escalas/Arpejos e
+Notas-alvo, partituras (embaixo da cifra, com espaço extra na pauta),
+Biblioteca (etiquetas de cada acorde), ficha da escala, Exercícios de Padrões
+(título de cada tom, fórmula e vista Notas) e Laboratório.
+Teste novo em `tests/theory.test.js`.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
