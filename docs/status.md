@@ -388,6 +388,32 @@ grafia sem acidentes dobrados, âmbito, transposição preserva o desenho,
 cifras no ciclo, fórmulas, tempos fortes em nota do acorde/tensão, padrão
 próprio) e `tests/padroes.smoke.js`.
 
+## Exercícios de Padrões: vocabulário por estilo — ✅ (2026-09-11)
+O módulo passou a ter dois grupos no seletor de categoria:
+**Método progressivo** (os 57 padrões anteriores) e **Vocabulário mais usado,
+por estilo** — 34 fórmulas de domínio comum, escritas na forma genérica:
+
+- **Jazz/bebop (7)**: cerco duplo cromático da 5ª, 9-b9-1 no V, arpejo
+  aumentado (#5 → 3), pentatônica do 2º grau (som lídio), padrão digital
+  1-2-3-5, nota-guia descendo, grupeto na fundamental.
+- **Blues (7)**: blue note b3 → 3, bend da 4ª à 5ª, pentatônica com b5,
+  pergunta e resposta I7 → IV7, turnaround I7–IV7–I7–V7, shuffle em
+  tercinas, bend da b7 no blues menor.
+- **Rock (5)**: pentatônica em grupos de 3 e de 4, legato, bend de um tom
+  com vibrato, frase mixolídia.
+- **Baião/nordeste (5)**: mixolídio em terças, lídio b7, síncope do baião,
+  descida com b7 e #11, pergunta e resposta em terças.
+- **Bossa/MPB (5)**: arpejo 6(9), antecipação, cromatismo para a 9ª,
+  resolução na 7M/9ª, menor com 6ª e 9ª.
+- **Fusion (5)**: tríade do 2º grau (lídio), 3 notas por corda em legato,
+  arpejo superposto Eb7M/Cm7, quartas empilhadas, lídio em legato.
+
+Novas formas: blues I7 → IV7, turnaround, 7(#11), 6(9), 7M(#11). Os padrões
+aceitam articulações (`:h`, `:p`, `:sl`, `:bend1`/`:bend2`, `:~`), que
+aparecem na tab (com legenda) e no áudio; no teclado são removidas.
+Teste novo em `tests/patterns.test.js` (6 estilos, ≥ 5 fórmulas cada,
+h sobe/p desce, bend de ½ ou 1 tom) — 9 testes, 1.092 linhas.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

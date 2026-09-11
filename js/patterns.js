@@ -5,6 +5,10 @@
  * cerco, escala bebop...) sobre um acorde ou uma cadência, repetido nos 12
  * tons pelo ciclo de 4ªs, com a cifra em cada compasso.
  *
+ * Duas partes: o "método progressivo" (preliminares → II–V–I → alterados) e
+ * o "vocabulário mais usado, por estilo" (jazz, blues, rock, baião, bossa,
+ * fusion) — as fórmulas de domínio comum que todo músico usa.
+ *
  * Os padrões abaixo foram ESCRITOS PARA O IMPROVISALAB a partir do
  * vocabulário comum do jazz (graus do acorde, notas-guia, cromatismo de
  * aproximação, escala bebop, tensões do dominante). Nenhum foi transcrito de
@@ -54,18 +58,33 @@
     iiVi: { label: 'II–V–i menor', cycle: 'minor', chords: [ch('ii', 'D', 'm7b5', 'm7(b5)', 2), ch('V', 'G', 'dominant7', '7(b9)', 2), ch('i', 'C', 'minor7', 'm7', 4)] },
     iiVi2: { label: 'II–V–i menor (4 compassos)', cycle: 'minor', chords: [ch('ii', 'D', 'm7b5', 'm7(b5)', 4), ch('V', 'G', 'dominant7', '7(b9)', 4), ch('i', 'C', 'minor7', 'm7', 8)] },
     VaI: { label: 'V7alt → I', cycle: 'major', chords: [ch('V', 'G', 'dominant7', '7alt', 4), ch('I', 'C', 'major7', '7M', 4)] },
-    iiVaI: { label: 'II–V7alt–I', cycle: 'major', chords: [ch('ii', 'D', 'minor7', 'm7', 2), ch('V', 'G', 'dominant7', '7alt', 2), ch('I', 'C', 'major7', '7M', 4)] }
+    iiVaI: { label: 'II–V7alt–I', cycle: 'major', chords: [ch('ii', 'D', 'minor7', 'm7', 2), ch('V', 'G', 'dominant7', '7alt', 2), ch('I', 'C', 'major7', '7M', 4)] },
+    bluesIIV: { label: 'blues: I7 → IV7', cycle: 'major', chords: [ch('I7', 'C', 'dominant7', '7', 4), ch('IV7', 'F', 'dominant7', '7', 4)] },
+    turn: { label: 'turnaround de blues (I7 IV7 I7 V7)', cycle: 'major', chords: [ch('I7', 'C', 'dominant7', '7', 2), ch('IV7', 'F', 'dominant7', '7', 2), ch('I7', 'C', 'dominant7', '7', 2), ch('V7', 'G', 'dominant7', '7', 2)] },
+    lb7: { label: 'dominante lídio (7(#11))', cycle: 'major', chords: [ch('V', 'C', 'dominant7', '7(#11)', 4)] },
+    maj69: { label: 'acorde 6(9)', cycle: 'major', chords: [ch('I', 'C', 'major6', '6(9)', 4)] },
+    lyd: { label: 'acorde 7M(#11) (lídio)', cycle: 'major', chords: [ch('I', 'C', 'major7', '7M(#11)', 4)] }
   };
 
   var CATEGORIES = [
-    { key: 'prelim_maior', label: 'Preliminares — acorde maior' },
-    { key: 'prelim_dom', label: 'Preliminares — acorde dominante' },
-    { key: 'menor', label: 'Acorde menor' },
-    { key: 'iiv', label: 'II–V' },
-    { key: 'iivi', label: 'II–V–I' },
-    { key: 'iivi_menor', label: 'II–V–i menor' },
-    { key: 'alt', label: 'V7alt → I' },
-    { key: 'tercinas', label: 'Tercinas e grupetos' }
+    { key: 'prelim_maior', group: 'metodo', label: 'Preliminares — acorde maior' },
+    { key: 'prelim_dom', group: 'metodo', label: 'Preliminares — acorde dominante' },
+    { key: 'menor', group: 'metodo', label: 'Acorde menor' },
+    { key: 'iiv', group: 'metodo', label: 'II–V' },
+    { key: 'iivi', group: 'metodo', label: 'II–V–I' },
+    { key: 'iivi_menor', group: 'metodo', label: 'II–V–i menor' },
+    { key: 'alt', group: 'metodo', label: 'V7alt → I' },
+    { key: 'tercinas', group: 'metodo', label: 'Tercinas e grupetos' },
+    { key: 'voc_jazz', group: 'vocab', label: 'Jazz / bebop' },
+    { key: 'voc_blues', group: 'vocab', label: 'Blues' },
+    { key: 'voc_rock', group: 'vocab', label: 'Rock' },
+    { key: 'voc_baiao', group: 'vocab', label: 'Baião / nordeste' },
+    { key: 'voc_bossa', group: 'vocab', label: 'Bossa nova / MPB' },
+    { key: 'voc_fusion', group: 'vocab', label: 'Fusion' }
+  ];
+  var GROUPS = [
+    { key: 'metodo', label: 'Método progressivo' },
+    { key: 'vocab', label: 'Vocabulário mais usado, por estilo' }
   ];
 
   // ---------------------------------------------------------------------
@@ -206,7 +225,94 @@
     P('t3', 'tercinas', 'iiVI', 3, 'II–V–I em tercinas', 'Tercinas no IIm7 e no V7, com chegada na 3ª.',
       ['D4/t F4/t A4/t C5/q', 'B4/t A4/t G4/t F4/q', 'E4/h r/h']),
     P('t4', 'tercinas', 'min', 3, 'Grupeto na fundamental', 'Tercina cercando a fundamental (2-7M-1), uma cor da menor melódica.',
-      ['D4/t B3/t C4/t Eb4/q G4/q Bb4/q'])
+      ['D4/t B3/t C4/t Eb4/q G4/q Bb4/q']),
+
+    // =====================================================================
+    // Vocabulário mais usado, por estilo — fórmulas de domínio comum, escritas
+    // na forma genérica (nenhuma tirada de gravação ou livro).
+    // Articulações (guitarra/baixo/violão): ":h" hammer-on, ":p" pull-off,
+    // ":sl" slide, ":bend1"/":bend2" bend de ½ / 1 tom até a nota, ":~" vibrato.
+    // =====================================================================
+
+    // ---- Jazz / bebop ----
+    P('j1', 'voc_jazz', 'dom', 2, 'Cerco duplo cromático da 5ª', 'Chega na 5ª vindo de cima em cromatismo (6-b13-#11-5): o "cercar" que está em todo solo de bebop.',
+      ['A4/e Ab4/e F#4/e G4/e E4/e C4/e Bb3/q']),
+    P('j2', 'voc_jazz', 'iiVI', 2, 'Descida cromática 9-b9-1 no V', 'O V7 desce cromático até a fundamental e a b7 cai na 3ª do I — a resolução mais clássica do jazz.',
+      ['D4/e E4/e F4/e A4/e', 'A4/e Ab4/e G4/e F4/e', 'E4/h r/h']),
+    P('j3', 'voc_jazz', 'iiVI', 3, 'Arpejo aumentado no V (#5 → 3)', 'No V7 o arpejo 1-3-#5-b7 (a #5 é a mesma nota da b13); ela sobe meio tom para a 3ª do I.',
+      ['D4/e F4/e A4/e C5/e', 'G4/e B4/e D#5/e F5/e', 'E5/h r/h']),
+    P('j4', 'voc_jazz', 'maj', 3, 'Pentatônica do 2º grau (som lídio)', 'A pentatônica maior de Ré sobre C7M dá 9-3-#11-13-7: um som moderno sem nenhuma nota "errada".',
+      ['D5/e B4/e A4/e F#4/e E4/e D4/e E4/q']),
+    P('j5', 'voc_jazz', 'min', 2, 'Padrão digital 1-2-3-5 em sequência', 'A célula 1-2-3-5 e a mesma célula uma 4ª acima, dentro do dórico — base do "padrão digital".',
+      ['C4/e D4/e Eb4/e G4/e F4/e G4/e Bb4/e C5/e']),
+    P('j6', 'voc_jazz', 'iiVI', 1, 'Nota-guia descendo (b7 → 3 → 7)', 'Uma nota por acorde, descendo meio tom só quando precisa: o fio condutor de qualquer solo.',
+      ['C5/h', 'B4/h', 'B4/w']),
+    P('j7', 'voc_jazz', 'iiVI', 3, 'Grupeto na fundamental do II', 'Tercina que cerca a fundamental (2-#1-1) e segue pelo arpejo — enfeite típico do bebop.',
+      ['E4/t C#4/t D4/t F4/e A4/e', 'G4/e F4/e D4/e B3/e', 'C4/h r/h']),
+
+    // ---- Blues ----
+    P('b1', 'voc_blues', 'dom', 1, 'Blue note: b3 → 3', 'A 3ª menor "puxada" para a 3ª maior: o som que define o blues sobre um acorde maior.',
+      ['Eb4/e E4/e:h C4/q G3/q Bb3/q']),
+    P('b2', 'voc_blues', 'dom', 2, 'Bend da 4ª para a 5ª', 'Na pentatônica menor, a 4ª "sobe" um tom até a 5ª; depois desce até a fundamental.',
+      ['C5/e Bb4/e G4/q:bend2 F4/e Eb4/e C4/q']),
+    P('b3', 'voc_blues', 'dom', 2, 'Pentatônica com blue note b5', 'Descida da pentatônica menor passando pela b5 cromática.',
+      ['C5/e Bb4/e G4/e Gb4/e F4/e Eb4/e C4/q']),
+    P('b4', 'voc_blues', 'bluesIIV', 1, 'Pergunta e resposta (I7 → IV7)', 'O mesmo motivo nos dois acordes, ajustado às notas de cada um (5-b7-1 no I7, 3-5-b7 no IV7).',
+      ['G4/e Bb4/e C5/q:~ r/h', 'A4/e C5/e Eb5/q:~ r/h']),
+    P('b5', 'voc_blues', 'turn', 2, 'Turnaround I7 – IV7 – I7 – V7', 'Os dois últimos compassos do blues: arpejos ligando os acordes e a b9 no V7.',
+      ['E4/e G4/e Bb4/e C5/e', 'A4/e F4/e Eb4/e C4/e', 'E4/e G4/e C5/q', 'B4/e Ab4/e G4/q']),
+    P('b6', 'voc_blues', 'dom', 2, 'Shuffle em tercinas', 'Tercinas com a blue note b3 → 3 e o 6º grau: o balanço do shuffle.',
+      ['C4/t Eb4/t E4/t G4/q A4/t G4/t Eb4/t C4/q']),
+    P('b7', 'voc_blues', 'min', 2, 'Blues menor: bend da b7 à fundamental', 'Bend de um tom da b7 até a fundamental, com vibrato, e a pentatônica descendo.',
+      ['C5/q:bend2~ Bb4/e G4/e F4/e Eb4/e C4/q']),
+
+    // ---- Rock ----
+    P('k1', 'voc_rock', 'min', 2, 'Pentatônica em grupos de 3', 'A pentatônica menor descendo em grupos de três notas (tercinas).',
+      ['C5/t Bb4/t G4/t Bb4/t G4/t F4/t G4/t F4/t Eb4/t F4/t Eb4/t C4/t']),
+    P('k2', 'voc_rock', 'min', 3, 'Pentatônica em grupos de 4', 'Semicolcheias subindo em grupos de quatro — o exercício de velocidade do rock.',
+      ['C4/s Eb4/s F4/s G4/s Eb4/s F4/s G4/s Bb4/s F4/s G4/s Bb4/s C5/s G4/s Bb4/s C5/s Eb5/s']),
+    P('k3', 'voc_rock', 'min', 2, 'Legato na pentatônica', 'Hammer-ons subindo e pull-offs descendo: mais notas com menos palhetadas.',
+      ['C4/e Eb4/e:h F4/e G4/e:h Bb4/e G4/e:p F4/e Eb4/e:p']),
+    P('k4', 'voc_rock', 'min', 1, 'Bend de um tom com vibrato', 'O bend mais usado do rock: da b7 até a fundamental, segurando com vibrato.',
+      ['G4/e Bb4/e C5/h:bend2~ Bb4/e G4/e']),
+    P('k5', 'voc_rock', 'dom', 1, 'Frase mixolídia (3ª maior e b7)', 'Mistura a 3ª maior e a b7 do mixolídio — o som do rock sobre acorde maior.',
+      ['C4/e D4/e E4/e G4/e A4/e G4/e Bb4/q:~']),
+
+    // ---- Baião / nordeste ----
+    P('e1', 'voc_baiao', 'dom', 2, 'Mixolídio em terças', 'Terças descendo pelo mixolídio (com a b7): o sotaque nordestino.',
+      ['C5/e A4/e Bb4/e G4/e A4/e F4/e G4/e E4/e']),
+    P('e2', 'voc_baiao', 'lb7', 2, 'Lídio b7 (a "escala nordestina")', 'Sobe a escala com #4 e b7, as duas notas que dão a cara do baião.',
+      ['C4/e D4/e E4/e F#4/e G4/e A4/e Bb4/q']),
+    P('e3', 'voc_baiao', 'dom', 2, 'Síncope do baião', 'Colcheia pontuada + semicolcheia: a célula rítmica do baião no arpejo do dominante.',
+      ['C4/e. E4/s G4/e Bb4/e A4/e. G4/s E4/q']),
+    P('e4', 'voc_baiao', 'lb7', 2, 'Descida com b7 e #11', 'A mesma escala descendo da b7, passando pela #11.',
+      ['Bb4/e A4/e G4/e F#4/e E4/e D4/e C4/q']),
+    P('e5', 'voc_baiao', 'dom2', 2, 'Pergunta e resposta em terças', 'Um compasso sobe em terças, o outro responde descendo.',
+      ['E4/e G4/e F4/e A4/e G4/e Bb4/e A4/q C5/e A4/e Bb4/e G4/e A4/e F4/e G4/e E4/e']),
+
+    // ---- Bossa nova / MPB ----
+    P('o1', 'voc_bossa', 'maj69', 1, 'Arpejo 6(9)', 'O acorde de 6ª com 9ª em arpejo — a cor da bossa nova.',
+      ['C4/e E4/e A4/e D5/e E5/e D5/e A4/q']),
+    P('o2', 'voc_bossa', 'iiVI', 2, 'Antecipação', 'A nota do acorde seguinte chega uma colcheia antes (B no fim do IIm7, E no fim do V7).',
+      ['F4/e A4/e C5/e B4/e', 'B4/q A4/e E4/e', 'E4/h. r/q']),
+    P('o3', 'voc_bossa', 'maj', 2, 'Cromatismo suave para a 9ª', 'Da 3ª à 9ª por meio tom, e a resposta 5-6.',
+      ['E4/e Eb4/e D4/q r/e G4/e A4/q']),
+    P('o4', 'voc_bossa', 'iiVI', 2, 'Resolução na 7M e 9ª', 'O I não chega na fundamental: repousa na 7M e na 9ª, bem bossa.',
+      ['A4/e G4/e F4/e E4/e', 'D4/e F4/e A4/e Ab4/e', 'G4/e B4/e D5/q r/h']),
+    P('o5', 'voc_bossa', 'min', 1, 'Menor com 6ª e 9ª', 'Arpejo menor com a 6ª maior (dórico) e a 9ª longa.',
+      ['C4/e Eb4/e G4/e A4/e D5/h']),
+
+    // ---- Fusion ----
+    P('f1', 'voc_fusion', 'lyd', 3, 'Tríade de Ré sobre C7M (lídio)', 'A tríade maior do 2º grau em tercinas (9-#11-13) — o lídio pensado como arpejo.',
+      ['D4/t F#4/t A4/t D5/t F#5/t A5/t F#5/e D5/e A4/q']),
+    P('f2', 'voc_fusion', 'min', 3, 'Três notas por corda em legato', 'Dórico em tercinas, três notas por corda: palheta a primeira, liga as outras duas.',
+      ['C4/t D4/t:h Eb4/t:h F4/t G4/t:h A4/t:h Bb4/t C5/t:h D5/t:h Eb5/t D5/t:p C5/t:p']),
+    P('f3', 'voc_fusion', 'min', 3, 'Arpejo superposto: Eb7M sobre Cm7', 'O arpejo que nasce na b3 (b3-5-b7-9) em semicolcheias.',
+      ['Eb4/s G4/s Bb4/s D5/s Bb4/s G4/s Eb4/s G4/s F4/e G4/e Bb4/q']),
+    P('f4', 'voc_fusion', 'dom', 3, 'Quartas empilhadas', 'Notas em 4ªs (3-13-9-5): som aberto e moderno sobre o dominante.',
+      ['E4/e A4/e D5/e G5/e D5/e A4/e E4/q']),
+    P('f5', 'voc_fusion', 'lyd', 2, 'Lídio em legato', 'O lídio subindo com hammer-ons e a 7M longa com vibrato.',
+      ['C4/e D4/e:h E4/e:h F#4/e G4/e:h A4/e:h B4/q:~'])
   ];
 
   // ---------------------------------------------------------------------
@@ -214,6 +320,9 @@
   // ---------------------------------------------------------------------
 
   function parseTok(tok) {
+    var flags = '';
+    var ci = tok.indexOf(':');
+    if (ci >= 0) { flags = tok.slice(ci + 1); tok = tok.slice(0, ci); }
     var parts = tok.split('/');
     var d = DUR[parts[1]];
     if (d === undefined) throw new Error('duração inválida: ' + tok);
@@ -222,7 +331,14 @@
     if (!m) throw new Error('nota inválida: ' + tok);
     var acc = m[2] === '#' ? 1 : (m[2] === 'b' ? -1 : 0);
     var oct = parseInt(m[3], 10);
-    return { letter: m[1], acc: acc, name: m[1] + (m[2] || ''), midi: (oct + 1) * 12 + LETTER_PC[m[1]] + acc, dur: d };
+    var t = { letter: m[1], acc: acc, name: m[1] + (m[2] || ''), midi: (oct + 1) * 12 + LETTER_PC[m[1]] + acc, dur: d };
+    if (flags) {
+      if (flags.indexOf('~') >= 0) { t.vibrato = true; flags = flags.replace('~', ''); }
+      if (flags === 'h' || flags === 'p' || flags === 'sl') t.art = flags;
+      else if (flags === 'bend1' || flags === 'bend2') { t.art = 'b'; t.bend = flags === 'bend1' ? 1 : 2; }
+      else if (flags) throw new Error('articulação inválida: ' + flags);
+    }
+    return t;
   }
 
   function parseCell(text) { return text.trim().split(/\s+/).map(parseTok); }
@@ -310,8 +426,12 @@
     var events = toks.map(function (x) {
       var t = x.t;
       if (t.rest) return { rest: true, onset: x.onset, dur: t.dur };
-      return { name: transposeName(t.name, key), midi: t.midi + best.sh, onset: x.onset, dur: t.dur,
+      var ev = { name: transposeName(t.name, key), midi: t.midi + best.sh, onset: x.onset, dur: t.dur,
         triplet: Math.abs(t.dur - 1 / 3) < 1e-6 ? true : undefined };
+      if (t.art) ev.art = t.art;
+      if (t.bend) ev.bendFrom = ev.midi - t.bend;
+      if (t.vibrato) ev.vibrato = true;
+      return ev;
     });
     return { key: key, events: events, chords: chords, beats: beat, bars: Math.round(beat / 4) };
   }
@@ -433,6 +553,7 @@
   return {
     PATTERNS: PATTERNS,
     CATEGORIES: CATEGORIES,
+    GROUPS: GROUPS,
     FORMS: FORMS,
     CYCLE_MAJOR: CYCLE_MAJOR,
     CYCLE_MINOR: CYCLE_MINOR,

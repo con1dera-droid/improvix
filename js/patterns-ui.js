@@ -41,8 +41,10 @@
   function build() {
     if (state.built) return;
     state.built = true;
-    $('pad-categoria').innerHTML = PAT.CATEGORIES.map(function (c) {
-      return '<option value="' + c.key + '">' + c.label + ' (' + PAT.byCategory(c.key).length + ')</option>';
+    $('pad-categoria').innerHTML = PAT.GROUPS.map(function (g) {
+      return '<optgroup label="' + g.label + '">' + PAT.CATEGORIES.filter(function (c) { return c.group === g.key; }).map(function (c) {
+        return '<option value="' + c.key + '">' + c.label + ' (' + PAT.byCategory(c.key).length + ')</option>';
+      }).join('') + '</optgroup>';
     }).join('');
     fillPatternSelect();
     var mainInstr = $('input-instrumento');
@@ -122,7 +124,11 @@
 
   function prepared(line, instrument) {
     line._prep = line._prep || {};
-    if (!line._prep[instrument]) line._prep[instrument] = notation.prepareForInstrument(line.events, instrument);
+    if (!line._prep[instrument]) {
+      var evs = line.events;
+      if (instrument === 'teclado') evs = evs.map(function (e) { var o = Object.assign({}, e); delete o.art; delete o.bendFrom; delete o.vibrato; return o; });
+      line._prep[instrument] = notation.prepareForInstrument(evs, instrument);
+    }
     return line._prep[instrument];
   }
 
@@ -133,12 +139,15 @@
     if (view === 'tab' && !window.IL.ui.isFrettedInstrument(instrument)) view = 'partitura';
     if (view === 'tab') {
       var pr = prepared(line, instrument);
-      body = '<pre class="tab-block">' + notation.renderTabText(pr.events, pr.tab, instrument) + '</pre>';
+      body = '<pre class="tab-block">' + notation.renderTabText(pr.events, pr.tab, instrument) + '</pre>' +
+        (line.events.some(function (e) { return e.art || e.vibrato; }) ? '<p class="tab-legend">' + notation.TAB_LEGEND + '</p>' : '');
     } else if (view === 'notas') {
       var bars = [];
       line.chords.forEach(function (c) {
         var ns = line.events.filter(function (e) { return !e.rest && e.onset >= c.beat - 1e-6 && e.onset < c.beat + c.beats - 1e-6; });
-        bars.push('<strong>' + esc(c.symbol) + ':</strong> ' + ns.map(function (e) { return e.name; }).join(' – '));
+        bars.push('<strong>' + esc(c.symbol) + ':</strong> ' + ns.map(function (e) {
+          return e.name + (e.art ? '<sup>' + e.art + '</sup>' : '') + (e.vibrato ? '~' : '');
+        }).join(' – '));
       });
       body = '<div class="cifra-block">' + bars.join('<br/>') + '</div>';
     } else {

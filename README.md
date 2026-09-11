@@ -56,8 +56,9 @@ Com isso, todo o escopo da Etapa 5 previsto em `docs/PRD.md` está entregue.
 - **Fusion — sweep (inspirado em Gambale)**: arpejos varridos, arpejos
   superpostos, 3 notas por corda e slides; todas as frases com hammer-on,
   pull-off, slide, bend, vibrato e dinâmica (tab com palhetada D/U).
-- **Exercícios de Padrões**: 57 padrões (preliminares, dominante, menor,
-  II–V, II–V–I, II–V–i, V7alt, tercinas) nos 12 tons pelo ciclo de 4ªs, com
+- **Exercícios de Padrões**: 91 padrões — método progressivo (preliminares,
+  dominante, menor, II–V, II–V–I, II–V–i, V7alt, tercinas) e o vocabulário
+  mais usado de jazz, blues, rock, baião, bossa e fusion — nos 12 tons pelo ciclo de 4ªs, com
   fórmula em graus, partitura/tab e áudio; e "padrão próprio" digitando graus.
 - **Ficha da escala**: ao escolher a escala/modo na Biblioteca aparecem a
   fórmula (1 2 b3 4 5 6 b7), os intervalos (2M 3m 4J...), tons e semitons,
@@ -97,7 +98,7 @@ js/lab.js             Gerador de progressões do Laboratório (Etapa 5, parte 3)
 js/lessons.js         Conteúdo das Aulas (Etapa 5, parte 4): lições + exemplos práticos
 js/library.js         Motor da Biblioteca de Fraseados (escala × tom × estilo, com ritmo)
 js/library-ui.js      Tela da Biblioteca de Fraseados
-js/patterns.js        Exercícios de Padrões (57 padrões nos 12 tons + padrão próprio)
+js/patterns.js        Exercícios de Padrões (91 padrões nos 12 tons + padrão próprio)
 js/patterns-ui.js     Tela dos Exercícios de Padrões
 js/scale-info.js      Ficha de cada escala/modo (fórmula, intervalos, características)
 js/articulation.js    Articulações (hammer-on, pull-off, slide, bend, vibrato) e dinâmica

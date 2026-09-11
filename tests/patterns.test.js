@@ -104,5 +104,24 @@ test('padrão próprio: graus viram notas nos 12 tons; erros explicados', functi
   assert.strictEqual(PAT.realizeAll(t.pattern)[5].key, 'C#');
 });
 
+test('vocabulário por estilo: 6 estilos e articulações coerentes (h sobe, p desce, bend de ½ ou 1 tom)', function () {
+  var vocab = PAT.CATEGORIES.filter(function (c) { return c.group === 'vocab'; });
+  assert.strictEqual(vocab.length, 6);
+  vocab.forEach(function (c) { assert.ok(PAT.byCategory(c.key).length >= 5, c.key); });
+  var arts = 0;
+  all.forEach(function (x) {
+    var ns = x.l.events.filter(function (e) { return !e.rest; });
+    ns.forEach(function (e, i) {
+      if (!e.art) return;
+      arts++;
+      var iv = i ? e.midi - ns[i - 1].midi : 0;
+      if (e.art === 'h') assert.ok(iv >= 1 && iv <= 4, x.p.id + ' h ' + iv);
+      if (e.art === 'p') assert.ok(iv <= -1 && iv >= -4, x.p.id + ' p ' + iv);
+      if (e.art === 'b') assert.ok([1, 2].indexOf(e.midi - e.bendFrom) >= 0, x.p.id + ' bend');
+    });
+  });
+  assert.ok(arts > 100);
+});
+
 console.log('\n' + passed + ' teste(s) passaram. (' + all.length + ' linhas geradas)');
 if (process.exitCode) console.log('ALGUM TESTE FALHOU.'); else console.log('Todos os testes passaram.');
