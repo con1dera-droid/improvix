@@ -153,7 +153,8 @@ const FAKE_CLIENT_SRC = `
   await page.click('#btn-salvar-historico');
   await page.waitForTimeout(200);
 
-  await page.click('.nav-item[data-nav="historico"]');
+  await page.click('.nav-item[data-nav="meus-exercicios"]');
+  await page.click('.meus-tabs .tab[data-meus="historico"]');
   await page.waitForTimeout(200);
   const historico = await page.$eval('#lista-historico', (l) => l.textContent.replace(/\\s+/g, ' ').trim());
   console.log('Histórico após salvar:', historico);
@@ -166,7 +167,8 @@ const FAKE_CLIENT_SRC = `
   await page.click('#btn-favoritar');
   await page.waitForTimeout(200);
 
-  await page.click('.nav-item[data-nav="favoritos"]');
+  await page.click('.nav-item[data-nav="meus-exercicios"]');
+  await page.click('.meus-tabs .tab[data-meus="favoritos"]');
   await page.waitForTimeout(200);
   const favoritos = await page.$eval('#lista-favoritos', (l) => l.textContent.replace(/\\s+/g, ' ').trim());
   console.log('Favoritos após favoritar a Frase 2:', favoritos);
@@ -178,6 +180,7 @@ const FAKE_CLIENT_SRC = `
   await page.click('#btn-exercicio');
   await page.waitForTimeout(200);
   await page.click('.nav-item[data-nav="meus-exercicios"]');
+  await page.click('.meus-tabs .tab[data-meus="exercicios"]');
   await page.waitForTimeout(200);
   await page.selectOption('.record-status-select', 'praticando');
   await page.waitForTimeout(150);

@@ -233,6 +233,9 @@ select, input[type="text"] {
 .tab:hover { background: var(--bg-elevated); }
 .tab.active { background: var(--accent); color: #fff; }
 .tab.is-soon { opacity: 0.55; }
+.tab { cursor: pointer; }
+/* Abas da tela "Meus Exercícios" (Para praticar / Favoritos / Histórico) */
+.meus-tabs { margin: 0.9rem 0 1rem; }
 
 /* Grid */
 .grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: 1.25rem; align-items: start; }

@@ -37,14 +37,15 @@ const path = require('path');
   console.log('Modal fechado após clicar no X:', modalHiddenAfterClose);
 
   // Navegação entre views
-  for (const nav of ['historico', 'favoritos', 'meus-exercicios', 'config', 'inicio']) {
+  for (const nav of ['meus-exercicios', 'laboratorio', 'config', 'inicio']) {
     await page.click('.nav-item[data-nav="' + nav + '"]');
     await page.waitForTimeout(80);
   }
   const inicioVisible = await page.$eval('.content.view[data-view="inicio"]', (v) => !v.hidden);
   console.log('View "inicio" visível após navegar e voltar:', inicioVisible);
 
-  await page.click('.nav-item[data-nav="historico"]');
+  await page.click('.nav-item[data-nav="meus-exercicios"]');
+  await page.click('.meus-tabs .tab[data-meus="historico"]');
   await page.waitForTimeout(100);
   const gateVisible = await page.$eval('#auth-gate-historico', (g) => !g.hidden);
   console.log('Aviso de login exibido na aba Histórico (sem estar logado):', gateVisible);

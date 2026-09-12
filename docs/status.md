@@ -559,6 +559,40 @@ de cada banco, tabela de créditos completa, nenhum buraco maior que 2
 semitons entre as notas gravadas, metrônomo fora da ambiência).
 `tests/som.smoke.js` segue medindo volume saudável nos 8 instrumentos.
 
+## Menu reorganizado — ✅ (2026-09-12)
+A lista lateral tinha 12 itens e ficou com **7**, na ordem pedida pelo dono
+do projeto:
+
+1. 🏠 Início · 2. 📚 Biblioteca de Escalas · 3. 🎼 Biblioteca de Fraseados ·
+4. 📘 Exercícios de Padrões · 5. 🧪 Laboratório · 6. 📋 Meus Exercícios ·
+7. ⚙ Configurações.
+
+O que saiu e para onde foi:
+
+- **Favoritos** e **Histórico** viraram abas dentro de **Meus Exercícios**
+  ("📋 Para praticar", "❤ Favoritos", "🕘 Histórico"). Nada foi apagado: as
+  três listas, os avisos de login e as ações (carregar, abrir, excluir,
+  mudar status) são as mesmas; só passaram a dividir uma tela. Quem chegar
+  por um caminho antigo (`data-nav="favoritos"`/`"historico"`) cai na aba
+  certa. Entrar na conta com a tela aberta agora recarrega a aba atual na
+  hora, o que antes exigia navegar de novo.
+- **Nova Análise** era duplicata do Início (abriam a mesma tela) — removido.
+- **Fusion — sweep (Gambale)** saiu do menu, mas **o estilo continua
+  inteiro**: aparece no seletor Estilo da Biblioteca de Fraseados e na aba
+  Fraseados da análise, com as mesmas frases de sweep, articulações e
+  tablatura. Só o atalho sumiu.
+- **Aulas** saiu do menu a pedido do dono do projeto. O módulo (`js/lessons.js`,
+  a tela e as 10 lições) continua inteiro no código e é reaberto com
+  `window.IL.ui.switchView('aulas'); window.IL.ui.renderAulasView();` — basta
+  devolver o item ao menu para voltar a ficar acessível.
+
+Testes: novo `tests/menu.smoke.js` (ordem exata dos 7 itens, cada um abrindo
+a tela certa, os 5 itens que saíram, as 3 abas abrindo uma de cada vez com
+seus avisos de login, e o Fusion ainda gerando frases pelos dois seletores de
+estilo). `tests/etapa4.smoke.js`, `tests/etapa4.e2e.js`,
+`tests/etapa5.aulas.smoke.js` e `tests/fusion.smoke.js` foram ajustados para
+os caminhos novos e continuam passando.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
@@ -586,7 +620,7 @@ do escopo cobrado, mas vale registrar): leitura transposta de sax/trompete
 `js/notation.js`, `js/audio.js`, `js/articulation.js`, `js/scale-info.js`, `js/patterns.js`, `js/patterns-ui.js`, `js/scales.js`, `js/scales-ui.js`, `sounds/*.js` (+ `sounds/CREDITOS.md`), `js/lab.js`, `js/lessons.js`, `js/library.js`, `js/app.js`, `js/library-ui.js`,
 `js/config.js`, `js/supabaseClient.js`, `js/auth-ui.js`, `sql/schema.sql`,
 `tests/theory.test.js`, `tests/phrases.test.js`, `tests/lab.test.js`,
-`tests/lessons.test.js`, `tests/library.test.js`, `tests/articulation.test.js`, `tests/fusion.smoke.js`, `tests/scaleinfo.test.js`, `tests/scaleinfo.smoke.js`, `tests/som.smoke.js`, `tests/patterns.test.js`, `tests/padroes.smoke.js`, `tests/escalas.test.js`, `tests/escalas.smoke.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
+`tests/lessons.test.js`, `tests/library.test.js`, `tests/articulation.test.js`, `tests/fusion.smoke.js`, `tests/scaleinfo.test.js`, `tests/scaleinfo.smoke.js`, `tests/som.smoke.js`, `tests/patterns.test.js`, `tests/padroes.smoke.js`, `tests/escalas.test.js`, `tests/escalas.smoke.js`, `tests/ambiencia.smoke.js`, `tests/menu.smoke.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
 `tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`, `tests/etapa5.smoke.js`,
 `tests/etapa5.planos.smoke.js`, `tests/etapa5.laboratorio.smoke.js`,
 `tests/etapa5.aulas.smoke.js`, `tests/fraseados.smoke.js`, `tests/biblioteca.smoke.js`, `tests/screenshot*.js` (dev only),

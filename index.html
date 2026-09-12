@@ -22,16 +22,11 @@
 
     <nav class="nav">
       <a href="#" class="nav-item active" data-nav="inicio">🏠 Início</a>
-      <a href="#" class="nav-item" data-nav="nova-analise">📊 Nova Análise</a>
-      <a href="#" class="nav-item" data-nav="meus-exercicios">📋 Meus Exercícios</a>
-      <a href="#" class="nav-item" data-nav="favoritos">❤ Favoritos</a>
-      <a href="#" class="nav-item" data-nav="historico">🕘 Histórico</a>
       <a href="#" class="nav-item" data-nav="biblioteca-escalas">📚 Biblioteca de Escalas</a>
       <a href="#" class="nav-item" data-nav="biblioteca-fraseados">🎼 Biblioteca de Fraseados</a>
-      <a href="#" class="nav-item nav-sub" data-nav="biblioteca-fusion">🎸 Fusion — sweep (Gambale)</a>
       <a href="#" class="nav-item" data-nav="padroes">📘 Exercícios de Padrões</a>
       <a href="#" class="nav-item" data-nav="laboratorio">🧪 Laboratório <span class="soon">Pro</span></a>
-      <a href="#" class="nav-item" data-nav="aulas">🎓 Aulas</a>
+      <a href="#" class="nav-item" data-nav="meus-exercicios">📋 Meus Exercícios</a>
       <a href="#" class="nav-item" data-nav="config">⚙ Configurações</a>
     </nav>
 
@@ -327,39 +322,39 @@
       </div>
     </div>
 
-    <!-- View: Histórico (Etapa 4) -->
-    <div class="content view" data-view="historico" hidden>
-      <div class="card">
-        <div class="card-head">
-          <span class="card-icon">🕘</span>
-          <div class="card-title">Histórico de análises</div>
-        </div>
-        <div id="auth-gate-historico" class="auth-gate" hidden>Entre na sua conta para ver seu histórico de análises.</div>
-        <div id="lista-historico" class="record-list"></div>
-      </div>
-    </div>
-
-    <!-- View: Favoritos (Etapa 4) -->
-    <div class="content view" data-view="favoritos" hidden>
-      <div class="card">
-        <div class="card-head">
-          <span class="card-icon">❤</span>
-          <div class="card-title">Favoritos</div>
-        </div>
-        <div id="auth-gate-favoritos" class="auth-gate" hidden>Entre na sua conta para ver seus fraseados favoritos.</div>
-        <div id="lista-favoritos" class="record-list"></div>
-      </div>
-    </div>
-
-    <!-- View: Meus Exercícios (Etapa 4) -->
+    <!-- View: Meus Exercícios (Etapa 4) — reúne, em abas, o que praticar
+         (exercícios), o que você marcou (favoritos) e o que já analisou
+         (histórico). Antes eram três itens separados no menu. -->
     <div class="content view" data-view="exercicios" hidden>
       <div class="card">
         <div class="card-head">
           <span class="card-icon">📋</span>
-          <div class="card-title">Meus Exercícios</div>
+          <div>
+            <div class="card-title">Meus Exercícios</div>
+            <div class="card-subtitle">O que você separou para praticar, os fraseados favoritados e o histórico das suas análises.</div>
+          </div>
         </div>
-        <div id="auth-gate-exercicios" class="auth-gate" hidden>Entre na sua conta para ver seus exercícios.</div>
-        <div id="lista-exercicios" class="record-list"></div>
+
+        <div class="tabs meus-tabs" role="tablist">
+          <button class="tab active" data-meus="exercicios" role="tab">📋 Para praticar</button>
+          <button class="tab" data-meus="favoritos" role="tab">❤ Favoritos</button>
+          <button class="tab" data-meus="historico" role="tab">🕘 Histórico</button>
+        </div>
+
+        <div class="panel" data-meus-panel="exercicios">
+          <div id="auth-gate-exercicios" class="auth-gate" hidden>Entre na sua conta para ver seus exercícios.</div>
+          <div id="lista-exercicios" class="record-list"></div>
+        </div>
+
+        <div class="panel" data-meus-panel="favoritos" hidden>
+          <div id="auth-gate-favoritos" class="auth-gate" hidden>Entre na sua conta para ver seus fraseados favoritos.</div>
+          <div id="lista-favoritos" class="record-list"></div>
+        </div>
+
+        <div class="panel" data-meus-panel="historico" hidden>
+          <div id="auth-gate-historico" class="auth-gate" hidden>Entre na sua conta para ver seu histórico de análises.</div>
+          <div id="lista-historico" class="record-list"></div>
+        </div>
       </div>
     </div>
 

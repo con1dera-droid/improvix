@@ -137,17 +137,38 @@
     config: 'config'
   };
 
+  // "Meus Exercícios" reúne três listas em abas (antes eram três telas e três
+  // itens de menu). `abrirMeus(aba)` mostra a tela e a aba pedida.
+  function abrirMeus(aba) {
+    window.IL.ui.switchView('exercicios');
+    document.querySelectorAll('.meus-tabs .tab').forEach(function (t) {
+      t.classList.toggle('active', t.getAttribute('data-meus') === aba);
+    });
+    document.querySelectorAll('[data-meus-panel]').forEach(function (p) {
+      p.hidden = p.getAttribute('data-meus-panel') !== aba;
+    });
+    if (aba === 'favoritos') renderFavoritosView();
+    else if (aba === 'historico') renderHistoricoView();
+    else renderExerciciosView();
+  }
+
+  function setupMeusTabs() {
+    document.querySelectorAll('.meus-tabs .tab').forEach(function (t) {
+      t.addEventListener('click', function () { abrirMeus(t.getAttribute('data-meus')); });
+    });
+  }
+
   function setupNavViews() {
     document.querySelectorAll('.nav-item[data-nav]').forEach(function (item) {
       item.addEventListener('click', function () {
         if (item.classList.contains('is-soon')) return;
         var view = VIEW_MAP[item.getAttribute('data-nav')];
         if (!view) return;
+        // As três listas moraram em telas separadas até 12/09/2026; quem
+        // chegar por um caminho antigo cai na aba certa da tela única.
+        if (view === 'historico' || view === 'favoritos' || view === 'exercicios') { abrirMeus(view); return; }
         window.IL.ui.switchView(view);
-        if (view === 'historico') renderHistoricoView();
-        else if (view === 'favoritos') renderFavoritosView();
-        else if (view === 'exercicios') renderExerciciosView();
-        else if (view === 'config') renderConfigView();
+        if (view === 'config') renderConfigView();
         else if (view === 'laboratorio') renderLaboratorioView();
         else if (view === 'aulas' && window.IL.ui.renderAulasView) window.IL.ui.renderAulasView();
         else if (view === 'padroes' && window.IL.ui.renderPadroesView) window.IL.ui.renderPadroesView();
@@ -483,6 +504,13 @@
     if (window.IL.ui && typeof window.IL.ui.onAccountChange === 'function') {
       window.IL.ui.onAccountChange();
     }
+    // Se "Meus Exercícios" está aberto, recarrega a aba atual: quem acabou de
+    // entrar vê a lista na hora, sem precisar navegar de novo.
+    var tela = document.querySelector('.content.view[data-view="exercicios"]');
+    if (tela && !tela.hidden) {
+      var ativa = document.querySelector('.meus-tabs .tab.active');
+      abrirMeus(ativa ? ativa.getAttribute('data-meus') : 'exercicios');
+    }
   }
 
   function refreshUserAndProfile(session) {
@@ -502,6 +530,7 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     setupNavViews();
+    setupMeusTabs();
     setupActionButtons();
 
     $('auth-modal-close').addEventListener('click', closeAuthModal);

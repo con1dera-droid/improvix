@@ -15,7 +15,13 @@ const path = require('path');
   await page.goto('file://' + path.resolve(__dirname, '../index.html'), { waitUntil: 'domcontentloaded', timeout: 15000 });
   await page.waitForTimeout(300);
 
-  await page.click('.nav-item[data-nav="biblioteca-fusion"]');
+  // O item "Fusion — sweep (Gambale)" saiu do menu em 12/09/2026; o estilo
+  // continua na Biblioteca, escolhido no seletor de Estilo.
+  await page.click('.nav-item[data-nav="biblioteca-fraseados"]');
+  await page.waitForTimeout(300);
+  await page.selectOption('#lib-estilo', 'fusion');
+  await page.selectOption('#lib-nivel', 'avancado');
+  await page.selectOption('#lib-instrumento', 'guitarra');
   await page.waitForTimeout(300);
   console.log('Estilo:', await page.$eval('#lib-estilo', (e) => e.value), '| escala:', await page.$eval('#lib-escala', (e) => e.value),
     '| frases:', await page.$$eval('.lib-card', (e) => e.length));

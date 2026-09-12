@@ -22,7 +22,9 @@ const path = require('path');
   await page.waitForTimeout(300);
 
   // 1) Visitante acessa Aulas sem login
-  await page.click('.nav-item[data-nav="aulas"]');
+  // As Aulas saíram do menu em 12/09/2026 (a pedido do dono do projeto), mas
+  // o módulo continua inteiro: abre-se pela mesma API que o menu usava.
+  await page.evaluate(() => { window.IL.ui.switchView('aulas'); window.IL.ui.renderAulasView(); });
   await page.waitForTimeout(100);
   const viewAtivaAulas = await page.$eval('.content.view:not([hidden])', (v) => v.getAttribute('data-view'));
   const totalLicoes = await page.$$eval('.aula-item', (els) => els.length);
