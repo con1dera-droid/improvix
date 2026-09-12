@@ -165,4 +165,39 @@ test('a faixa de cada instrumento é coerente', function () {
   assert.ok(T.FAIXA.baixo[0] < T.FAIXA.flauta[0], 'o baixo tem de ir mais grave que a flauta');
 });
 
+test('o perfil de ajuste segue a densidade do material', function () {
+  // Linha rápida (semicolcheias de fusion) e linha lenta pedem ajustes opostos:
+  // medido contra gabarito em 6 gravações — ver docs/status.md.
+  assert.strictEqual(T.perfilPara(9.0), T.PERFIS.rapido, 'material rápido tem de usar o perfil duro');
+  assert.strictEqual(T.perfilPara(3.5), T.PERFIS.lento, 'material lento tem de usar o perfil brando');
+  assert.strictEqual(T.perfilPara(0), T.PERFIS.lento, 'sem notas, cai no brando');
+  assert.ok(T.PERFIS.rapido.onset > T.PERFIS.lento.onset, 'o perfil rápido exige ataque mais forte');
+  assert.ok(T.PERFIS.rapido.minLen < T.PERFIS.lento.minLen, 'o perfil rápido aceita nota mais curta');
+  ['rapido', 'lento', 'neutro'].forEach(function (k) {
+    var p = T.PERFIS[k];
+    assert.ok(p.onset > 0 && p.onset < 1 && p.frame > 0 && p.frame < 1, k + ': limiar fora de 0..1');
+    assert.ok(p.minLen >= 1 && p.piso > 0 && p.piso <= 1, k + ': parâmetro inválido');
+  });
+});
+
+test('densidadeDe conta notas por segundo', function () {
+  var mel = [];
+  for (var i = 0; i < 30; i++) mel.push({ pitchMidi: 60, startTimeSeconds: i * 0.1, durationSeconds: 0.08, amplitude: 0.7 });
+  assert.ok(Math.abs(T.densidadeDe(mel) - 10) < 0.5, 'deu ' + T.densidadeDe(mel));
+  assert.strictEqual(T.densidadeDe([]), 0);
+  assert.strictEqual(T.densidadeDe(mel.slice(0, 2)), 0, 'poucas notas: não dá para medir');
+});
+
+test('nomeDeMidi grafa com sustenido ou bemol conforme o tom', function () {
+  assert.strictEqual(T.nomeDeMidi(60, false), 'C');
+  assert.strictEqual(T.nomeDeMidi(61, false), 'C#');
+  assert.strictEqual(T.nomeDeMidi(61, true), 'Db');
+  assert.strictEqual(T.nomeDeMidi(70, true), 'Bb');
+  assert.strictEqual(T.nomeDeMidi(70, false), 'A#');
+  // e continua certo em qualquer oitava
+  [24, 36, 48, 72, 84, 96].forEach(function (m) {
+    assert.strictEqual(T.nomeDeMidi(m, false), 'C', 'oitava ' + m);
+  });
+});
+
 console.log('\n' + passed + ' testes ok');

@@ -34,6 +34,18 @@
 
   function hz(midi) { return 440 * Math.pow(2, (midi - 69) / 12); }
 
+  /**
+   * Cópia da matriz de saída do modelo. É obrigatória: o `outputToNotesPoly`
+   * do Basic Pitch ALTERA os arrays que recebe (zera as bandas de frequência
+   * fora da faixa pedida), então uma segunda passada em cima dos mesmos dados
+   * viria vazia.
+   */
+  function copiar(mat) {
+    var out = new Array(mat.length);
+    for (var i = 0; i < mat.length; i++) out[i] = mat[i].slice();
+    return out;
+  }
+
   // O modelo do Basic Pitch cobre de A0 (MIDI 21) a C8 (MIDI 108).
   var MODELO_MIDI_MIN = 21;
   var MODELO_MIDI_MAX = 108;
@@ -79,6 +91,29 @@
    *      que o espaço até a próxima, então sobrepor no tempo é normal — o
    *      que denuncia harmônico é dividir o mesmo ATAQUE.
    */
+  // Dois regimes de ajuste, escolhidos pela densidade de notas do material.
+  // Medidos contra gabarito (solo escrito nota a nota, depois gerado em áudio
+  // e transcrito às cegas), em 6 gravações — fusion rápido e bebop lento, com
+  // e sem banda. Linha rápida precisa de limiar de ataque alto (senão o
+  // acompanhamento entra) e nota mínima curta (senão as semicolcheias somem);
+  // linha lenta precisa do contrário. Ver docs/status.md.
+  var PERFIS = {
+    rapido: { onset: 0.80, frame: 0.40, minLen: 2, piso: 0.40 },
+    lento:  { onset: 0.65, frame: 0.40, minLen: 3, piso: 0.45 },
+    neutro: { onset: 0.50, frame: 0.35, minLen: 4, piso: 0.50 }
+  };
+  var DENSIDADE_RAPIDO = 7;   // notas por segundo
+
+  /** Qual perfil usar, dada a densidade medida na passada neutra. */
+  function perfilPara(densidade) { return densidade >= DENSIDADE_RAPIDO ? PERFIS.rapido : PERFIS.lento; }
+
+  /** Notas por segundo de uma linha já extraída. */
+  function densidadeDe(mel) {
+    if (!mel || mel.length < 4) return 0;
+    var dur = mel[mel.length - 1].startTimeSeconds - mel[0].startTimeSeconds;
+    return dur > 0.5 ? mel.length / dur : 0;
+  }
+
   function extrairMelodia(notas, opts) {
     opts = opts || {};
     if (!notas || !notas.length) return [];
@@ -97,7 +132,7 @@
     var durMed2 = mediana(m.map(function (x) { return x.durationSeconds; }));
     m = m.filter(function (x) { return x.durationSeconds <= durMed2 * 3.2; });
 
-    var piso = quantil(m.map(function (x) { return x.amplitude; }), 0.75) * (opts.piso == null ? 0.78 : opts.piso);
+    var piso = quantil(m.map(function (x) { return x.amplitude; }), 0.75) * (opts.piso == null ? PERFIS.neutro.piso : opts.piso);
     m = m.filter(function (x) { return x.amplitude >= piso; });
 
     var JUNTO = opts.junto == null ? 0.06 : opts.junto;
@@ -186,6 +221,12 @@
       });
     });
     return evs;
+  }
+
+  /** Nome de uma nota MIDI, com sustenidos ou bemóis conforme o tom. */
+  function nomeDeMidi(midi, bemol) {
+    var pc = ((midi % 12) + 12) % 12;
+    return (bemol && BEMOL[pc]) ? BEMOL[pc] : NOTAS[pc];
   }
 
   /** Preenche os silêncios com pausas, para a partitura ficar honesta. */
@@ -323,7 +364,52 @@
   // ---------------------------------------------------------------------
   // 6. Áudio (só no navegador)
   // ---------------------------------------------------------------------
-  /** Reamostra para 22.050 Hz mono, que é o que o modelo espera. */
+  /**
+   * Reamostra para 22.050 Hz mono (o que o modelo espera) e ATENUA o grave.
+   *
+   * O corte de grave não é enfeite: num áudio com banda, o baixo e a mão
+   * esquerda do piano dominam a energia e o detector gasta atenção neles.
+   * Medido contra gabarito no caso mais difícil (fusion rápido com banda e
+   * bateria), a transcrição foi de 78,3 para 80,5 de F1. É uma prateleira
+   * (-12 dB abaixo de 150 Hz), e não um corte seco, de propósito: atenuar
+   * nunca apaga uma nota grave de verdade, só tira o peso dela. Um corte seco
+   * em 120 Hz media um pouco melhor (81,0) mas comeria as notas abaixo do si 2.
+   *
+   * Usa o OfflineAudioContext do próprio navegador, que reamostra melhor do
+   * que a interpolação linear que fazíamos à mão.
+   */
+  var GRAVE_HZ = 150, GRAVE_DB = -12;
+
+  function normalizarPico(d) {
+    var pk = 0;
+    for (var k = 0; k < d.length; k++) { var a = d[k] < 0 ? -d[k] : d[k]; if (a > pk) pk = a; }
+    if (pk > 0.001 && pk < 0.9) { var g = 0.9 / pk; for (var j = 0; j < d.length; j++) d[j] *= g; }
+    return d;
+  }
+
+  function paraMono22kAsync(audioBuffer, root) {
+    var OAC = root && (root.OfflineAudioContext || root.webkitOfflineAudioContext);
+    if (!OAC) return Promise.resolve(paraMono22k(audioBuffer));
+    try {
+      var len = Math.max(1, Math.ceil(audioBuffer.duration * SR));
+      var off = new OAC(1, len, SR);
+      var src = off.createBufferSource();
+      src.buffer = audioBuffer;
+      var shelf = off.createBiquadFilter();
+      shelf.type = 'lowshelf';
+      shelf.frequency.value = GRAVE_HZ;
+      shelf.gain.value = GRAVE_DB;
+      src.connect(shelf).connect(off.destination);
+      src.start();
+      return off.startRendering().then(function (pronto) {
+        return normalizarPico(pronto.getChannelData(0).slice());
+      }, function () { return paraMono22k(audioBuffer); });
+    } catch (e) {
+      return Promise.resolve(paraMono22k(audioBuffer));
+    }
+  }
+
+  /** Reserva: reamostragem simples, sem filtro (se o navegador não ajudar). */
   function paraMono22k(audioBuffer) {
     var n = audioBuffer.numberOfChannels;
     var canais = [];
@@ -379,8 +465,7 @@
     var prog = opts.onProgresso || function () {};
 
     prog(0.02, 'preparando o áudio');
-    var audio = paraMono22k(audioBuffer);
-
+    return paraMono22kAsync(audioBuffer, typeof window !== 'undefined' ? window : null).then(function (audio) {
     return carregarModelo().then(function (model) {
       prog(0.08, 'ouvindo o solo');
       var L = window.BasicPitchLib;
@@ -395,10 +480,23 @@
         function (p) { prog(0.08 + p * 0.82, 'ouvindo o solo'); }
       ).then(function () {
         prog(0.92, 'separando a linha do solo');
-        var cruas = L.outputToNotesPoly(frames, onsets, 0.45, 0.35, 5, true, lim.max, lim.min, true);
-        cruas = L.addPitchBendsToNoteEvents(contours, cruas);
-        var todas = L.noteFramesToTime(cruas).sort(function (a, b) { return a.startTimeSeconds - b.startTimeSeconds; });
-        var mel = extrairMelodia(todas);
+        // Duas passadas. A primeira, neutra, só serve para medir quantas notas
+        // por segundo esse material tem; a segunda usa o ajuste certo para o
+        // regime (linha rápida x linha lenta). Custa quase nada: o caro é a
+        // rede neural, que já rodou — daqui para a frente é só aritmética.
+        function extrairCom(perfil) {
+          var c = L.outputToNotesPoly(copiar(frames), copiar(onsets),
+            perfil.onset, perfil.frame, perfil.minLen, true, lim.max, lim.min, true);
+          c = L.addPitchBendsToNoteEvents(contours, c);
+          var todas = L.noteFramesToTime(c).sort(function (a, b) { return a.startTimeSeconds - b.startTimeSeconds; });
+          return { todas: todas, mel: extrairMelodia(todas, { piso: perfil.piso }) };
+        }
+        var primeira = extrairCom(PERFIS.neutro);
+        var densidade = densidadeDe(primeira.mel);
+        var perfil = opts.perfil || perfilPara(densidade);
+        var r2 = (perfil === PERFIS.neutro) ? primeira : extrairCom(perfil);
+        var todas = r2.todas;
+        var mel = r2.mel;
 
         prog(0.96, 'medindo o andamento');
         var and = opts.bpm ? { bpm: opts.bpm, confianca: 1 } : estimarAndamento(mel);
@@ -415,9 +513,11 @@
           instrumento: instrumento, tom: tom,
           duracao: audioBuffer.duration,
           notasCruas: todas.length, notas: evs.length,
+          densidade: densidade, perfil: perfil === PERFIS.rapido ? 'rapido' : 'lento',
           eventos: evs, secoes: secoes
         };
       });
+    });
     });
   }
 
@@ -425,13 +525,18 @@
     SR: SR,
     FAIXA: FAIXA,
     limitesHz: limitesHz,
+    PERFIS: PERFIS,
+    perfilPara: perfilPara,
+    densidadeDe: densidadeDe,
     extrairMelodia: extrairMelodia,
     estimarAndamento: estimarAndamento,
     paraEventos: paraEventos,
     comPausas: comPausas,
+    nomeDeMidi: nomeDeMidi,
     fatiar: fatiar,
     adivinharTom: adivinharTom,
     paraMono22k: paraMono22k,
+    paraMono22kAsync: paraMono22kAsync,
     carregarModelo: carregarModelo,
     transcrever: transcrever
   };

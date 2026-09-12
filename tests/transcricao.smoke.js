@@ -71,6 +71,40 @@ const AUDIO = process.argv[2] || path.resolve(__dirname, 'fixtures/solo-teste.wa
   check(await page.$$eval('.transport[data-transport="transcricao"] .tr-btn', (b) => b.length) === 4,
     'a barra de metrônomo/andamento/repetir está na tela');
 
+  // ---- correção manual das notas ----
+  const notasAntes = await page.$$eval('.tra-secao:first-child .tra-nota', (n) => n.map((x) => x.textContent));
+  await page.click('.tra-secao:first-child .tra-nota:nth-child(2)');
+  await page.waitForTimeout(300);
+  check(await page.$('.tra-editor') !== null, 'clicar numa nota abre a barra de correção');
+  await page.click('.tra-editor [data-act="mover"][data-d="1"]');
+  await page.waitForTimeout(400);
+  const depois1 = await page.$$eval('.tra-secao:first-child .tra-nota', (n) => n.map((x) => x.textContent));
+  check(depois1[1] !== notasAntes[1], 'subir meio tom muda a nota (' + notasAntes[1] + ' -> ' + depois1[1] + ')');
+  check(await page.$$eval('.tra-secao:first-child .tra-nota.corrigida', (n) => n.length) === 1,
+    'a nota corrigida fica marcada');
+  check(/corrigida/.test(await page.$eval('.tra-secao:first-child .si-legend', (e) => e.textContent)),
+    'a seção avisa quantas notas você corrigiu');
+
+  await page.click('.tra-editor [data-act="mover"][data-d="-12"]');
+  await page.waitForTimeout(400);
+  await page.click('.tra-editor [data-act="desfazer"]');
+  await page.waitForTimeout(300);
+  const depoisUndo = await page.$$eval('.tra-secao:first-child .tra-nota', (n) => n.map((x) => x.textContent));
+  check(depoisUndo[1] === depois1[1], 'desfazer volta uma correção (' + depoisUndo[1] + ')');
+
+  // setas do teclado
+  await page.keyboard.press('ArrowUp');
+  await page.waitForTimeout(350);
+  const comSeta = await page.$$eval('.tra-secao:first-child .tra-nota', (n) => n.map((x) => x.textContent));
+  check(comSeta[1] !== depoisUndo[1], 'a seta ↑ do teclado sobe meio tom');
+
+  // apagar
+  const qtd = comSeta.length;
+  await page.click('.tra-editor [data-act="apagar"]');
+  await page.waitForTimeout(350);
+  check(await page.$$eval('.tra-secao:first-child .tra-nota', (n) => n.length) === qtd - 1,
+    'apagar tira a nota da seção');
+
   // Trocar o instrumento refaz a transcrição. O Teclado é o caso que já
   // quebrou: a faixa dele começa na nota mais grave que o modelo conhece, e o
   // limite de frequência acabava zerando a transcrição inteira (0 notas).

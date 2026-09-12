@@ -20,7 +20,9 @@
   var state = {
     built: false, carregando: false, buffer: null, nomeArquivo: '',
     resultado: null, tocando: null, pararOriginal: null,
-    gravando: null, chunks: [], stream: null
+    gravando: null, chunks: [], stream: null,
+    // correção manual: nota escolhida e pilha de desfazer por seção
+    selecao: null, historico: {}
   };
 
   function $(id) { return document.getElementById(id); }
@@ -81,6 +83,7 @@
       $(id).addEventListener('change', function () { if (state.buffer) processar(); });
     });
     $('tra-resultado').addEventListener('click', aoClicar);
+    document.addEventListener('keydown', aoTeclado);
   }
 
   function atualizarNotaGravacao() {
@@ -171,6 +174,8 @@
   function processar() {
     if (!state.buffer || state.carregando) return;
     state.carregando = true;
+    state.selecao = null;
+    state.historico = {};
     pararTudo();
     $('tra-resultado').innerHTML = '';
     estado('preparando', 0.01);
@@ -207,7 +212,29 @@
     } else {
       corpo = '<div class="staff-block lib-staff">' + notation.toRhythmStaffSVG(notation.centerForStaff(evs)) + '</div>';
     }
-    var notas = s.eventos.map(function (e) { return e.name; }).join(' ');
+    var sel = (state.selecao && state.selecao.sec === s.indice) ? state.selecao.nota : -1;
+    var notas = s.eventos.map(function (e, i) {
+      return '<button class="tra-nota' + (i === sel ? ' sel' : '') + (e.corrigida ? ' corrigida' : '') + '"' +
+        ' data-act="nota" data-i="' + s.indice + '" data-n="' + i + '"' +
+        ' title="clique para corrigir esta nota">' + esc(e.name) + '</button>';
+    }).join('');
+
+    var editor = sel >= 0
+      ? '<div class="tra-editor">' +
+        '<span class="tra-editor-alvo">' + esc(s.eventos[sel].name) + '</span>' +
+        '<button class="view-btn" data-act="mover" data-i="' + s.indice + '" data-d="1">♯ +½ tom</button>' +
+        '<button class="view-btn" data-act="mover" data-i="' + s.indice + '" data-d="-1">♭ −½ tom</button>' +
+        '<button class="view-btn" data-act="mover" data-i="' + s.indice + '" data-d="12">↑ oitava</button>' +
+        '<button class="view-btn" data-act="mover" data-i="' + s.indice + '" data-d="-12">↓ oitava</button>' +
+        '<button class="view-btn" data-act="apagar" data-i="' + s.indice + '">🗑 apagar</button>' +
+        '<button class="view-btn" data-act="ouvir-nota" data-i="' + s.indice + '">🔊 ouvir só ela</button>' +
+        (state.historico[s.indice] && state.historico[s.indice].length
+          ? '<button class="view-btn" data-act="desfazer" data-i="' + s.indice + '">↩ desfazer</button>' : '') +
+        '<small>ou use as setas ↑ ↓ do teclado; ← → andam de nota</small>' +
+        '</div>'
+      : '';
+
+    var corrigidas = s.eventos.filter(function (e) { return e.corrigida; }).length;
     return '<div class="lib-card tra-secao" data-sec="' + s.indice + '">' +
       '<div class="lib-card-head">' +
       '<div class="lib-card-title">Seção ' + (s.indice + 1) + ' — compassos ' + s.compasso +
@@ -218,9 +245,12 @@
       '<button class="view-btn" data-act="exercicio" data-i="' + s.indice + '">⭐ Treinar</button>' +
       '</div></div>' +
       '<p class="si-legend">' + s.eventos.length + ' notas · ' +
-      s.inicioSegundos.toFixed(1) + 's a ' + s.fimSegundos.toFixed(1) + 's do áudio</p>' +
+      s.inicioSegundos.toFixed(1) + 's a ' + s.fimSegundos.toFixed(1) + 's do áudio' +
+      (corrigidas ? ' · ' + corrigidas + ' corrigida' + (corrigidas > 1 ? 's' : '') + ' por você' : '') + '</p>' +
       '<div class="lib-card-body">' + corpo + '</div>' +
-      '<p class="tra-notas"><strong>Notas:</strong> ' + esc(notas) + '</p>' +
+      '<div class="tra-notas"><strong>Notas</strong> <small>(clique numa para corrigir)</small>' +
+      '<div class="tra-notas-linha">' + notas + '</div></div>' +
+      editor +
       '</div>';
   }
 
@@ -356,6 +386,84 @@
     setTimeout(function () { box.remove(); }, 4000);
   }
 
+  // ---------------- correção manual ----------------
+  // Nenhum detector acerta 100%. Aqui a pessoa clica na nota errada e conserta
+  // de ouvido — que é, aliás, a parte que ensina.
+
+  function guardarParaDesfazer(sec) {
+    var s = state.resultado.secoes[sec];
+    state.historico[sec] = state.historico[sec] || [];
+    state.historico[sec].push(s.eventos.map(function (e) {
+      return { name: e.name, midi: e.midi, onset: e.onset, dur: e.dur, vel: e.vel,
+        segundos: e.segundos, corrigida: e.corrigida };
+    }));
+    if (state.historico[sec].length > 40) state.historico[sec].shift();
+  }
+
+  function moverNota(sec, delta) {
+    var s = state.resultado.secoes[sec];
+    var n = state.selecao && state.selecao.sec === sec ? state.selecao.nota : -1;
+    var e = s.eventos[n];
+    if (!e) return;
+    var novo = e.midi + delta;
+    var faixa = T.FAIXA[$('tra-instrumento').value] || T.FAIXA.guitarra;
+    if (novo < faixa[0] || novo > faixa[1]) { alertaInline('Essa nota sairia da faixa do instrumento.'); return; }
+    guardarParaDesfazer(sec);
+    e.midi = novo;
+    e.name = T.nomeDeMidi(novo, !!(state.resultado.tom && state.resultado.tom.bemol));
+    e.corrigida = true;
+    render();
+    tocarNota(e);
+  }
+
+  function apagarNota(sec) {
+    var s = state.resultado.secoes[sec];
+    var n = state.selecao && state.selecao.sec === sec ? state.selecao.nota : -1;
+    if (n < 0 || !s.eventos[n]) return;
+    if (s.eventos.length <= 1) { alertaInline('A seção ficaria vazia.'); return; }
+    guardarParaDesfazer(sec);
+    s.eventos.splice(n, 1);
+    state.selecao = { sec: sec, nota: Math.min(n, s.eventos.length - 1) };
+    render();
+  }
+
+  function desfazer(sec) {
+    var pilha = state.historico[sec];
+    if (!pilha || !pilha.length) return;
+    state.resultado.secoes[sec].eventos = pilha.pop();
+    render();
+  }
+
+  function tocarNota(e) {
+    if (!e) return;
+    var instrument = $('tra-instrumento').value;
+    var prep = notation.prepareForInstrument([{ name: e.name, midi: e.midi, onset: 0, dur: 1, vel: 0.9 }], instrument);
+    audio.playEvents(prep.events, instrument, { bpm: 120 }, function () { /* nota curta */ });
+  }
+
+  function andarSelecao(d) {
+    if (!state.selecao) return;
+    var s = state.resultado.secoes[state.selecao.sec];
+    var n = Math.max(0, Math.min(s.eventos.length - 1, state.selecao.nota + d));
+    state.selecao = { sec: state.selecao.sec, nota: n };
+    render();
+    tocarNota(s.eventos[n]);
+  }
+
+  function aoTeclado(ev) {
+    if (!state.selecao || !state.resultado) return;
+    var tela = document.querySelector('.content.view[data-view="transcricao"]');
+    if (!tela || tela.hidden) return;
+    var sec = state.selecao.sec;
+    if (ev.key === 'ArrowUp') { ev.preventDefault(); moverNota(sec, ev.shiftKey ? 12 : 1); }
+    else if (ev.key === 'ArrowDown') { ev.preventDefault(); moverNota(sec, ev.shiftKey ? -12 : -1); }
+    else if (ev.key === 'ArrowRight') { ev.preventDefault(); andarSelecao(1); }
+    else if (ev.key === 'ArrowLeft') { ev.preventDefault(); andarSelecao(-1); }
+    else if (ev.key === 'Delete' || ev.key === 'Backspace') { ev.preventDefault(); apagarNota(sec); }
+    else if ((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 'z') { ev.preventDefault(); desfazer(sec); }
+    else if (ev.key === 'Escape') { state.selecao = null; render(); }
+  }
+
   function aoClicar(ev) {
     var b = ev.target.closest('[data-act]');
     if (!b || !state.resultado) return;
@@ -365,6 +473,19 @@
     if (act === 'ouvir' && s) tocarSecao(b, s);
     else if (act === 'original' && s) tocarOriginal(b, s);
     else if (act === 'exercicio' && s) salvarExercicio(s);
+    else if (act === 'nota' && s) {
+      var n = Number(b.getAttribute('data-n'));
+      var jaEra = state.selecao && state.selecao.sec === i && state.selecao.nota === n;
+      state.selecao = jaEra ? null : { sec: i, nota: n };
+      render();
+      if (!jaEra) tocarNota(s.eventos[n]);
+    } else if (act === 'mover') moverNota(i, Number(b.getAttribute('data-d')));
+    else if (act === 'apagar') apagarNota(i);
+    else if (act === 'desfazer') desfazer(i);
+    else if (act === 'ouvir-nota') {
+      var sel = state.selecao && state.selecao.sec === i ? state.selecao.nota : -1;
+      if (sel >= 0) tocarNota(s.eventos[sel]);
+    }
   }
 
   function renderTranscricaoView() {

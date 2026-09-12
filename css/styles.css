@@ -705,3 +705,26 @@ select, input[type="text"] {
 .tra-secao .si-legend { margin: 0.3rem 0 0.5rem; }
 .tra-notas { font-size: 0.8rem; color: var(--text-muted); margin: 0.5rem 0 0; word-break: break-word; }
 .tra-notas strong { color: var(--text); }
+/* Correção manual das notas da transcrição */
+.tra-notas-linha { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.4rem; }
+.tra-nota {
+  font: 600 0.82rem/1 "SFMono-Regular", Consolas, monospace;
+  min-width: 2.1rem; padding: 0.3rem 0.35rem; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 7px;
+  background: var(--bg-card); color: var(--text-muted);
+}
+.tra-nota:hover { border-color: var(--accent); color: var(--text); }
+.tra-nota.sel { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tra-nota.corrigida { border-color: #22c55e; color: #86efac; }
+.tra-nota.corrigida.sel { background: #16a34a; border-color: #16a34a; color: #fff; }
+.tra-editor {
+  display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;
+  margin-top: 0.6rem; padding: 0.55rem 0.65rem;
+  border: 1px solid var(--accent); border-radius: 9px; background: var(--bg-elevated);
+}
+.tra-editor-alvo {
+  font: 700 1rem/1 "SFMono-Regular", Consolas, monospace; color: var(--text);
+  min-width: 2.4rem; padding: 0.25rem 0.4rem; border-radius: 6px; background: var(--bg-card);
+}
+.tra-editor small { color: var(--text-dim); font-size: 0.72rem; flex-basis: 100%; }
+.tra-notas small { color: var(--text-dim); font-weight: 400; }

@@ -654,6 +654,64 @@ grafia com bemóis) e `tests/transcricao.smoke.js`, que sobe um áudio real no
 Chromium, roda o modelo de verdade e confere as seções, a tablatura, os dois
 botões de tocar e a carga sob demanda das bibliotecas.
 
+## Transcrição: precisão medida e correção manual — ✅ (2026-09-12)
+O dono do projeto achou que algumas coisas não foram transcritas bem. Em vez
+de mexer nos números no escuro, foi montado um **banco de provas com
+gabarito**: solos escritos nota a nota, depois gerados em áudio e transcritos
+às cegas — assim dá para contar acerto de verdade. Seis gravações: fusion
+rápido (230 notas, 9 notas/s) e bebop lento (28 notas, 3–5 notas/s), cada um
+sozinho e com acompanhamento (baixo, piano e bateria). A medida é o F1 (acerto
+de altura e de ataque, tolerância de 90 ms), que pune tanto nota perdida
+quanto nota inventada.
+
+**O que foi descoberto**: não existe um ajuste bom para os dois regimes. Linha
+rápida precisa de limiar de ataque **alto** (senão o acompanhamento entra como
+se fosse solo) e nota mínima **curta** (senão as semicolcheias somem); linha
+lenta precisa do contrário. O ajuste que servia para uma estragava a outra.
+
+**A solução**: duas passadas. A primeira, neutra, só mede quantas notas por
+segundo o material tem; a segunda usa o perfil certo (`rapido` acima de 7
+notas/s, `lento` abaixo). Custa quase nada — o caro é a rede neural, que já
+rodou; daí para a frente é aritmética.
+
+| caso | antes | depois |
+|---|---|---|
+| fusion rápido, guitarra só | 91,3 | **99,3** |
+| fusion rápido + banda e bateria | 63,7 | **78,3** |
+| bebop lento, guitarra só | 98,2 | 96,4 |
+| bebop lento, guitarra + piano | 85,2 | **87,7** |
+| bebop lento, sax só | 96,4 | **98,2** |
+| bebop lento, sax + piano | 94,9 | 92,9 |
+| **média** | **88,3** | **92,1** |
+
+Também entrou uma **atenuação do grave** antes do detector (prateleira de
+−12 dB abaixo de 150 Hz): num áudio com banda, o baixo e a mão esquerda do
+piano dominam a energia e o detector gasta atenção neles. No caso mais
+difícil, 78,3 → 80,5. Foi escolhida a atenuação, e não um corte seco: cortar
+em 120 Hz media um pouco melhor (81,0) mas comeria as notas abaixo do si 2. De
+quebra, a reamostragem passou a ser feita pelo `OfflineAudioContext` do
+navegador, melhor que a interpolação linear feita à mão.
+
+**Duas ideias foram testadas e descartadas** — ficam registradas para não
+serem tentadas de novo: escolher a linha por **programação dinâmica** (Viterbi,
+como a tablatura faz), que piorou muito (caminho "suave" prefere o
+acompanhamento, que também é contínuo: 63,7 → 34,0); e limitar as notas a uma
+**janela de registro** em volta do solo, que despencou no caso com banda
+(64,2 → 49,5) porque o centro do registro cai no acompanhamento.
+
+**Correção manual** (o que fecha a conta, porque detector nenhum acerta tudo):
+na tela, cada nota da seção virou um botão. Clicando nela abre uma barra com
+♯ meio tom, ♭ meio tom, ↑ oitava, ↓ oitava, apagar, ouvir só ela e desfazer.
+Pelo teclado: ↑ ↓ mudam meio tom (com Shift, oitava), ← → andam de nota,
+Delete apaga, Cmd/Ctrl+Z desfaz, Esc solta. As notas corrigidas ficam marcadas
+em verde e a seção diz quantas você arrumou. A pilha de desfazer guarda 40
+passos por seção, e tocar a seção já usa a versão corrigida.
+
+Testes: `tests/transcricao.test.js` foi a 14 testes (perfis por densidade,
+`densidadeDe`, grafia de nota) e `tests/transcricao.smoke.js` passou a exercer
+a correção manual inteira no navegador — clicar, subir meio tom, marcar como
+corrigida, desfazer, seta do teclado e apagar.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
