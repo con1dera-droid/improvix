@@ -12,14 +12,14 @@ function test(name, fn) {
   try { fn(); console.log('  ok - ' + name); passed++; }
   catch (e) { console.log('  FALHOU - ' + name); console.log('    ' + e.message); process.exitCode = 1; }
 }
-var ALL = [].concat.apply([], lib.SCALE_GROUPS.map(function (g) { return g.keys; }));
+var ALL = Object.keys(data.SCALES);
 console.log('scale-info.js — fórmula e características das escalas');
 
 test('toda escala da Biblioteca tem ficha completa', function () {
   ALL.forEach(function (k) {
     var g = si.get(k);
     assert.ok(g, 'sem ficha: ' + k);
-    ['origem', 'acorde', 'som', 'carac', 'uso'].forEach(function (f) { assert.ok(g[f] && g[f].length > (f === 'acorde' ? 0 : 5), k + ': falta ' + f); });
+    ['origem', 'acorde', 'som', 'carac', 'uso', 'alvo', 'evitar', 'acordes'].forEach(function (f) { assert.ok(g[f] && g[f].length > (f === 'acorde' ? 0 : 5), k + ': falta ' + f); });
     assert.strictEqual(g.formula.length, data.SCALES[k].semitones.length, k);
     assert.ok(g.formula.some(function (x) { return x.highlight; }), k + ': nenhuma nota característica destacada');
   });
@@ -41,8 +41,8 @@ test('fórmulas conhecidas', function () {
 });
 
 test('tons e semitons somam uma oitava e os intervalos batem com os semitons', function () {
-  var val = { 'ST': 1, 'T': 2, 'T½': 3 };
-  var semis = { 'Tôn': 0, '2m': 1, '2M': 2, '2aum': 3, '3m': 3, '3M': 4, '4J': 5, '4aum': 6, '5dim': 6, '5J': 7, '5aum': 8, '6m': 8, '6M': 9, '6aum': 10, '7m': 10, '7M': 11 };
+  var val = { 'ST': 1, 'T': 2, 'T½': 3, '2T': 4, '2T½': 5 };
+  var semis = { 'Tôn': 0, '1aum': 1, '2dim': 0, '3aum': 5, '4dim': 4, '6dim': 7, '6aum': 11, '7aum': 0, '2m': 1, '2M': 2, '2aum': 3, '3m': 3, '3M': 4, '4J': 5, '4aum': 6, '5dim': 6, '5J': 7, '5aum': 8, '6m': 8, '6M': 9, '6aum': 10, '7m': 10, '7M': 11 };
   ALL.forEach(function (k) {
     var g = si.get(k);
     assert.strictEqual(g.steps.reduce(function (a, s) { return a + val[s]; }, 0), 12, k);
