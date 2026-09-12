@@ -131,6 +131,32 @@ test('adivinharTom acha a escala e mede a cobertura', function () {
   assert.ok(T.adivinharTom(meio).cobertura < 0.8);
 });
 
+test('nenhum instrumento pede um limite que apaga a transcrição inteira', function () {
+  // O constrainFrequency do Basic Pitch faz `idx = hzToMidi(freq) - 21` e
+  // depois `array.fill(0, 0, idx)`. Com idx negativo o fill conta de trás para
+  // frente e zera TUDO — era o bug do Teclado/Piano (0 notas). Aqui garantimos
+  // que nenhum instrumento produz um índice negativo (ou pede além do topo).
+  var hzToMidi = function (f) { return 12 * (Math.log2(f) - Math.log2(440)) + 69; };
+  Object.keys(T.FAIXA).forEach(function (k) {
+    var l = T.limitesHz(k);
+    if (l.min !== null) {
+      var idxGrave = hzToMidi(l.min) - 21;
+      assert.ok(idxGrave >= 0, k + ': índice grave ' + idxGrave.toFixed(1) + ' — apagaria a transcrição');
+    }
+    if (l.max !== null) {
+      var idxAgudo = hzToMidi(l.max) - 21;
+      assert.ok(idxAgudo > 0 && idxAgudo <= 88, k + ': índice agudo fora do modelo (' + idxAgudo.toFixed(1) + ')');
+    }
+    // e o limite tem de continuar cobrindo a faixa do instrumento
+    var f = T.FAIXA[k];
+    if (l.min !== null) assert.ok(hzToMidi(l.min) <= f[0] + 0.01, k + ': o limite grave cortaria a nota mais baixa');
+    if (l.max !== null) assert.ok(hzToMidi(l.max) >= f[1] - 0.01, k + ': o limite agudo cortaria a nota mais alta');
+  });
+  // o teclado, que começa na nota mais grave que o modelo conhece, fica sem limite grave
+  assert.strictEqual(T.limitesHz('teclado').min, null, 'o teclado não pode pedir limite grave');
+  assert.ok(T.limitesHz('guitarra').min > 70, 'a guitarra deveria ter limite grave');
+});
+
 test('a faixa de cada instrumento é coerente', function () {
   Object.keys(T.FAIXA).forEach(function (k) {
     var f = T.FAIXA[k];

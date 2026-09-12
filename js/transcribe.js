@@ -33,6 +33,31 @@
   };
 
   function hz(midi) { return 440 * Math.pow(2, (midi - 69) / 12); }
+
+  // O modelo do Basic Pitch cobre de A0 (MIDI 21) a C8 (MIDI 108).
+  var MODELO_MIDI_MIN = 21;
+  var MODELO_MIDI_MAX = 108;
+
+  /**
+   * Limites de frequência a passar para o detector — ou `null` quando a faixa
+   * do instrumento já encosta no limite do próprio modelo.
+   *
+   * Isso NÃO é preciosismo: o `constrainFrequency` do Basic Pitch calcula
+   * `idx = hzToMidi(freq) - 21` e chama `array.fill(0, 0, idx)`. Se a nota
+   * mais grave pedida for a MIDI 20 (um semitom abaixo do lá 0 do teclado),
+   * o índice vira -1 — e `fill(0, 0, -1)` em JavaScript não zera "nada": conta
+   * de trás para frente e apaga o array inteiro, fazendo a transcrição voltar
+   * vazia. Acontecia com o Teclado/Piano, cuja faixa começa justamente na nota
+   * mais grave que o modelo conhece.
+   */
+  function limitesHz(instrumento) {
+    var f = FAIXA[instrumento] || FAIXA.guitarra;
+    var lo = f[0] - 1, hi = f[1] + 1;
+    return {
+      min: lo > MODELO_MIDI_MIN ? hz(lo) : null,
+      max: hi < MODELO_MIDI_MAX ? hz(hi) : null
+    };
+  }
   function mediana(xs) { var s = xs.slice().sort(function (a, b) { return a - b; }); return s[Math.floor(s.length / 2)] || 0; }
   function quantil(xs, q) {
     var s = xs.slice().sort(function (a, b) { return a - b; });
@@ -350,7 +375,7 @@
   function transcrever(audioBuffer, opts) {
     opts = opts || {};
     var instrumento = opts.instrumento || 'guitarra';
-    var faixa = FAIXA[instrumento] || FAIXA.guitarra;
+    var lim = limitesHz(instrumento);
     var prog = opts.onProgresso || function () {};
 
     prog(0.02, 'preparando o áudio');
@@ -370,7 +395,7 @@
         function (p) { prog(0.08 + p * 0.82, 'ouvindo o solo'); }
       ).then(function () {
         prog(0.92, 'separando a linha do solo');
-        var cruas = L.outputToNotesPoly(frames, onsets, 0.45, 0.35, 5, true, hz(faixa[1] + 1), hz(faixa[0] - 1), true);
+        var cruas = L.outputToNotesPoly(frames, onsets, 0.45, 0.35, 5, true, lim.max, lim.min, true);
         cruas = L.addPitchBendsToNoteEvents(contours, cruas);
         var todas = L.noteFramesToTime(cruas).sort(function (a, b) { return a.startTimeSeconds - b.startTimeSeconds; });
         var mel = extrairMelodia(todas);
@@ -399,6 +424,7 @@
   return {
     SR: SR,
     FAIXA: FAIXA,
+    limitesHz: limitesHz,
     extrairMelodia: extrairMelodia,
     estimarAndamento: estimarAndamento,
     paraEventos: paraEventos,

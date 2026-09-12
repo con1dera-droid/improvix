@@ -71,7 +71,17 @@ const AUDIO = process.argv[2] || path.resolve(__dirname, 'fixtures/solo-teste.wa
   check(await page.$$eval('.transport[data-transport="transcricao"] .tr-btn', (b) => b.length) === 4,
     'a barra de metrônomo/andamento/repetir está na tela');
 
-  // Trocar o instrumento refaz a transcrição
+  // Trocar o instrumento refaz a transcrição. O Teclado é o caso que já
+  // quebrou: a faixa dele começa na nota mais grave que o modelo conhece, e o
+  // limite de frequência acabava zerando a transcrição inteira (0 notas).
+  for (const ins of ['sax', 'teclado', 'baixo']) {
+    await page.selectOption('#tra-instrumento', ins);
+    await page.waitForSelector('.tra-secao', { timeout: 600000 });
+    await page.waitForTimeout(400);
+    const n = await page.$$eval('.tra-resumo .n b', (b) => b.map((x) => x.textContent));
+    const secs = await page.$$eval('.tra-secao', (s) => s.length);
+    check(Number(n[0]) > 0 && secs > 0, ins + ': achou ' + n[0] + ' notas em ' + secs + ' seções');
+  }
   await page.selectOption('#tra-instrumento', 'sax');
   await page.waitForSelector('.tra-secao', { timeout: 600000 });
   await page.waitForTimeout(500);
