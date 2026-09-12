@@ -521,6 +521,111 @@
     return { events: ev, tab: tab };
   }
 
+  // ---------------------------------------------------------------------
+  // Diagramas: braço (guitarra/violão/baixo) e teclado
+  // ---------------------------------------------------------------------
+
+  /**
+   * Diagrama do braço com as notas de uma escala.
+   * opts: { instrument, notes: [{ pc, label, root }], fromFret (0), frets (12) }
+   */
+  function fretboardSVG(opts) {
+    opts = opts || {};
+    var strings = TUNINGS[opts.instrument] || TUNINGS.guitarra;
+    var fromFret = Math.max(0, opts.fromFret || 0);
+    var nFrets = opts.frets || 12;
+    var byPc = {};
+    (opts.notes || []).forEach(function (n) { byPc[((n.pc % 12) + 12) % 12] = n; });
+
+    var left = 34, top = 26, fw = 46, sh = 26;
+    var width = left + (nFrets + 1) * fw + 14;
+    var height = top + strings.length * sh + 26;
+    var line = 'var(--staff-line, #5c6c8f)', label = 'var(--staff-label, #94a3c4)', ink = 'var(--staff-note, #e7ecf7)';
+    var out = '';
+    var order = strings.slice().reverse(); // corda mais aguda em cima
+
+    // cordas
+    order.forEach(function (openMidi, i) {
+      var y = top + i * sh + sh / 2;
+      out += '<line x1="' + (left + fw * 0.5) + '" y1="' + y + '" x2="' + (left + (nFrets + 0.5) * fw) + '" y2="' + y + '" stroke="' + line + '" stroke-width="1"/>';
+      out += '<text x="8" y="' + (y + 4) + '" font-size="11" fill="' + label + '">' +
+        (NOTE_NAMES_SHARP[((openMidi % 12) + 12) % 12]) + '</text>';
+    });
+    // trastes
+    for (var f = 0; f <= nFrets; f++) {
+      var x = left + (f + 0.5) * fw;
+      var isNut = fromFret === 0 && f === 0;
+      out += '<line x1="' + x + '" y1="' + (top + sh / 2) + '" x2="' + x + '" y2="' + (top + (strings.length - 0.5) * sh) + '" stroke="' + line + '" stroke-width="' + (isNut ? 3.5 : 1) + '"/>';
+      if (f > 0) {
+        var num = fromFret + f;
+        if ([3, 5, 7, 9, 12, 15, 17, 19, 21, 24].indexOf(num) >= 0) {
+          out += '<text x="' + (x - fw / 2) + '" y="' + (top + strings.length * sh + 14) + '" font-size="11" text-anchor="middle" fill="' + label + '">' + num + '</text>';
+        }
+      }
+    }
+    // notas
+    order.forEach(function (openMidi, i) {
+      var y = top + i * sh + sh / 2;
+      for (var f = 0; f <= nFrets; f++) {
+        var fret = fromFret + f;
+        if (fromFret > 0 && f === 0) continue; // a "casa 0" só existe quando o diagrama começa na pestana
+        var pc = ((openMidi + fret) % 12 + 12) % 12;
+        var n = byPc[pc];
+        if (!n) continue;
+        var cx = left + (f === 0 ? 0.5 * fw - 12 : (f + 0.5) * fw - fw / 2);
+        out += '<circle cx="' + cx + '" cy="' + y + '" r="9.5" fill="' + (n.root ? 'var(--accent-2, #22c55e)' : 'var(--accent, #3b82f6)') + '" opacity="' + (n.root ? 1 : 0.85) + '"/>';
+        out += '<text x="' + cx + '" y="' + (y + 3.5) + '" font-size="9.5" font-weight="700" text-anchor="middle" fill="#fff">' + n.label + '</text>';
+      }
+    });
+    out += '<text x="' + left + '" y="14" font-size="11" fill="' + label + '">' + (opts.title || '') + '</text>';
+    return '<svg viewBox="0 0 ' + width + ' ' + height + '" xmlns="http://www.w3.org/2000/svg" width="100%" style="max-width:' + width + 'px" height="' + height + '">' + out + '</svg>';
+  }
+
+  var NOTE_NAMES_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+  /**
+   * Diagrama do teclado (2 oitavas) com as notas da escala marcadas.
+   * opts: { notes: [{ pc, label, root }], octaves (2) }
+   */
+  function keyboardSVG(opts) {
+    opts = opts || {};
+    var octaves = opts.octaves || 2;
+    var byPc = {};
+    (opts.notes || []).forEach(function (n) { byPc[((n.pc % 12) + 12) % 12] = n; });
+    var WHITE = [0, 2, 4, 5, 7, 9, 11];
+    var BLACK = { 1: 0, 3: 1, 6: 3, 8: 4, 10: 5 }; // pc -> índice da tecla branca à esquerda
+    var ww = 30, wh = 116, bw = 19, bh = 72, top = 8;
+    var nWhite = 7 * octaves;
+    var width = nWhite * ww + 2, height = top + wh + 6;
+    var out = '';
+    for (var o = 0; o < octaves; o++) {
+      for (var i = 0; i < 7; i++) {
+        var x = (o * 7 + i) * ww + 1;
+        var pc = WHITE[i];
+        var n = byPc[pc];
+        out += '<rect x="' + x + '" y="' + top + '" width="' + (ww - 1) + '" height="' + wh + '" rx="3" fill="#f4f6fb" stroke="#2b3a5e"/>';
+        if (n) {
+          out += '<circle cx="' + (x + ww / 2 - 0.5) + '" cy="' + (top + wh - 20) + '" r="10" fill="' + (n.root ? 'var(--accent-2, #22c55e)' : 'var(--accent, #3b82f6)') + '"/>';
+          out += '<text x="' + (x + ww / 2 - 0.5) + '" y="' + (top + wh - 16.5) + '" font-size="9.5" font-weight="700" text-anchor="middle" fill="#fff">' + n.label + '</text>';
+        }
+      }
+    }
+    for (o = 0; o < octaves; o++) {
+      Object.keys(BLACK).forEach(function (pcStr) {
+        var pcb = Number(pcStr);
+        var wi = BLACK[pcb];
+        var bx = (o * 7 + wi) * ww + ww - bw / 2 + 1;
+        out += '<rect x="' + bx + '" y="' + top + '" width="' + bw + '" height="' + bh + '" rx="2.5" fill="#0f172a" stroke="#2b3a5e"/>';
+        var nb = byPc[pcb];
+        if (nb) {
+          out += '<circle cx="' + (bx + bw / 2) + '" cy="' + (top + bh - 14) + '" r="8.5" fill="' + (nb.root ? 'var(--accent-2, #22c55e)' : 'var(--accent, #3b82f6)') + '"/>';
+          out += '<text x="' + (bx + bw / 2) + '" y="' + (top + bh - 10.5) + '" font-size="8.5" font-weight="700" text-anchor="middle" fill="#fff">' + nb.label + '</text>';
+        }
+      });
+    }
+    return '<svg viewBox="0 0 ' + width + ' ' + height + '" xmlns="http://www.w3.org/2000/svg" width="100%" style="max-width:' + width + 'px" height="' + height + '">' + out + '</svg>';
+  }
+
   var TAB_LEGEND = 'h hammer-on · p pull-off · / \\ slide · b bend · r release · ~ vibrato · ( ) nota fantasma · D/U palhetada para baixo/cima';
 
   /** Desloca a frase inteira em oitavas para ler bem na clave de sol (centro em B4). */
@@ -534,6 +639,8 @@
 
   return {
     toTabEvents: toTabEvents,
+    fretboardSVG: fretboardSVG,
+    keyboardSVG: keyboardSVG,
     prepareForInstrument: prepareForInstrument,
     renderTabText: renderTabText,
     TAB_LEGEND: TAB_LEGEND,

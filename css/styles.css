@@ -638,3 +638,23 @@ select, input[type="text"] {
 .fraseados-controles select { min-width: 0; width: 100%; }
 .fraseados-controles .btn-secondary, .fraseados-controles .transport { grid-column: 1 / -1; justify-self: start; }
 .fraseado-conteudo { flex-wrap: wrap; }
+
+/* ---------- Biblioteca de Escalas ---------- */
+.esc-filtros { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.6rem 0.8rem; margin-bottom: 0.9rem; }
+.esc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.8rem; flex-wrap: wrap; }
+.esc-title { font-size: 1.15rem; font-weight: 700; color: var(--text); }
+.esc-tonic { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); }
+.esc-head-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.esc-diagrama-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin: 0.9rem 0 0.4rem; font-size: 0.9rem; color: var(--text); }
+.esc-toggle { display: inline-flex; gap: 0.25rem; flex-wrap: wrap; }
+.esc-toggle .view-btn { font-size: 0.72rem; padding: 0.18rem 0.5rem; }
+.esc-toggle .view-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.esc-diagrama { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-elevated); padding: 0.6rem; }
+.esc-diagrama svg { display: block; }
+.esc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0.6rem; margin: 1rem 0 0.4rem; }
+.esc-card { border: 1px solid var(--border); border-radius: 10px; background: var(--bg-elevated); padding: 0.7rem 0.85rem; }
+.esc-card-title { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim); margin-bottom: 0.3rem; }
+.esc-card p { margin: 0; font-size: 0.9rem; line-height: 1.5; color: var(--text-muted); }
+.esc-sub { font-size: 1rem; margin: 1.2rem 0 0.2rem; color: var(--text); }
+.esc-ex .si-legend { margin: 0.3rem 0 0.5rem; }
+.si-chip.si-root { border-color: var(--accent); background: rgba(59, 130, 246, 0.12); }

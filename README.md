@@ -100,7 +100,11 @@ js/library.js         Motor da Biblioteca de Fraseados (escala × tom × estilo,
 js/library-ui.js      Tela da Biblioteca de Fraseados
 js/patterns.js        Exercícios de Padrões (91 padrões nos 12 tons + padrão próprio)
 js/patterns-ui.js     Tela dos Exercícios de Padrões
-js/scale-info.js      Ficha de cada escala/modo (fórmula, intervalos, características)
+js/scale-info.js      Ficha de cada escala/modo (fórmula, intervalos, características,
+                      notas-alvo, notas a evitar, onde usar, dica de treino) — 46 escalas
+js/scales.js          Motor da Biblioteca de Escalas (famílias, notas no tom, acorde da
+                      escala, 6 exercícios prontos por escala, busca sem acento)
+js/scales-ui.js       Tela da Biblioteca de Escalas (ficha + braço/teclado + exercícios)
 js/articulation.js    Articulações (hammer-on, pull-off, slide, bend, vibrato) e dinâmica
 sounds/*.js           Samples de instrumentos reais (FluidR3_GM, CC BY 3.0 — ver sounds/CREDITOS.md)
 js/app.js             Liga a tela aos motores (sem framework, JS puro)
@@ -133,6 +137,8 @@ tests/scaleinfo.test.js Testes da ficha das escalas — node tests/scaleinfo.tes
 tests/scaleinfo.smoke.js Smoke test da ficha da escala na Biblioteca
 tests/patterns.test.js Testes dos Exercícios de Padrões — node tests/patterns.test.js
 tests/padroes.smoke.js Smoke test da tela de Exercícios de Padrões
+tests/escalas.test.js  Testes da Biblioteca de Escalas — node tests/escalas.test.js
+tests/escalas.smoke.js Smoke test da tela Biblioteca de Escalas
 tests/som.smoke.js     Mede o volume real na saída de áudio em cada modo e instrumento
 tests/screenshot*.js   Scripts opcionais de checagem visual com Playwright (dev only)
 docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos, status e guias do Supabase/Planos

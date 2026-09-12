@@ -56,20 +56,26 @@
   // Duas barras: "prog" (Ouça a progressão) e "linha" (Fraseados e Exercícios).
   var transport = {
     prog: { metro: false, bpm: 110, loop: false },
-    linha: { metro: false, bpm: 100, loop: false }
+    linha: { metro: false, bpm: 100, loop: false },
+    escala: { metro: false, bpm: 88, loop: false }
   };
   try {
     var savedTr = JSON.parse(window.localStorage.getItem('il_transport') || 'null');
-    if (savedTr) ['prog', 'linha'].forEach(function (k) { if (savedTr[k]) Object.assign(transport[k], savedTr[k]); });
+    if (savedTr) ['prog', 'linha', 'escala'].forEach(function (k) { if (savedTr[k]) Object.assign(transport[k], savedTr[k]); });
   } catch (e) { /* sem storage */ }
   function saveTransport() { try { window.localStorage.setItem('il_transport', JSON.stringify(transport)); } catch (e) { /* ignora */ } }
   function transportOpts(key) { var t = transport[key]; return { bpm: t.bpm, metronome: t.metro }; }
 
+  // Pode ser chamado quantas vezes for preciso: barras já ligadas são
+  // ignoradas (flag data-tr-ready), então telas montadas dinamicamente
+  // (ex.: Biblioteca de Escalas) só precisam chamar de novo.
   function setupTransport() {
     document.querySelectorAll('.transport[data-transport]').forEach(function (bar) {
       var key = bar.getAttribute('data-transport');
       var t = transport[key];
       if (!t) return;
+      if (bar.getAttribute('data-tr-ready') === '1') return;
+      bar.setAttribute('data-tr-ready', '1');
       var input = bar.querySelector('.tr-bpm-input');
       function sync() {
         bar.querySelector('[data-act="metro"]').classList.toggle('on', t.metro);
@@ -828,6 +834,11 @@
         p.hidden = p.getAttribute('data-panel') !== tabName;
       });
     },
+    transportOpts: function (key) { return transportOpts(key); },
+    // Telas montadas dinamicamente (Biblioteca de Escalas) chamam isso depois
+    // de injetar o HTML para ligar a barra de metrônomo/andamento/repetir.
+    setupTransportBars: setupTransport,
+    transportLoop: function (key) { var t = transport[key]; return !!(t && t.loop); },
     switchView: function (viewName) {
       document.querySelectorAll('.content.view').forEach(function (v) {
         v.hidden = v.getAttribute('data-view') !== viewName;

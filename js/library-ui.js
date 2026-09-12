@@ -277,10 +277,46 @@
   }
 
   // `preset` (opcional): { style, level, instrument } — usado pelo atalho
-  // "Fusion (Gambale)" do menu.
+  // "Fusion (Gambale)" do menu — ou { scaleKey, tonic } — usado pelo botão
+  // "Fraseados nesta escala" da Biblioteca de Escalas.
   function renderBibliotecaView(preset) {
     build();
     syncGate();
+    if (preset && preset.scaleKey) {
+      var sel = $('lib-escala');
+      var has = Array.prototype.some.call(sel.options, function (o) { return o.value === preset.scaleKey; });
+      if (!has) {
+        // A escala não está entre as recomendadas do estilo atual: procura um
+        // estilo que a ofereça (ou deixa o estilo como está e inclui a opção).
+        var styleSel = $('lib-estilo');
+        var found = null;
+        Object.keys(RECOMMENDED).forEach(function (st) {
+          if (!found && RECOMMENDED[st].indexOf(preset.scaleKey) >= 0) found = st;
+        });
+        if (found) { styleSel.value = found; }
+        state.userPickedScale = false;
+        fillScaleSelect();
+        has = Array.prototype.some.call(sel.options, function (o) { return o.value === preset.scaleKey; });
+        if (!has) {
+          var opt = document.createElement('option');
+          opt.value = preset.scaleKey;
+          opt.textContent = scaleLabel(preset.scaleKey);
+          sel.appendChild(opt);
+        }
+      }
+      sel.value = preset.scaleKey;
+      state.userPickedScale = true;
+      if (preset.tonic) {
+        var tomSel = $('lib-tom');
+        var okTom = Array.prototype.some.call(tomSel.options, function (o) { return o.value === preset.tonic; });
+        if (okTom) tomSel.value = preset.tonic;
+      }
+      if (preset.level) $('lib-nivel').value = preset.level;
+      if (preset.instrument) $('lib-instrumento').value = preset.instrument;
+      syncIntervalField();
+      regenerate();
+      return;
+    }
     if (preset && preset.style) {
       $('lib-estilo').value = preset.style;
       state.userPickedScale = false;

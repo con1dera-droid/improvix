@@ -201,6 +201,136 @@
       curta: 'Blues maior',
       steps: [0, 1, 2, 2, 4, 5],
       semitones: [0, 2, 3, 4, 7, 9]
+    },
+    blues_9: {
+      label: 'Blues completa (9 notas)',
+      curta: 'Blues 9 notas',
+      steps: [0, 1, 2, 2, 3, 4, 4, 5, 6],
+      semitones: [0, 2, 3, 4, 5, 6, 7, 9, 10]
+    },
+
+    // ---- Demais modos da menor harmônica ----
+    locrio_13: {
+      label: 'Lócrio 13 (2º modo da menor harmônica)',
+      curta: 'Lócrio 13',
+      steps: [0, 1, 2, 3, 4, 5, 6],
+      semitones: [0, 1, 3, 5, 6, 9, 10]
+    },
+    jonio_5aum: {
+      label: 'Jônio #5 (3º modo da menor harmônica)',
+      curta: 'Jônio #5',
+      steps: [0, 1, 2, 3, 4, 5, 6],
+      semitones: [0, 2, 4, 5, 8, 9, 11]
+    },
+    dorico_11aum: {
+      label: 'Dórico #11 (romena, 4º modo da menor harmônica)',
+      curta: 'Dórico #11',
+      steps: [0, 1, 2, 3, 4, 5, 6],
+      semitones: [0, 2, 3, 6, 7, 9, 10]
+    },
+    lidio_9aum: {
+      label: 'Lídio #9 (6º modo da menor harmônica)',
+      curta: 'Lídio #9',
+      steps: [0, 1, 2, 3, 4, 5, 6],
+      semitones: [0, 3, 4, 6, 7, 9, 11]
+    },
+
+    // ---- Outras escalas de 7 notas ----
+    harmonica_maior: {
+      label: 'Harmônica maior (maior com b6)',
+      curta: 'Harm. maior',
+      steps: [0, 1, 2, 3, 4, 5, 6],
+      semitones: [0, 2, 4, 5, 7, 8, 11]
+    },
+    hungara_menor: {
+      label: 'Húngara menor (cigana menor)',
+      curta: 'Húngara menor',
+      steps: [0, 1, 2, 3, 4, 5, 6],
+      semitones: [0, 2, 3, 6, 7, 8, 11]
+    },
+    dupla_harmonica: {
+      label: 'Dupla harmônica (bizantina / árabe)',
+      curta: 'Dupla harm.',
+      steps: [0, 1, 2, 3, 4, 5, 6],
+      semitones: [0, 1, 4, 5, 7, 8, 11]
+    },
+    napolitana_menor: {
+      label: 'Napolitana menor',
+      curta: 'Napolitana m.',
+      steps: [0, 1, 2, 3, 4, 5, 6],
+      semitones: [0, 1, 3, 5, 7, 8, 11]
+    },
+    napolitana_maior: {
+      label: 'Napolitana maior',
+      curta: 'Napolitana M.',
+      steps: [0, 1, 2, 3, 4, 5, 6],
+      semitones: [0, 1, 3, 5, 7, 9, 11]
+    },
+
+    // ---- Bebop (menor melódica e menor harmônica) ----
+    bebop_melodico: {
+      label: 'Bebop menor melódica (+ #5 de passagem)',
+      curta: 'Bebop mel.',
+      steps: [0, 1, 2, 3, 4, 4, 5, 6],
+      semitones: [0, 2, 3, 5, 7, 8, 9, 11]
+    },
+    bebop_harmonico: {
+      label: 'Bebop menor harmônica (+ b7 de passagem)',
+      curta: 'Bebop harm.',
+      steps: [0, 1, 2, 3, 4, 5, 6, 6],
+      semitones: [0, 2, 3, 5, 7, 8, 10, 11]
+    },
+
+    // ---- Simétricas e sintéticas ----
+    aumentada: {
+      label: 'Aumentada (simétrica de 6 notas)',
+      curta: 'Aumentada',
+      steps: [0, 2, 2, 4, 4, 6],
+      semitones: [0, 3, 4, 7, 8, 11]
+    },
+    prometheus: {
+      label: 'Prometheus (mística)',
+      curta: 'Prometheus',
+      steps: [0, 1, 2, 3, 5, 6],
+      semitones: [0, 2, 4, 6, 9, 10]
+    },
+    cromatica: {
+      label: 'Cromática (as 12 notas)',
+      curta: 'Cromática',
+      steps: [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6],
+      semitones: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    },
+
+    // ---- Pentatônicas (ocidentais e japonesas) ----
+    pentatonica_dominante: {
+      label: 'Pentatônica dominante (mixolídia)',
+      curta: 'Pent. dominante',
+      steps: [0, 1, 2, 4, 6],
+      semitones: [0, 2, 4, 7, 10]
+    },
+    hirajoshi: {
+      label: 'Hirajoshi (japonesa)',
+      curta: 'Hirajoshi',
+      steps: [0, 1, 2, 4, 5],
+      semitones: [0, 2, 3, 7, 8]
+    },
+    kumoi: {
+      label: 'Kumoi (japonesa)',
+      curta: 'Kumoi',
+      steps: [0, 1, 2, 4, 5],
+      semitones: [0, 2, 3, 7, 9]
+    },
+    in_sen: {
+      label: 'In sen (japonesa)',
+      curta: 'In sen',
+      steps: [0, 1, 3, 4, 6],
+      semitones: [0, 1, 5, 7, 10]
+    },
+    iwato: {
+      label: 'Iwato (japonesa)',
+      curta: 'Iwato',
+      steps: [0, 1, 3, 4, 6],
+      semitones: [0, 1, 5, 6, 10]
     }
   };
 
@@ -228,7 +358,18 @@
     menor_harmonica: [[6, 11], '7ª maior'],
     frigio_maior: [[1, 1], '9ª menor'],
     dom_dim: [[1, 1], '9ª menor'],
-    diminuta: [[6, 11], '7ª maior']
+    diminuta: [[6, 11], '7ª maior'],
+    locrio_13: [[5, 9], '13ª (6ª maior)'],
+    jonio_5aum: [[4, 8], '5ª aumentada'],
+    dorico_11aum: [[3, 6], '4ª aumentada'],
+    lidio_9aum: [[1, 3], '9ª aumentada'],
+    harmonica_maior: [[5, 8], '6ª menor'],
+    hungara_menor: [[3, 6], '4ª aumentada'],
+    dupla_harmonica: [[1, 1], '2ª menor'],
+    napolitana_menor: [[1, 1], '2ª menor'],
+    napolitana_maior: [[1, 1], '2ª menor'],
+    bebop_melodico: [[6, 11], '7ª maior'],
+    bebop_harmonico: [[6, 11], '7ª maior']
   };
 
   /**
