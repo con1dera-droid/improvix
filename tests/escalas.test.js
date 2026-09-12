@@ -63,7 +63,7 @@ test('exercisesFor devolve exercícios tocáveis', function () {
   ['C', 'F#', 'Eb'].forEach(function (tom) {
     ALL.forEach(function (k) {
       var exs = SC.exercisesFor(tom, k);
-      assert.ok(exs.length >= 5, k + ' em ' + tom + ': poucos exercícios');
+      assert.ok(exs.length >= 17, k + ' em ' + tom + ': só ' + exs.length + ' exercícios');
       exs.forEach(function (ex) {
         assert.ok(ex.title && ex.dica, k + ': exercício sem título/dica');
         assert.ok(ex.events.length > 3, k + '/' + ex.title + ': quase sem notas');
@@ -115,9 +115,54 @@ test('todo exercício tem grupo e id únicos', function () {
         assert.ok(ids.indexOf(ex.id) < 0, k + ': exercício repetido ' + ex.id);
         ids.push(ex.id);
       });
-      assert.ok(ids.length >= 10, k + ' em ' + tom + ': só ' + ids.length + ' exercícios');
+      assert.ok(ids.length >= 17, k + ' em ' + tom + ': só ' + ids.length + ' exercícios');
+      // os grupos têm de vir juntos: cada um aparece uma vez só na lista
+      var grupos = [], anterior = null;
+      SC.exercisesFor(tom, k).forEach(function (ex) {
+        if (ex.grupo !== anterior) {
+          assert.ok(grupos.indexOf(ex.grupo) < 0, k + ': o grupo "' + ex.grupo + '" aparece duas vezes');
+          grupos.push(ex.grupo); anterior = ex.grupo;
+        }
+      });
     });
   });
+});
+
+test('as células de cromatismo saem como o método pede', function () {
+  function nomes(id, tom, k) {
+    var ex = SC.exercisesFor(tom, k).filter(function (e) { return e.id === id; })[0];
+    assert.ok(ex, k + ': falta o exercício ' + id);
+    return ex.events.filter(function (e) { return !e.rest; }).map(function (e) { return e.name; }).join(' ');
+  }
+  // Cerco em C maior, alvo por alvo: 2-b2-7-1 / 4-b3-2-3 / 6-b6-4-5 / 1-b7-6-7
+  assert.strictEqual(nomes('cerco', 'C', 'jonio'), 'D Db B C F Eb D E A Ab F G C Bb A B');
+  // Aproximação cromática: dois semitons abaixo de cada nota do acorde
+  assert.strictEqual(nomes('cromatico', 'C', 'jonio'), 'Bb B C D Eb E F Gb G A Bb B');
+  // e continua certo com bemóis
+  assert.ok(/^Ab A Bb /.test(nomes('cromatico', 'Bb', 'jonio')), 'em Bb: ' + nomes('cromatico', 'Bb', 'jonio'));
+  // nenhuma grafia estranha em nenhum tom
+  ['C', 'F#', 'Eb', 'B', 'Ab', 'Db'].forEach(function (tom) {
+    ['cerco', 'cromatico'].forEach(function (id) {
+      nomes(id, tom, 'jonio').split(' ').forEach(function (nota) {
+        assert.ok(/^[A-G](#|b)?$/.test(nota), id + ' em ' + tom + ': nota estranha ' + nota);
+      });
+    });
+  });
+});
+
+test('as sequências novas saem nos graus certos', function () {
+  function nomes(id, tom, k) {
+    var ex = SC.exercisesFor(tom, k).filter(function (e) { return e.id === id; })[0];
+    return ex.events.filter(function (e) { return !e.rest; }).map(function (e) { return e.name; }).join(' ');
+  }
+  assert.ok(/^C D G D E A E F B/.test(nomes('seq125', 'C', 'jonio')), '1-2-5: ' + nomes('seq125', 'C', 'jonio'));
+  assert.ok(/^C D F E D E G F/.test(nomes('seq1243', 'C', 'jonio')), '1-2-4-3: ' + nomes('seq1243', 'C', 'jonio'));
+  assert.ok(/^C E D F D F E G/.test(nomes('seq1324', 'C', 'jonio')), '1-3-2-4: ' + nomes('seq1324', 'C', 'jonio'));
+  assert.ok(/^C E G D D F A E/.test(nomes('seq1352', 'C', 'jonio')), '1-3-5-2: ' + nomes('seq1352', 'C', 'jonio'));
+  assert.ok(/^C F D G E A/.test(nomes('quartas', 'C', 'jonio')), 'quartas: ' + nomes('quartas', 'C', 'jonio'));
+  assert.ok(/^C G D A E B/.test(nomes('quintas', 'C', 'jonio')), 'quintas: ' + nomes('quintas', 'C', 'jonio'));
+  assert.ok(/^C E G B D F A C/.test(nomes('arpejos7', 'C', 'jonio')), 'arpejos de 7ª: ' + nomes('arpejos7', 'C', 'jonio'));
+  assert.ok(/^C D E F G D E F G A/.test(nomes('grupos5', 'C', 'jonio')), 'grupos de 5: ' + nomes('grupos5', 'C', 'jonio'));
 });
 
 test('busca acha por nome, por trecho e sem acento', function () {

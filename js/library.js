@@ -367,7 +367,8 @@
     arpUp: 0, arpDown: 0, scaleDown: 0, scaleUp: 0, neighbor: 0, pentDown: 0, pentUp: 0, repeat: 0, charNote: 0,
     turn: 1, enclose: 1, digital: 1, sus2: 1, pentGroup3: 1, arpExtUp: 1, blueSlide: 1, bluePass: 1, chromPass: 1,
     parker: 2, tensionTriad: 2, quartal: 2, superPent: 2, bebopDown: 2, stepToTone: 0,
-    sweepUp: 1, sweepDown: 1, threeNps: 1, slideShift: 1, superSweep: 2
+    sweepUp: 1, sweepDown: 1, threeNps: 1, slideShift: 1, superSweep: 2,
+    digital1243: 1, digital1324: 1, digital1352: 1, arp7grau: 2, quintas: 1
   };
   var LEVEL_IDX = { iniciante: 0, intermediario: 1, avancado: 2 };
 
@@ -378,6 +379,8 @@
     digital: 'célula 1-2-3-5', sus2: 'trifonia sus2 (1-2-5)', pentGroup3: 'pentatônica em grupos de 3', arpExtUp: 'arpejo com a 9ª (estrutura superior)',
     blueSlide: 'blue note: 3ª menor escorregando para a maior', bluePass: 'blue note (b5) de passagem', chromPass: 'passagem cromática',
     parker: 'arpejo circular (Parker)', tensionTriad: 'tríade de tensão', quartal: 'arpejo em quartas', superPent: 'pentatônica superposta',
+    digital1243: 'célula 1-2-4-3', digital1324: 'célula 1-3-2-4', digital1352: 'célula 1-3-5-2',
+    arp7grau: 'arpejo de 7ª nascendo no grau', quintas: 'quintas diatônicas',
     bebopDown: 'escala bebop descendente', stepToTone: 'passo até a nota do acorde',
     sweepUp: 'arpejo varrido subindo (sweep, uma nota por corda)', sweepDown: 'arpejo varrido descendo (sweep)',
     threeNps: 'escala com 3 notas por corda (palhetada econômica/legato)', slideShift: 'slide para trocar de posição',
@@ -400,7 +403,11 @@
       { cells: ['tensionTriad', 'scaleDown', 'stepToTone'], start: 'mid' },
       { cells: ['digital', 'scaleDown', 'chromPass'], start: 'low' },
       { cells: ['arpUp', 'scaleDown', 'chromPass'], start: 'low' },
-      { cells: ['scaleDown', 'arpUp', 'neighbor'], start: 'high' }
+      { cells: ['scaleDown', 'arpUp', 'neighbor'], start: 'high' },
+      { cells: ['digital1243', 'scaleDown', 'chromPass'], start: 'low' },
+      { cells: ['enclose', 'digital1324', 'stepToTone'], start: 'mid' },
+      { cells: ['digital1352', 'enclose'], start: 'low' },
+      { cells: ['arp7grau', 'scaleDown', 'chromPass'], start: 'low' }
     ],
     jazz: [
       { cells: ['arpExtUp', 'superPent'], start: 'low' },
@@ -409,7 +416,10 @@
       { cells: ['sus2', 'sus2', 'scaleDown'], start: 'low' },
       { cells: ['superPent', 'enclose'], start: 'high' },
       { cells: ['arpExtUp', 'scaleDown', 'digital'], start: 'low' },
-      { cells: ['arpUp', 'scaleDown', 'arpUp'], start: 'low' }
+      { cells: ['arpUp', 'scaleDown', 'arpUp'], start: 'low' },
+      { cells: ['arp7grau', 'scaleDown', 'sus2'], start: 'low' },
+      { cells: ['digital1352', 'scaleDown', 'enclose'], start: 'low' },
+      { cells: ['quintas', 'scaleDown'], start: 'low' }
     ],
     blues: [
       { cells: ['blueSlide', 'pentDown', 'repeat'], start: 'mid' },
@@ -423,7 +433,9 @@
       { cells: ['quartal', 'scaleDown'], start: 'low' },
       { cells: ['charNote', 'scaleUp', 'quartal'], start: 'mid' },
       { cells: ['pentGroup3', 'charNote'], start: 'high' },
-      { cells: ['scaleUp', 'charNote', 'scaleDown'], start: 'low' }
+      { cells: ['scaleUp', 'charNote', 'scaleDown'], start: 'low' },
+      { cells: ['quintas', 'charNote'], start: 'low' },
+      { cells: ['digital1324', 'scaleDown', 'charNote'], start: 'mid' }
     ],
     rock: [
       { cells: ['pentGroup3', 'pentDown'], start: 'high' },
@@ -438,11 +450,15 @@
       { cells: ['threeNps', 'slideShift', 'sweepUp'], start: 'low' },
       { cells: ['sweepUp', 'sweepDown', 'enclose'], start: 'low' },
       { cells: ['superSweep', 'sweepDown'], start: 'low' },
-      { cells: ['sweepUp', 'slideShift', 'sweepDown'], start: 'low' }
+      { cells: ['sweepUp', 'slideShift', 'sweepDown'], start: 'low' },
+      { cells: ['arp7grau', 'threeNps'], start: 'low' },
+      { cells: ['digital1352', 'sweepUp'], start: 'low' },
+      { cells: ['quintas', 'threeNps'], start: 'low' }
     ],
     baiao: [
       { cells: ['charNote', 'scaleDown', 'repeat'], start: 'mid' },
       { cells: ['arpUp', 'scaleDown', 'charNote'], start: 'low' },
+      { cells: ['digital1243', 'scaleDown', 'charNote'], start: 'low' },
       { cells: ['repeat', 'neighbor', 'scaleDown'], start: 'high' },
       { cells: ['scaleUp', 'charNote', 'scaleDown'], start: 'low' }
     ]
@@ -626,6 +642,33 @@
     sus2: function (c, last) {
       if (c.scaleNames.length !== 7) return null;
       return [U.stepFrom(c.scale, last.midi, 1), U.stepFrom(c.scale, last.midi, 4)];
+    },
+    // ---- células dos métodos clássicos de padrões (1-2-4-3, 1-3-2-4, 1-3-5-2,
+    // arpejo de 7ª por grau e quintas diatônicas) ----
+    digital1243: function (c, last) {
+      if (c.scaleNames.length !== 7) return null;
+      return [U.stepFrom(c.scale, last.midi, 1), U.stepFrom(c.scale, last.midi, 3), U.stepFrom(c.scale, last.midi, 2)];
+    },
+    digital1324: function (c, last) {
+      if (c.scaleNames.length !== 7) return null;
+      return [U.stepFrom(c.scale, last.midi, 2), U.stepFrom(c.scale, last.midi, 1), U.stepFrom(c.scale, last.midi, 3)];
+    },
+    digital1352: function (c, last) {
+      if (c.scaleNames.length !== 7) return null;
+      return [U.stepFrom(c.scale, last.midi, 2), U.stepFrom(c.scale, last.midi, 4), U.stepFrom(c.scale, last.midi, 1)];
+    },
+    arp7grau: function (c, last) {
+      // 1-3-5-7 nascendo no grau onde a linha está (cada grupo é um acorde do
+      // campo harmônico da escala)
+      if (c.scaleNames.length !== 7) return null;
+      return [U.stepFrom(c.scale, last.midi, 2), U.stepFrom(c.scale, last.midi, 4), U.stepFrom(c.scale, last.midi, 6)];
+    },
+    quintas: function (c, last, rng) {
+      if (c.scaleNames.length !== 7) return null;
+      var dir = rng() < 0.6 ? 1 : -1;
+      var a = U.stepFrom(c.scale, last.midi, dir * 4);
+      var b = U.stepFrom(c.scale, last.midi, dir);
+      return [a, b, U.stepFrom(c.scale, b.midi, dir * 4)];
     },
     tensionTriad: function (c, last) {
       var offs = U.TENSION_ARPEGGIO[c.scaleKey];
@@ -1184,6 +1227,8 @@
     styleList: styleList,
     articulateFor: articulateFor,
     INTERVAL_NAMES: INTERVAL_NAMES,
+    ROTEIROS: ROTEIROS,
+    CELL_LABEL: CELL_LABEL,
     generate: generate
   };
 });

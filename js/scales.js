@@ -175,16 +175,8 @@
     return best;
   }
 
-  function toEvents(idxs, ladder, dur, lastLong) {
-    var onset = 0;
-    var evs = idxs.map(function (ix, i) {
-      var n = ladder[Math.max(0, Math.min(ladder.length - 1, ix))];
-      var d = (lastLong && i === idxs.length - 1) ? Math.max(dur, 1) : dur;
-      var ev = { name: n.name, midi: n.midi, onset: onset, dur: d, triplet: Math.abs(d - 1 / 3) < 1e-6 };
-      onset += d;
-      return ev;
-    });
-    // completa o último compasso com pausa
+  /** Completa o último compasso com pausa, para a partitura fechar certo. */
+  function fecharCompasso(evs) {
     var total = evs.reduce(function (a, e) { return a + e.dur; }, 0);
     var falta = Math.ceil(total / 4 - 1e-6) * 4 - total;
     if (falta > 1e-6) {
@@ -195,6 +187,55 @@
       if (resto > 1e-6) evs.push({ rest: true, dur: resto, onset: t2 });
     }
     return evs;
+  }
+
+  /** Eventos a partir de índices numa "escada" de notas (escala ou arpejo). */
+  function toEvents(idxs, ladder, dur, lastLong) {
+    return toEventsDe(idxs.map(function (ix) {
+      return ladder[Math.max(0, Math.min(ladder.length - 1, ix))];
+    }), dur, lastLong);
+  }
+
+  /** Eventos a partir de notas já resolvidas ({name, midi}) — usado pelos
+      exercícios cromáticos, que saem da escala. */
+  function toEventsDe(notas, dur, lastLong) {
+    var onset = 0;
+    var evs = notas.map(function (n, i) {
+      var d = (lastLong && i === notas.length - 1) ? Math.max(dur, 1) : dur;
+      var ev = { name: n.name, midi: n.midi, onset: onset, dur: d, triplet: Math.abs(d - 1 / 3) < 1e-6 };
+      onset += d;
+      return ev;
+    });
+    return fecharCompasso(evs);
+  }
+
+  // ---- notas fora da escala (cromatismo) ----
+  var LETRAS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+
+  /**
+   * Nome do semitom abaixo de uma nota, grafado como o músico escreveria:
+   * E -> Eb, Eb -> D, F# -> F, F -> E, C -> B.
+   */
+  function semitomAbaixo(nome) {
+    if (nome.indexOf('b') > 0) {
+      var li = LETRAS.indexOf(nome.charAt(0));
+      return LETRAS[(li + 6) % 7];              // Eb -> D, Ab -> G
+    }
+    if (nome.indexOf('#') > 0) return nome.charAt(0);   // F# -> F
+    if (nome === 'F' || nome === 'C') return nome === 'F' ? 'E' : 'B';
+    return nome.charAt(0) + 'b';                // E -> Eb, D -> Db
+  }
+
+  function notaAbaixo(n) { return { name: semitomAbaixo(n.name), midi: n.midi - 1 }; }
+
+  /** Vizinha da escala logo acima / logo abaixo de uma altura. */
+  function escalaAcima(ladder, midi) {
+    for (var i = 0; i < ladder.length; i++) if (ladder[i].midi > midi) return ladder[i];
+    return ladder[ladder.length - 1];
+  }
+  function escalaAbaixo(ladder, midi) {
+    for (var j = ladder.length - 1; j >= 0; j--) if (ladder[j].midi < midi) return ladder[j];
+    return ladder[0];
   }
 
   /** Exercícios prontos para a escala no tom. */
@@ -211,8 +252,11 @@
     var out = [];
     var seq, i, j;
     var G1 = 'A escala e o desenho dela';
+    var G1b = 'Sequências com salto';
+    var G1c = 'Intervalos';
     var G2 = 'Padrões de 4 notas';
     var G3 = 'Arpejo e notas-alvo';
+    var G4 = 'Cromatismo — a linguagem do jazz';
 
     // 1) a escala subindo e descendo
     seq = [];
@@ -261,6 +305,72 @@
       id: 'quatro', grupo: G1, title: 'Quatro notas por grau (1-2-3-4, 2-3-4-5…)',
       dica: 'Semicolcheias: comece em cada grau e toque as quatro notas seguintes da escala.',
       events: toEvents(seq, ladder, 0.25, false)
+    });
+
+    // 5b) grupos de 5 notas
+    seq = [];
+    for (i = 0; i < n; i++) for (j = 0; j < 5; j++) seq.push(s0 + i + j);
+    out.push({
+      id: 'grupos5', grupo: G1, title: 'Grupos de 5 (1-2-3-4-5, 2-3-4-5-6…)',
+      dica: 'Cinco notas por grau. Como 5 não cabe redondo no compasso, o começo do grupo vai andando dentro do tempo — e é justamente isso que tira o sotaque de exercício.',
+      events: toEvents(seq, ladder, 0.25, false)
+    });
+
+    // ---- Sequências com salto ----
+    // 1-2-5, 2-3-6, 3-4-7…
+    seq = [];
+    for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 1); seq.push(s0 + i + 4); }
+    seq.push(s0 + n);
+    out.push({
+      id: 'seq125', grupo: G1b, title: 'Sequência 1-2-5 (2-3-6, 3-4-7…)',
+      dica: 'Dois graus seguidos e um salto de quinta. O salto é o que faz a frase deixar de parecer escala.',
+      events: toEvents(seq, ladder, 1 / 3, true)
+    });
+
+    // 1-2-4-3 em cada grau
+    seq = [];
+    for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 1); seq.push(s0 + i + 3); seq.push(s0 + i + 2); }
+    out.push({
+      id: 'seq1243', grupo: G1b, title: 'Padrão 1-2-4-3 em cada grau',
+      dica: 'Sobe dois graus, pula o terceiro e volta nele. Esse "pula e volta" é uma das células mais usadas no bebop.',
+      events: toEvents(seq, ladder, 0.25, false)
+    });
+
+    // 1-3-2-4 em cada grau
+    seq = [];
+    for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 2); seq.push(s0 + i + 1); seq.push(s0 + i + 3); }
+    out.push({
+      id: 'seq1324', grupo: G1b, title: 'Padrão 1-3-2-4 (2-4-3-5, 3-5-4-6…)',
+      dica: 'Terça, volta um grau, terça de novo: dá um zigue-zague que soa muito melhor do que a escala reta.',
+      events: toEvents(seq, ladder, 0.25, false)
+    });
+
+    // 1-3-5-2 em cada grau
+    seq = [];
+    for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 2); seq.push(s0 + i + 4); seq.push(s0 + i + 1); }
+    out.push({
+      id: 'seq1352', grupo: G1b, title: 'Padrão 1-3-5-2 (2-4-6-3, 3-5-7-4…)',
+      dica: 'Sobe pela tríade e cai no 2º grau. Célula excelente: soa como arpejo, mas termina numa nota de tensão.',
+      events: toEvents(seq, ladder, 0.25, false)
+    });
+
+    // ---- Intervalos ----
+    seq = [];
+    for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 3); }
+    for (i = n - 1; i >= 0; i--) { seq.push(s0 + i + 3); seq.push(s0 + i); }
+    out.push({
+      id: 'quartas', grupo: G1c, title: 'Em quartas (1-4-2-5-3-6…) e a volta',
+      dica: 'Quartas dão aquele som aberto, moderno — a marca do jazz dos anos 60 em diante.',
+      events: toEvents(seq, ladder, 0.5, true)
+    });
+
+    seq = [];
+    for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 4); }
+    for (i = n - 1; i >= 0; i--) { seq.push(s0 + i + 4); seq.push(s0 + i); }
+    out.push({
+      id: 'quintas', grupo: G1c, title: 'Em quintas (1-5-2-6-3-7…) e a volta',
+      dica: 'Salto maior ainda: obriga a mão a atravessar o braço e o ouvido a segurar o desenho da escala.',
+      events: toEvents(seq, ladder, 0.5, true)
     });
 
     // 6) padrão 1-2-3-5 por grau
@@ -316,6 +426,17 @@
       events: toEvents(seq, arp, 0.5, true), ladderName: 'arpejo'
     });
 
+    // 9b) arpejos de 7ª em cada grau: 1-3-5-7, 2-4-6-1, 3-5-7-2…
+    if (n >= 7) {
+      seq = [];
+      for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 2); seq.push(s0 + i + 4); seq.push(s0 + i + 6); }
+      out.push({
+        id: 'arpejos7', grupo: G3, title: 'Arpejos de 7ª em cada grau (1-3-5-7, 2-4-6-1…)',
+        dica: 'Um arpejo de quatro notas nascendo em cada grau da escala. É o exercício que mais aproxima a escala da harmonia: cada grupo é um acorde do campo harmônico.',
+        events: toEvents(seq, ladder, 0.25, false)
+      });
+    }
+
     // 10) escala + arpejo na mesma frase: 1-2-3-4-5-3-1 e 1-2-3-5-7-5-3-1
     if (n >= 7) {
       seq = [0, 1, 2, 3, 4, 2, 0, 0, 1, 2, 4, 6, 4, 2, 0].map(function (k) { return s0 + k; });
@@ -323,6 +444,59 @@
         id: 'escala_arpejo', grupo: G3, title: 'Escala + arpejo (1-2-3-4-5-3-1 → 1-2-3-5-7-5-3-1)',
         dica: 'A primeira metade é escala, a segunda é arpejo: misturar os dois na mesma frase é o que faz o solo soar "falado" em vez de exercício.',
         events: toEvents(seq, ladder, 0.5, true)
+      });
+    }
+
+    // ---- Cromatismo: aproximar e cercar as notas do acorde ----
+    // As notas do acorde na oitava confortável, para servirem de alvo.
+    var alvos = [];
+    ch.tones.forEach(function (nome) {
+      var pc = pcOf(nome);
+      for (var k = 0; k < ladder.length; k++) {
+        if (ladder[k].midi % 12 === pc && ladder[k].midi >= ladder[s0].midi && ladder[k].midi <= ladder[s0].midi + 14) {
+          alvos.push({ name: nome, midi: ladder[k].midi }); break;
+        }
+      }
+      // a nota do acorde pode não estar na escala (raro): calcula pela tônica
+      if (!alvos.length || alvos[alvos.length - 1].name !== nome) {
+        var base = ladder[s0].midi;
+        var m = base + (((pc - base % 12) % 12) + 12) % 12;
+        alvos.push({ name: nome, midi: m });
+      }
+    });
+
+    if (alvos.length >= 3 && scaleKey !== 'cromatica') {
+      // aproximação cromática de baixo: dois semitons antes de cada nota-alvo
+      var aprox = [];
+      alvos.forEach(function (a) {
+        var b1 = notaAbaixo(a);        // meio tom abaixo
+        var b2 = notaAbaixo(b1);       // um tom abaixo
+        aprox.push(b2, b1, a);
+      });
+      out.push({
+        id: 'cromatico', grupo: G4, title: 'Aproximação cromática das notas do acorde',
+        dica: 'Duas notas cromáticas subindo até cada nota do acorde (ex.: D – Eb – E para chegar na 3ª). É assim que se entra numa nota-alvo sem soar "escala".',
+        events: toEventsDe(aprox, 1 / 3, true)
+      });
+
+      // cerco (enclosure): vizinha de cima, cromática, vizinha de baixo, alvo
+      var cerco = [];
+      alvos.forEach(function (a) {
+        var acima = escalaAcima(ladder, a.midi);
+        var passo = acima.midi - a.midi;
+        if (passo >= 2) {
+          // a de cima está a um tom: desce cromaticamente por ela
+          cerco.push(acima, notaAbaixo(acima), escalaAbaixo(ladder, a.midi), a);
+        } else {
+          // a de cima já está a meio tom: o cromatismo vem por baixo
+          var abaixo1 = notaAbaixo(a);
+          cerco.push(acima, abaixo1, escalaAbaixo(ladder, abaixo1.midi), a);
+        }
+      });
+      out.push({
+        id: 'cerco', grupo: G4, title: 'Cerco (enclosure) das notas do acorde',
+        dica: 'Cerca a nota-alvo por cima e por baixo antes de cair nela (ex.: em C, para chegar na 3ª: F – Eb – D – E). É o recurso mais reconhecível do vocabulário bebop.',
+        events: toEventsDe(cerco, 0.25, true)
       });
     }
 
@@ -336,6 +510,16 @@
         events: toEvents(alvo.concat([s0 + n]), ladder, 2, false)
       });
     }
+
+    // Mantém os grupos na ordem pedagógica, independentemente da ordem em que
+    // os exercícios foram montados acima (senão um grupo apareceria duas vezes).
+    var ORDEM = [G1, G1b, G1c, G2, G3, G4];
+    out = out.map(function (ex, i) { return { ex: ex, i: i }; })
+      .sort(function (a, b) {
+        var da = ORDEM.indexOf(a.ex.grupo), db = ORDEM.indexOf(b.ex.grupo);
+        return da === db ? a.i - b.i : da - db;
+      })
+      .map(function (x) { return x.ex; });
 
     out.forEach(function (ex) {
       if (scaleKey === 'cromatica') { ex.chords = []; return; }

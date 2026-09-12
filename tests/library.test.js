@@ -190,5 +190,31 @@ test('estilo intervalado: intervalos certos na escala, sem repetir nota, 2ªs a 
   });
 });
 
+test('as células novas dos métodos de padrões entram nas frases', function () {
+  // 1-2-4-3, 1-3-2-4, 1-3-5-2, arpejo de 7ª por grau e quintas diatônicas
+  var usadas = {};
+  ['bebop', 'jazz', 'modal', 'fusion', 'baiao'].forEach(function (estilo) {
+    lib.ROTEIROS[estilo].forEach(function (r) {
+      r.cells.forEach(function (c) { usadas[c] = true; });
+    });
+  });
+  ['digital1243', 'digital1324', 'digital1352', 'arp7grau', 'quintas'].forEach(function (c) {
+    assert.ok(usadas[c], 'a célula "' + c + '" não está em roteiro nenhum');
+  });
+  // e continuam gerando frases tocáveis nos estilos que as usam
+  ['bebop', 'jazz', 'modal', 'fusion'].forEach(function (estilo) {
+    var frases = lib.generate({ style: estilo, scaleKey: 'dorico', tonic: 'D', level: 'avancado', bars: 2, count: 12 });
+    assert.ok(frases.length >= 8, estilo + ': só ' + frases.length + ' frases');
+    frases.forEach(function (f) {
+      var ns = f.events.filter(function (e) { return !e.rest; });
+      assert.ok(ns.length >= 4, estilo + ': frase curta demais');
+      ns.forEach(function (e) { assert.ok(e.midi >= 40 && e.midi <= 93, estilo + ': nota fora do âmbito (' + e.midi + ')'); });
+      for (var i = 1; i < ns.length; i++) {
+        assert.ok(ns[i].midi !== ns[i - 1].midi, estilo + ': repetiu ' + ns[i].name + ' em "' + f.title + '"');
+      }
+    });
+  });
+});
+
 console.log('\n' + passed + ' teste(s) passaram. (' + sweep.length + ' frases geradas em ' + elapsed + ' ms)');
 if (process.exitCode) console.log('ALGUM TESTE FALHOU.'); else console.log('Todos os testes passaram.');

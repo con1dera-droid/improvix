@@ -712,6 +712,55 @@ Testes: `tests/transcricao.test.js` foi a 14 testes (perfis por densidade,
 a correção manual inteira no navegador — clicar, subir meio tom, marcar como
 corrigida, desfazer, seta do teclado e apagar.
 
+## Padrões clássicos: 21 exercícios por escala e novas células nos fraseados — ✅ (2026-09-12)
+O dono do projeto mandou a lista de padrões que estuda (grupos de 3/4/5,
+padrão quebrado, 1-2-4-3, 1-3-2-4, 1-3-5-2, terças, quartas, quintas, arpejos
+de 7ª, aproximação cromática e cerco/enclosure). Quatro deles já existiam
+(grupos de 3, grupos de 4, 1-2-3-5 e terças); os outros **dez** entraram.
+
+**Biblioteca de Escalas** — de 11 para **21 exercícios** por escala, agora em
+seis blocos: *A escala e o desenho dela* (escala, terças, sequência de 3,
+sequência 1-2-3-2, quatro notas por grau, grupos de 5), *Sequências com salto*
+(1-2-5, 1-2-4-3, 1-3-2-4, 1-3-5-2), *Intervalos* (quartas e quintas, ida e
+volta), *Padrões de 4 notas* (1-2-3-5, o mesmo descendo, e deslocando o
+início), *Arpejo e notas-alvo* (arpejo do acorde, arpejos de 7ª em cada grau,
+escala + arpejo, notas-alvo) e **Cromatismo — a linguagem do jazz**
+(aproximação cromática e cerco das notas do acorde).
+
+Os dois cromáticos saem da escala, então `js/scales.js` ganhou um construtor
+de eventos com notas soltas e a grafia do semitom abaixo (E → Eb, Eb → D,
+F# → F, F → E, C → B). O **cerco** tem duas formas, conforme a vizinha de cima
+esteja a um tom ou a meio tom — exatamente como no método: em C, alvo 1 dá
+D–Db–B–C, alvo 3 dá F–Eb–D–E, alvo 5 dá A–Ab–F–G e alvo 7 dá C–Bb–A–B. Os
+quatro estão travados em teste.
+
+Nas escalas de 5 e 6 notas os exercícios que precisam de 7 graus (arpejos de
+7ª, escala + arpejo) não aparecem — ficam 19. Varredura: 644 combinações de
+escala × tom, todas com compasso fechado, notas dentro do braço e grafia sem
+acidente dobrado.
+
+**Nos fraseados** (a pedido, as mesmas células passaram a gerar frases):
+- `js/phrases.js` (aba Fraseados da análise) ganhou 6 corpos novos —
+  `digital_1243`, `digital_1324`, `digital_1352`, `arpejo_7_graus`,
+  `intervalos_5`, além de `cercos` e `cromatico_alvo` — ligados aos estilos
+  (bebop, jazz, modal, fusion, baião, intervalado), aos níveis e ao seletor
+  "Padrão", que agora tem 1-2-4-3 e 1-3-2-4 já no intermediário.
+- `js/library.js` (Biblioteca de Fraseados) ganhou 5 células novas
+  (`digital1243`, `digital1324`, `digital1352`, `arp7grau`, `quintas`) e 13
+  roteiros novos nos estilos bebop, jazz, modal, fusion e baião.
+
+Dois problemas apareceram nos testes e foram corrigidos: o 1-3-5-2 repetia
+nota ao emendar no grau seguinte (o "2" da célula é o próprio grau seguinte —
+agora pula para o próximo), e as células cromáticas começavam fora do acorde,
+quebrando a regra de o tempo 1 cair numa nota do acorde — foram reescritas
+para sair de uma nota do acorde e cercar a seguinte.
+
+Testes: `tests/escalas.test.js` foi a 10 testes (cada sequência conferida grau
+a grau, os quatro cercos nota a nota, grafia em 6 tons, e os blocos sem se
+repetir na lista) e `tests/library.test.js` a 16 (as células novas estão em
+roteiro e geram frases sem nota repetida e dentro do âmbito).
+`tests/phrases.test.js` continua com 40, agora exercitando os corpos novos.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

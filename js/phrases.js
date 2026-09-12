@@ -524,8 +524,115 @@
       }
     };
   }
+  // ---- células novas (métodos clássicos de padrões) ----
+  // Todas devolvem 6 notas, como as demais.
+
+  /** Fábrica das células de 4 notas aplicadas a partir de um grau. */
+  function celula4(id, passos, label, explica) {
+    return {
+      label: label,
+      motion: 'up',
+      needs: 'heptatonic',
+      build: function (cx, s, dir) {
+        var d = dir < 0 ? -1 : 1;
+        var n = [s];
+        passos.forEach(function (k) { n.push(stepFrom(cx.scale, s.midi, d * k)); });
+        // completa 6 notas continuando o desenho a partir do grau seguinte.
+        // Se o grau seguinte for justamente a nota que acabou de soar (é o que
+        // acontece no 1-3-5-2, que termina no 2º grau), pula para o próximo —
+        // a linha não pode repetir nota.
+        var base = stepFrom(cx.scale, s.midi, d);
+        if (base.midi === n[n.length - 1].midi) base = stepFrom(cx.scale, s.midi, d * 2);
+        n.push(base);
+        var seg = stepFrom(cx.scale, base.midi, d * passos[0]);
+        if (seg.midi === base.midi) seg = stepFrom(cx.scale, base.midi, d);
+        n.push(seg);
+        return n.slice(0, 6);
+      },
+      describe: function (cx, n) {
+        return explica + ' (' + names(n.slice(0, 4)) + '), dentro da escala ' + cx.scaleLabel +
+          ', repetindo a partir do grau seguinte (' + names(n.slice(4, 6)) + ')';
+      }
+    };
+  }
+
+  BODIES.digital_1243 = celula4('1243', [1, 3, 2], 'Padrão 1-2-4-3',
+    'Célula "1-2-4-3": sobe dois graus, pula o terceiro e volta nele');
+  BODIES.digital_1324 = celula4('1324', [2, 1, 3], 'Padrão 1-3-2-4',
+    'Célula "1-3-2-4": terça, volta um grau, terça de novo — o zigue-zague que tira a cara de escala');
+  BODIES.digital_1352 = celula4('1352', [2, 4, 1], 'Padrão 1-3-5-2',
+    'Célula "1-3-5-2": sobe pela tríade e cai no 2º grau, terminando numa nota de tensão');
+
+  /** Arpejos de 7ª nascendo em cada grau: 1-3-5-7, depois 2-4-6-1. */
+  BODIES.arpejo_7_graus = {
+    label: 'Arpejos de 7ª por grau (1-3-5-7, 2-4-6-1)',
+    motion: 'up',
+    needs: 'heptatonic',
+    build: function (cx, s, dir) {
+      var d = dir < 0 ? -1 : 1;
+      var a1 = stepFrom(cx.scale, s.midi, d * 2);
+      var a2 = stepFrom(cx.scale, s.midi, d * 4);
+      var a3 = stepFrom(cx.scale, s.midi, d * 6);
+      var b0 = stepFrom(cx.scale, s.midi, d);
+      var b1 = stepFrom(cx.scale, b0.midi, d * 2);
+      return [s, a1, a2, a3, b0, b1];
+    },
+    describe: function (cx, n) {
+      return 'Arpejo de 7ª a partir de ' + n[0].name + ' (' + names(n.slice(0, 4)) +
+        ') e o arpejo do grau seguinte (' + names(n.slice(4, 6)) + ') — cada grupo é um acorde do campo harmônico';
+    }
+  };
+
+  /** Cerca duas notas do acorde, uma depois da outra (vocabulário bebop). */
+  BODIES.cercos = {
+    label: 'Cerco das notas do acorde (enclosure)',
+    motion: 'up',
+    build: function (cx, s) {
+      // começa NA nota do acorde (tempo 1) e cerca a nota do acorde seguinte
+      var alvo1 = nearestInLadder(cx.arp, s.midi);
+      var alvo2 = stepFrom(cx.arp, alvo1.midi, 1);
+      var acima = stepFrom(cx.scale, alvo2.midi, 1);
+      // Duas formas do cerco, conforme a vizinha de cima esteja a um tom ou a
+      // meio tom — as mesmas do método (ver js/scales.js, exercício "cerco"):
+      //   um tom:   4 – b3 – 2 – 3   (F – Eb – D – E em C)
+      //   meio tom: 2 – b2 – 7 – 1   (D – Db – B – C em C)
+      var c1, abaixo;
+      if ((acima.midi - alvo2.midi) >= 2) {
+        c1 = chromBelow(acima);
+        abaixo = stepFrom(cx.scale, alvo2.midi, -1);
+      } else {
+        c1 = chromBelow(alvo2);
+        abaixo = stepFrom(cx.scale, c1.midi, -1);
+      }
+      var alvo3 = stepFrom(cx.arp, alvo2.midi, 1);
+      return [alvo1, acima, c1, abaixo, alvo2, chromBelow(alvo3)];
+    },
+    describe: function (cx, n) {
+      return 'Sai de ' + n[0].name + ' e cerca ' + n[4].name + ' por cima e por baixo (' + names(n.slice(1, 5)) +
+        ') antes de cair nela — o recurso mais reconhecível do bebop';
+    }
+  };
+
+  /** Duas notas cromáticas subindo até cada nota do acorde. */
+  BODIES.cromatico_alvo = {
+    label: 'Aproximação cromática das notas do acorde',
+    motion: 'up',
+    build: function (cx, s) {
+      // começa NA nota do acorde e sobe cromaticamente até as duas seguintes
+      var alvo1 = nearestInLadder(cx.arp, s.midi);
+      var alvo2 = stepFrom(cx.arp, alvo1.midi, 1);
+      var alvo3 = stepFrom(cx.arp, alvo2.midi, 1);
+      return [alvo1, chromBelow2(alvo2), chromBelow(alvo2), alvo2, chromBelow(alvo3), alvo3];
+    },
+    describe: function (cx, n) {
+      return 'Sai de ' + n[0].name + ' e sobe cromaticamente até ' + n[3].name + ' (' + names(n.slice(1, 4)) +
+        ') e até ' + n[5].name + ' — é assim que se entra numa nota-alvo sem soar escala';
+    }
+  };
+
   BODIES.intervalos_3 = intervalBody(2, 'Terças diatônicas', 'terças');
   BODIES.intervalos_4 = intervalBody(3, 'Quartas diatônicas', 'quartas');
+  BODIES.intervalos_5 = intervalBody(4, 'Quintas diatônicas', 'quintas');
   BODIES.intervalos_6 = intervalBody(5, 'Sextas diatônicas', 'sextas');
 
   // Arpejo "varrido" (sweep): 1-3-5-7 e a 9ª numa passada, voltando pela escala.
@@ -549,20 +656,21 @@
   // Estilos: técnicas preferidas (em ordem) e como a frase é tocada.
   var STYLES = {
     automatico: { label: 'Automático (pela função do acorde)' },
-    bebop: { label: 'Bebop (estilo Parker)', recipes: ['parker', 'bebop_desc', 'guia_3579', 'digital_1235', 'arpejo_escala'], swing: true, art: 'bebop' },
-    jazz: { label: 'Jazz moderno', recipes: ['penta_superposta', 'guia_3579', 'sus2_seq', 'tensao_superior', 'intervalos_4'], swing: true, art: 'jazz' },
+    bebop: { label: 'Bebop (estilo Parker)', recipes: ['parker', 'bebop_desc', 'guia_3579', 'digital_1235', 'arpejo_escala', 'cercos', 'cromatico_alvo', 'digital_1243'], swing: true, art: 'bebop' },
+    jazz: { label: 'Jazz moderno', recipes: ['penta_superposta', 'guia_3579', 'sus2_seq', 'tensao_superior', 'intervalos_4', 'arpejo_7_graus', 'digital_1352', 'cercos'], swing: true, art: 'jazz' },
     blues: { label: 'Blues', forceBlues: true, recipes: ['penta_grupos3', 'penta_desc'], swing: true, art: 'blues' },
-    modal: { label: 'Modal', recipes: ['sus2_seq', 'escala_desc', 'arpejo_escala', 'intervalos_4'], swing: false, art: 'modal' },
+    modal: { label: 'Modal', recipes: ['sus2_seq', 'escala_desc', 'arpejo_escala', 'intervalos_4', 'intervalos_5', 'digital_1324'], swing: false, art: 'modal' },
     rock: { label: 'Rock / pentatônica', forceBlues: true, recipes: ['penta_desc', 'penta_grupos3'], swing: false, art: 'rock' },
-    baiao: { label: 'Baião / nordestino', recipes: ['escala_desc', 'intervalos_3', 'sus2_seq', 'arpejo_escala'], swing: false, art: 'baiao', baiao: true },
-    fusion: { label: 'Fusion (sweep, Gambale)', recipes: ['arpejo_sweep', 'penta_superposta', 'sus2_seq', 'intervalos_4', 'guia_3579'], swing: false, art: 'fusion' },
-    intervalado: { label: 'Intervalado (3ªs, 4ªs, 6ªs)', recipes: ['intervalos_3', 'intervalos_4', 'intervalos_6'], swing: false, art: 'intervalado' }
+    baiao: { label: 'Baião / nordestino', recipes: ['escala_desc', 'intervalos_3', 'sus2_seq', 'arpejo_escala', 'digital_1243'], swing: false, art: 'baiao', baiao: true },
+    fusion: { label: 'Fusion (sweep, Gambale)', recipes: ['arpejo_sweep', 'penta_superposta', 'sus2_seq', 'intervalos_4', 'guia_3579', 'arpejo_7_graus', 'digital_1352'], swing: false, art: 'fusion' },
+    intervalado: { label: 'Intervalado (3ªs, 4ªs, 5ªs, 6ªs)', recipes: ['intervalos_3', 'intervalos_4', 'intervalos_5', 'intervalos_6', 'digital_1324'], swing: false, art: 'intervalado' }
   };
   // Técnicas liberadas em cada nível (as dos estilos entram a partir destes).
   var STYLE_LEVEL = {
     iniciante: ['arpejo_escala', 'escala_desc', 'digital_1235', 'penta_desc', 'penta_grupos3', 'intervalos_3', 'intervalos_4'],
     intermediario: ['arpejo_escala', 'escala_desc', 'digital_1235', 'penta_desc', 'penta_grupos3', 'guia_3579', 'sus2_seq',
-      'intervalos_3', 'intervalos_4', 'intervalos_6', 'arpejo_sweep']
+      'intervalos_3', 'intervalos_4', 'intervalos_5', 'intervalos_6', 'arpejo_sweep',
+      'digital_1243', 'digital_1324', 'cromatico_alvo']
   };
   function styleRecipes(style, level, cat) {
     var st = STYLES[style];
@@ -581,15 +689,17 @@
       blues: ['penta_desc', 'penta_grupos3']
     },
     intermediario: {
-      melodica: ['guia_3579', 'arpejo_escala', 'digital_1235', 'sus2_seq', 'escala_desc'],
+      melodica: ['guia_3579', 'arpejo_escala', 'digital_1235', 'sus2_seq', 'escala_desc', 'digital_1243', 'digital_1324'],
       blues: ['penta_desc', 'penta_grupos3'],
-      conectando: ['guia_3579', 'digital_1235', 'arpejo_escala', 'sus2_seq']
+      conectando: ['guia_3579', 'digital_1235', 'arpejo_escala', 'sus2_seq', 'digital_1243', 'cromatico_alvo']
     },
     avancado: {
-      melodica: ['parker', 'guia_3579', 'penta_superposta', 'bebop_desc', 'digital_1235', 'sus2_seq', 'arpejo_escala'],
+      melodica: ['parker', 'guia_3579', 'penta_superposta', 'bebop_desc', 'digital_1235', 'sus2_seq', 'arpejo_escala',
+        'digital_1352', 'arpejo_7_graus', 'cercos'],
       blues: ['penta_grupos3', 'penta_desc'],
-      conectando: ['guia_3579', 'parker', 'bebop_desc', 'penta_superposta', 'digital_1235', 'sus2_seq', 'simetrico_grupos'],
-      tensao: ['tensao_superior', 'penta_superposta', 'simetrico_grupos', 'tensao_escala', 'parker']
+      conectando: ['guia_3579', 'parker', 'bebop_desc', 'penta_superposta', 'digital_1235', 'sus2_seq', 'simetrico_grupos',
+        'cercos', 'cromatico_alvo', 'digital_1324'],
+      tensao: ['tensao_superior', 'penta_superposta', 'simetrico_grupos', 'tensao_escala', 'parker', 'cromatico_alvo']
     }
   };
 
@@ -597,7 +707,7 @@
   // com o mesmo padrão (como nos livros de padrões de jazz).
   var MOTIF_CHOICES = {
     iniciante: ['arpejo_escala', 'escala_desc', 'digital_1235'],
-    intermediario: ['guia_3579', 'arpejo_escala', 'digital_1235', 'sus2_seq', 'escala_desc'],
+    intermediario: ['guia_3579', 'arpejo_escala', 'digital_1235', 'digital_1243', 'digital_1324', 'sus2_seq', 'escala_desc'],
     avancado: ['parker', 'guia_3579', 'digital_1235', 'bebop_desc', 'penta_superposta', 'sus2_seq', 'arpejo_escala', 'escala_desc']
   };
 
