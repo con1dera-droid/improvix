@@ -28,6 +28,9 @@ const path = require('path');
   console.log('Grupos de exercícios:', await page.$$eval('.esc-grupo', (t) => t.map((x) => x.textContent)));
   console.log('Exercícios:', await page.$$eval('.esc-ex .lib-card-title', (t) => t.map((x) => x.textContent)));
   console.log('Tabs dos exercícios:', await page.$$eval('.esc-ex .tab-block', (t) => t.length));
+  console.log('Linhas de notas:', await page.$$eval('.esc-ex .esc-notas', (n) => n.length),
+    '| exercício 1:', await page.$eval('.esc-ex .esc-notas', (p) => p.textContent.trim()));
+  console.log('Notas sem nome:', await page.$$eval('.esc-ex .esc-nota', (n) => n.filter((x) => !x.textContent.trim()).length));
   console.log('Transporte presente:', await page.$$eval('.transport[data-transport="escala"] .tr-btn', (b) => b.length));
 
   // Busca

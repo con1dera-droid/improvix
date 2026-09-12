@@ -146,6 +146,19 @@
     }) + '</div>';
   }
 
+  /** As notas tocadas, na ordem, separadas por compasso. */
+  function notasHTML(ex) {
+    var linha = '', compasso = -1;
+    ex.events.forEach(function (e) {
+      if (e.rest) return;
+      var c = Math.floor((e.onset + 0.001) / 4);
+      if (compasso < 0) compasso = c;
+      else if (c !== compasso) { linha += '<span class="esc-barra">|</span>'; compasso = c; }
+      linha += '<span class="esc-nota">' + esc(e.name) + '</span>';
+    });
+    return '<p class="esc-notas"><span class="esc-notas-rot">Notas:</span> ' + linha + '</p>';
+  }
+
   function exercicioHTML(ex, i, instrument) {
     var body;
     if (isFretted(instrument)) {
@@ -158,7 +171,7 @@
       '<div class="lib-card-head"><div class="lib-card-title">' + (i + 1) + '. ' + esc(ex.title) + '</div>' +
       '<div class="lib-card-actions"><button class="view-btn" data-act="ouvir-ex" data-i="' + i + '" data-label="🔊 Ouvir">🔊 Ouvir</button></div></div>' +
       '<p class="si-legend">' + esc(ex.dica) + '</p>' +
-      '<div class="lib-card-body">' + body + '</div></div>';
+      '<div class="lib-card-body">' + body + notasHTML(ex) + '</div></div>';
   }
 
   /** Os exercícios, separados por grupo (a escala / padrões de 4 notas / arpejo). */

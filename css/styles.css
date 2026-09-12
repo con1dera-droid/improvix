@@ -664,6 +664,15 @@ select, input[type="text"] {
   margin: 1.1rem 0 0.1rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--border); font-weight: 700;
 }
 .esc-ex .si-legend { margin: 0.3rem 0 0.5rem; }
+.esc-notas { margin: 0.5rem 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.28rem; line-height: 1.9; }
+.esc-notas-rot { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); font-weight: 700; margin-right: 0.15rem; }
+.esc-nota {
+  display: inline-block; min-width: 1.9rem; text-align: center;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.82rem; font-weight: 600; color: var(--text);
+  border: 1px solid var(--border); border-radius: 6px; background: var(--bg-elevated); padding: 0.1rem 0.32rem;
+}
+.esc-barra { color: var(--text-dim); font-weight: 700; padding: 0 0.18rem; }
 .si-chip.si-root { border-color: var(--accent); background: rgba(59, 130, 246, 0.12); }
 
 /* ---------- Transcrição / Treino ---------- */
