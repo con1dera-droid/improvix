@@ -467,6 +467,55 @@ O estilo vai no título da frase e é restaurado nos favoritos/exercícios.
 Testes: `tests/phrases.test.js` (novo teste de estilos) e
 `tests/estilos-fraseados.smoke.js`.
 
+## Biblioteca de Escalas — ✅ Concluída (2026-09-12)
+Item **"📚 Biblioteca de Escalas"** do menu (antes "em breve") agora funciona,
+e é de fato uma biblioteca: **46 escalas** (`js/scales.js` + `js/scales-ui.js`),
+organizadas em 8 famílias — Modos da escala maior (7), Modos da menor melódica
+(7), Modos da menor harmônica (6), Bebop de 8 notas (5), Pentatônicas e blues
+(6), Simétricas (5), Exóticas e sintéticas (6) e Japonesas (4) — com **busca
+por nome sem acento** ("dorico" acha "Dórico", "hungara" acha "Húngara menor").
+
+20 escalas novas entraram em `js/data.js` para isso: blues com 9ª, lócrio 13,
+jônio #5, dórico #11, lídio #9, harmônica maior, húngara menor, dupla
+harmônica, napolitana menor e maior, bebop menor melódica e menor harmônica,
+aumentada, Prometheus, cromática, pentatônica dominante, hirajoshi, kumoi,
+in sen e iwato.
+
+Ao clicar numa escala (e escolher o tom e o instrumento), a tela mostra tudo
+que se precisa saber sobre ela:
+
+- **Fórmula** em graus (`1 2 3 4 5 6 b7`), em **intervalos** brasileiros
+  (`Tôn 2M 3M 4J 5J 6M 7m`) e em **tons e semitons** (`T – T – ST – …`),
+  calculados de `js/data.js` (não podem divergir do motor);
+- as **notas no tom escolhido**, uma etiqueta por grau (grau, intervalo e
+  nota, com a nota característica em destaque), e o **acorde que a escala
+  desenha** com as notas dele (ex.: `C7` `C – E – G – Bb`);
+- o **desenho no braço** (12 casas ou recorte na casa 3/5/7/9/12) para
+  guitarra, violão e baixo, ou no **teclado** para os demais instrumentos,
+  com rótulo em **graus** ou em **notas**;
+- textos: **de onde vem**, **sonoridade**, **o que dá a cara dela**,
+  **notas-alvo (onde descansar)**, **notas a evitar**, **onde usar**,
+  **acordes que combinam** (transpostos para o tom que está na tela) e uma
+  **dica de treino** — para as 46 escalas (`js/scale-info.js`);
+- **6 exercícios prontos** por escala, com tablatura/partitura e áudio com
+  acompanhamento: a escala subindo e descendo, em terças, quatro notas por
+  grau, o arpejo do acorde da escala, o padrão 1-2-3-5 em cada grau e as
+  notas-alvo em notas longas;
+- barra de **metrônomo / andamento / repetir** na própria tela, e atalhos
+  "🎼 Fraseados nesta escala" (abre a Biblioteca de Fraseados já na mesma
+  escala e tom) e "📘 Exercícios de Padrões".
+
+O acorde de cada escala é deduzido da escala (1-3-5-7 nas notas dela, com
+ajuste por `theory.chordNotes` e casos especiais como a cromática, que serve
+em qualquer acorde). A barra de transporte passou a poder ser ligada em telas
+montadas na hora (`window.IL.ui.setupTransportBars()`).
+
+Testes: `tests/escalas.test.js` (6 testes — os grupos cobrem exatamente o
+catálogo, grafia sem acidentes dobrados em 6 tons × 46 escalas, símbolo e
+notas do acorde, os 6 exercícios de cada escala fecham o compasso e ficam
+dentro da tessitura, busca sem acento, ficha de texto completa) e
+`tests/escalas.smoke.js`.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
@@ -487,14 +536,14 @@ ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
 Fora isso, itens documentados como simplificação assumida (não fazem parte
 do escopo cobrado, mas vale registrar): leitura transposta de sax/trompete
 (Etapa 5, parte 1) e Bibliotecas de Escalas/Fraseados de navegação livre
-(`docs/modulos.md`) — a Biblioteca de Fraseados já saiu; falta a de Escalas.
+(`docs/modulos.md`) — as duas Bibliotecas (Fraseados e Escalas) já saíram.
 
 ## Arquivos do projeto
 `index.html`, `css/styles.css`, `js/data.js`, `js/theory.js`, `js/phrases.js`,
-`js/notation.js`, `js/audio.js`, `js/articulation.js`, `js/scale-info.js`, `js/patterns.js`, `js/patterns-ui.js`, `sounds/*.js` (+ `sounds/CREDITOS.md`), `js/lab.js`, `js/lessons.js`, `js/library.js`, `js/app.js`, `js/library-ui.js`,
+`js/notation.js`, `js/audio.js`, `js/articulation.js`, `js/scale-info.js`, `js/patterns.js`, `js/patterns-ui.js`, `js/scales.js`, `js/scales-ui.js`, `sounds/*.js` (+ `sounds/CREDITOS.md`), `js/lab.js`, `js/lessons.js`, `js/library.js`, `js/app.js`, `js/library-ui.js`,
 `js/config.js`, `js/supabaseClient.js`, `js/auth-ui.js`, `sql/schema.sql`,
 `tests/theory.test.js`, `tests/phrases.test.js`, `tests/lab.test.js`,
-`tests/lessons.test.js`, `tests/library.test.js`, `tests/articulation.test.js`, `tests/fusion.smoke.js`, `tests/scaleinfo.test.js`, `tests/scaleinfo.smoke.js`, `tests/som.smoke.js`, `tests/patterns.test.js`, `tests/padroes.smoke.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
+`tests/lessons.test.js`, `tests/library.test.js`, `tests/articulation.test.js`, `tests/fusion.smoke.js`, `tests/scaleinfo.test.js`, `tests/scaleinfo.smoke.js`, `tests/som.smoke.js`, `tests/patterns.test.js`, `tests/padroes.smoke.js`, `tests/escalas.test.js`, `tests/escalas.smoke.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
 `tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`, `tests/etapa5.smoke.js`,
 `tests/etapa5.planos.smoke.js`, `tests/etapa5.laboratorio.smoke.js`,
 `tests/etapa5.aulas.smoke.js`, `tests/fraseados.smoke.js`, `tests/biblioteca.smoke.js`, `tests/screenshot*.js` (dev only),
