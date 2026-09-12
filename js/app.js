@@ -808,6 +808,18 @@
     document.getElementById('input-instrumento').addEventListener('change', function () {
       audio.preload(document.getElementById('input-instrumento').value);
     });
+
+    // Quanta sala (reverberação) entra no som.
+    var amb = document.getElementById('som-ambiencia');
+    if (amb && audio.setAmbience) {
+      amb.value = audio.getAmbience();
+      amb.addEventListener('change', function () {
+        audio.stopAll();
+        resetAudioButtons();
+        audio.setAmbience(amb.value);
+      });
+    }
+
     setTimeout(function () { audio.preload(document.getElementById('input-instrumento').value); }, 1200);
   }
 

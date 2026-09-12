@@ -143,13 +143,45 @@ test('texto da tablatura tem 6 linhas do mesmo tamanho e mostra as técnicas', f
 });
 
 test('samples de som existem para todos os instrumentos (com crédito da licença)', function () {
+  var creditos = fs.readFileSync(path.join(__dirname, '..', 'sounds', 'CREDITOS.md'), 'utf8');
+  assert.ok(/CC BY-SA 3\.0/.test(creditos), 'CREDITOS.md sem a licença dos samples');
+  assert.ok(/MusyngKite/.test(creditos), 'CREDITOS.md sem o nome do banco');
+
   ['guitarra', 'guitarra_drive', 'violao', 'baixo', 'teclado', 'piano_eletrico', 'sax', 'trompete', 'violino', 'flauta'].forEach(function (k) {
     var f = path.join(__dirname, '..', 'sounds', k + '.js');
     assert.ok(fs.existsSync(f), 'falta sounds/' + k + '.js');
-    var head = fs.readFileSync(f, 'utf8').slice(0, 400);
-    assert.ok(/CC BY 3\.0/.test(head) && head.indexOf('IL_SAMPLES') >= 0, k + ': cabeçalho inválido');
+    var txt = fs.readFileSync(f, 'utf8');
+    var head = txt.slice(0, 400);
+    // O cabeçalho tem de dizer de onde veio e sob qual licença (CC BY-SA 3.0
+    // exige o crédito junto do arquivo, não só no CREDITOS.md).
+    assert.ok(/CC BY-SA 3\.0/.test(head), k + ': cabeçalho sem a licença');
+    assert.ok(/MusyngKite/.test(head), k + ': cabeçalho sem a origem dos samples');
+    assert.ok(head.indexOf('IL_SAMPLES') >= 0, k + ': não registra em IL_SAMPLES');
+    assert.ok(/CREDITOS\.md/.test(creditos.indexOf(k) >= 0 ? 'CREDITOS.md' : '', k + ': fora da tabela de créditos'));
+    assert.ok(creditos.indexOf(k + '.js') >= 0, k + ': fora da tabela do CREDITOS.md');
+
+    // Uma nota a cada 2 semitons: nada pode ser transposto mais que meio tom.
+    var notas = (txt.match(/"(\d+)": "data:audio\//g) || []).map(function (m) { return parseInt(m.match(/\d+/)[0], 10); });
+    assert.ok(notas.length >= 20, k + ': só ' + notas.length + ' notas gravadas');
+    notas.sort(function (a, b) { return a - b; });
+    for (var i = 1; i < notas.length; i++) {
+      assert.ok(notas[i] - notas[i - 1] <= 2, k + ': buraco de ' + (notas[i] - notas[i - 1]) + ' semitons entre ' + notas[i - 1] + ' e ' + notas[i]);
+    }
   });
-  assert.ok(fs.existsSync(path.join(__dirname, '..', 'sounds', 'CREDITOS.md')), 'falta sounds/CREDITOS.md');
+});
+
+test('ambiência (reverb) é opcional e vem configurada', function () {
+  var audio = fs.readFileSync(path.join(__dirname, '..', 'js', 'audio.js'), 'utf8');
+  ['sala', 'pouca', 'seco'].forEach(function (m) {
+    assert.ok(new RegExp('\\b' + m + ':').test(audio), 'falta o modo de ambiência ' + m);
+  });
+  assert.ok(/AMBIENCE_MODES/.test(audio), 'audio.js não exporta os modos de ambiência');
+  assert.ok(/createConvolver/.test(audio), 'audio.js não usa ConvolverNode');
+  // o clique do metrônomo não pode passar pela ambiência
+  var click = audio.slice(audio.indexOf('function scheduleClick'));
+  assert.ok(click.indexOf('toOutput') < 0, 'o metrônomo não deve ir para a ambiência');
+  var html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  assert.ok(/id="som-ambiencia"/.test(html), 'falta o seletor de ambiência na tela');
 });
 
 function seq(seed) {

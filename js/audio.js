@@ -2,10 +2,11 @@
  * ImprovisaLab — áudio
  *
  * Dois motores de som, ambos 100% no navegador e sem custo:
- *   - "Realista" (padrão): samples de instrumentos de verdade (FluidR3 GM,
- *     licença CC BY 3.0 — ver sounds/CREDITOS.md), carregados sob demanda a
+ *   - "Realista" (padrão): samples de instrumentos de verdade (MusyngKite,
+ *     licença CC BY-SA 3.0 — ver sounds/CREDITOS.md), carregados sob demanda a
  *     partir de sounds/*.js. Funciona abrindo o index.html direto (file://),
- *     sem servidor, porque os samples vêm como scripts com data-URIs.
+ *     sem servidor, porque os samples vêm como scripts com data-URIs. Uma
+ *     nota a cada 2 semitons: nada é transposto mais que meio tom.
  *   - "Sintetizado": osciladores (o som antigo). Usado também como reserva
  *     se os samples não carregarem.
  *
@@ -93,7 +94,95 @@
     makeup.gain.value = 1.25;
     comp.connect(makeup).connect(ac.destination);
     outBus = comp;
+    revBus = null;
     return comp;
+  }
+
+  // ---------------------------------------------------------------------
+  // Ambiência (reverb)
+  // ---------------------------------------------------------------------
+  // Nota seca, sem nenhuma reverberação, soa sintética mesmo com um sample
+  // bom — falta a sala. Aqui é gerado um impulso curto no próprio navegador
+  // (nada é baixado) e usado num envio paralelo: o som direto continua
+  // inteiro e por cima entra um pouco de cauda. O metrônomo não passa por
+  // aqui de propósito (clique tem que ser seco para o tempo ficar nítido).
+
+  var AMBIENCES = {
+    sala:  { seconds: 1.5, decay: 3.6, pre: 0.014, wet: 1.1 },
+    pouca: { seconds: 0.9, decay: 6.0, pre: 0.008, wet: 0.6 },
+    seco:  null
+  };
+  var ambience = 'sala';
+  try {
+    var savedAmb = root.localStorage && root.localStorage.getItem('il_ambiencia');
+    if (savedAmb && Object.prototype.hasOwnProperty.call(AMBIENCES, savedAmb)) ambience = savedAmb;
+  } catch (e) { /* sem storage */ }
+
+  function setAmbience(mode) {
+    if (!Object.prototype.hasOwnProperty.call(AMBIENCES, mode)) return;
+    ambience = mode;
+    revBus = null;
+    try { root.localStorage && root.localStorage.setItem('il_ambiencia', mode); } catch (e) { /* ignora */ }
+  }
+  function getAmbience() { return ambience; }
+
+  /** Impulso sintético: ruído que decai, com as primeiras reflexões marcadas. */
+  function buildImpulse(ac, cfg) {
+    var n = Math.floor(ac.sampleRate * cfg.seconds);
+    var buf = ac.createBuffer(2, n, ac.sampleRate);
+    var pre = Math.floor(ac.sampleRate * cfg.pre);
+    var seed = 22222;
+    function rnd() { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return (seed / 0x3fffffff) - 1; }
+    for (var c = 0; c < 2; c++) {
+      var d = buf.getChannelData(c);
+      var prev = 0;
+      for (var i = 0; i < n; i++) {
+        if (i < pre) { d[i] = 0; continue; }
+        var env = Math.pow(1 - i / n, cfg.decay);
+        // passa-baixa simples: sala, não chiado
+        prev = prev * 0.55 + rnd() * 0.45;
+        d[i] = prev * env;
+      }
+      [0.011, 0.019, 0.029, 0.041].forEach(function (dt, k) {
+        var ix = pre + Math.floor(ac.sampleRate * dt);
+        if (ix < n) d[ix] += (0.5 - k * 0.09) * (c ? -1 : 1);
+      });
+    }
+    return buf;
+  }
+
+  var revBus = null;
+  /** Entrada do envio de ambiência, ou null quando está no modo seco. */
+  function getReverb(ac) {
+    var cfg = AMBIENCES[ambience];
+    if (!cfg) return null;
+    if (revBus && revBus.context === ac) return revBus;
+    if (!ac.createConvolver) return null;
+    try {
+      var send = ac.createGain();
+      send.gain.value = cfg.wet;
+      var conv = ac.createConvolver();
+      conv.buffer = buildImpulse(ac, cfg);
+      // tira o grave da cauda: baixo e bumbo não devem "lavar" a mistura
+      var hp = ac.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 260;
+      send.connect(conv).connect(hp).connect(getOut(ac));
+      revBus = send;
+      return send;
+    } catch (e) { return null; }
+  }
+
+  /** Liga um nó ao som direto e, se houver, também ao envio de ambiência. */
+  function toOutput(ac, node, wetMul) {
+    node.connect(getOut(ac));
+    var rev = getReverb(ac);
+    if (!rev) return;
+    if (wetMul == null || wetMul === 1) { node.connect(rev); return; }
+    var g = ac.createGain();
+    g.gain.value = wetMul;
+    node.connect(g).connect(rev);
+    activeNodes.push(g);
   }
 
   function midiToFreq(midi) { return 440 * Math.pow(2, (midi - 69) / 12); }
@@ -376,8 +465,10 @@
       var t0 = ac.currentTime + 0.08;
       function timeOf(beat) { return t0 + swung(beat) * spb; }
       var out = getOut(ac);
-      var master = ac.createGain(); master.gain.value = 0.9; master.connect(out);
-      var comp = ac.createGain(); comp.gain.value = useSamples ? 0.4 : 0.3; comp.connect(out);
+      // A melodia vai um pouco mais à frente; o acompanhamento, um pouco mais
+      // ao fundo (mais ambiência). O metrônomo, mais abaixo, continua seco.
+      var master = ac.createGain(); master.gain.value = 0.9; toOutput(ac, master, 1);
+      var comp = ac.createGain(); comp.gain.value = useSamples ? 0.4 : 0.3; toOutput(ac, comp, 1.35);
       activeNodes.push(master, comp);
 
       var noteEvents = events.filter(function (e) { return !e.rest; });
@@ -506,7 +597,10 @@
     stopAll: stopAll,
     setSoundMode: setSoundMode,
     getSoundMode: getSoundMode,
+    setAmbience: setAmbience,
+    getAmbience: getAmbience,
     preload: preload,
-    SOUND_MODES: SOUND_MODES
+    SOUND_MODES: SOUND_MODES,
+    AMBIENCE_MODES: ['sala', 'pouca', 'seco']
   };
 })(typeof window !== 'undefined' ? window : globalThis);
