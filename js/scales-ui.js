@@ -161,6 +161,24 @@
       '<div class="lib-card-body">' + body + '</div></div>';
   }
 
+  /** Os exercícios, separados por grupo (a escala / padrões de 4 notas / arpejo). */
+  function exerciciosHTML(instrument) {
+    var html = '';
+    var grupoAtual = null;
+    state.exercises.forEach(function (ex, i) {
+      if (ex.grupo && ex.grupo !== grupoAtual) {
+        if (grupoAtual !== null) html += '</div>';
+        html += '<h4 class="esc-grupo">' + esc(ex.grupo) + '</h4><div class="lib-lista">';
+        grupoAtual = ex.grupo;
+      } else if (grupoAtual === null) {
+        html += '<div class="lib-lista">';
+        grupoAtual = '';
+      }
+      html += exercicioHTML(ex, i, instrument);
+    });
+    return html + (grupoAtual === null ? '' : '</div>');
+  }
+
   function render() {
     if (!state.key || !data.SCALES[state.key]) { $('esc-conteudo').innerHTML = '<p class="muted-note">Nenhuma escala encontrada com esse nome.</p>'; return; }
     var instrument = $('esc-instrumento').value;
@@ -225,7 +243,9 @@
       '</div>' +
 
       '<h3 class="esc-sub">Exercícios para treinar</h3>' +
-      '<div class="lib-lista">' + state.exercises.map(function (ex, i) { return exercicioHTML(ex, i, instrument); }).join('') + '</div>';
+      '<p class="si-legend">' + state.exercises.length + ' exercícios nesta escala — todos com tablatura/partitura e áudio. ' +
+      'Use o metrônomo aí em cima e comece devagar.</p>' +
+      exerciciosHTML(instrument);
 
     $('esc-conteudo').innerHTML = html;
     if (window.IL.ui.setupTransportBars) window.IL.ui.setupTransportBars();

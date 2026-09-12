@@ -84,6 +84,42 @@ test('exercisesFor devolve exercícios tocáveis', function () {
   });
 });
 
+test('os padrões de sequência saem exatamente como o método pede', function () {
+  function nomes(id, tom, k) {
+    var ex = SC.exercisesFor(tom, k).filter(function (e) { return e.id === id; })[0];
+    assert.ok(ex, k + ': falta o exercício ' + id);
+    return ex.events.filter(function (e) { return !e.rest; }).map(function (e) { return e.name; }).join(' ');
+  }
+  // Em C jônio dá para conferir grau a grau.
+  assert.strictEqual(nomes('seq3', 'C', 'jonio'),
+    'C D E D E F E F G F G A G A B A B C B C D C');
+  assert.strictEqual(nomes('seq1232', 'C', 'jonio'),
+    'C D E D D E F E E F G F F G A G G A B A A B C B B C D C C');
+  assert.strictEqual(nomes('digital', 'C', 'jonio').slice(0, 15), 'C D E G D E F A');
+  assert.strictEqual(nomes('digital_desce', 'C', 'jonio').slice(-15), 'A F E D G E D C');
+  assert.strictEqual(nomes('quatro_desloca', 'C', 'jonio'),
+    'C D E G D E G A E G A C G A C D');
+  assert.strictEqual(nomes('escala_arpejo', 'C', 'jonio'),
+    'C D E F G E C C D E G B G E C');
+  // E continuam corretos em outro tom e em escala menor.
+  assert.strictEqual(nomes('escala_arpejo', 'A', 'dorico'), 'A B C D E C A A B C E G E C A');
+  assert.strictEqual(nomes('quatro_desloca', 'A', 'eolio'), 'A B C E B C E F C E F A E F A B');
+});
+
+test('todo exercício tem grupo e id únicos', function () {
+  ['C', 'Bb'].forEach(function (tom) {
+    ALL.forEach(function (k) {
+      var ids = [];
+      SC.exercisesFor(tom, k).forEach(function (ex) {
+        assert.ok(ex.grupo && ex.grupo.length > 3, k + '/' + ex.id + ': sem grupo');
+        assert.ok(ids.indexOf(ex.id) < 0, k + ': exercício repetido ' + ex.id);
+        ids.push(ex.id);
+      });
+      assert.ok(ids.length >= 10, k + ' em ' + tom + ': só ' + ids.length + ' exercícios');
+    });
+  });
+});
+
 test('busca acha por nome, por trecho e sem acento', function () {
   assert.ok(SC.search('dorico').indexOf('dorico') >= 0);
   assert.ok(SC.search('dórico').indexOf('dorico') >= 0);

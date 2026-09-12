@@ -25,6 +25,7 @@ const path = require('path');
   console.log('Linhas da ficha:', await page.$$eval('.si-rows > div', (d) => d.map((x) => x.textContent.trim())));
   console.log('Cards de explicação:', await page.$$eval('.esc-card-title', (t) => t.map((x) => x.textContent)));
   console.log('Diagrama SVG:', await page.$$eval('.esc-diagrama svg', (s) => s.length));
+  console.log('Grupos de exercícios:', await page.$$eval('.esc-grupo', (t) => t.map((x) => x.textContent)));
   console.log('Exercícios:', await page.$$eval('.esc-ex .lib-card-title', (t) => t.map((x) => x.textContent)));
   console.log('Tabs dos exercícios:', await page.$$eval('.esc-ex .tab-block', (t) => t.length));
   console.log('Transporte presente:', await page.$$eval('.transport[data-transport="escala"] .tr-btn', (b) => b.length));

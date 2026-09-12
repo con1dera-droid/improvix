@@ -656,5 +656,9 @@ select, input[type="text"] {
 .esc-card-title { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim); margin-bottom: 0.3rem; }
 .esc-card p { margin: 0; font-size: 0.9rem; line-height: 1.5; color: var(--text-muted); }
 .esc-sub { font-size: 1rem; margin: 1.2rem 0 0.2rem; color: var(--text); }
+.esc-grupo {
+  font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim);
+  margin: 1.1rem 0 0.1rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--border); font-weight: 700;
+}
 .esc-ex .si-legend { margin: 0.3rem 0 0.5rem; }
 .si-chip.si-root { border-color: var(--accent); background: rgba(59, 130, 246, 0.12); }

@@ -497,10 +497,16 @@ que se precisa saber sobre ela:
   **notas-alvo (onde descansar)**, **notas a evitar**, **onde usar**,
   **acordes que combinam** (transpostos para o tom que está na tela) e uma
   **dica de treino** — para as 46 escalas (`js/scale-info.js`);
-- **6 exercícios prontos** por escala, com tablatura/partitura e áudio com
-  acompanhamento: a escala subindo e descendo, em terças, quatro notas por
-  grau, o arpejo do acorde da escala, o padrão 1-2-3-5 em cada grau e as
-  notas-alvo em notas longas;
+- **11 exercícios prontos** por escala (10 nas de 5 e 6 notas), com
+  tablatura/partitura e áudio com acompanhamento, em três blocos:
+  *A escala e o desenho dela* (a escala subindo e descendo; em terças
+  `1-3-2-4-3-5…` e a volta; sequência de 3 notas `1-2-3, 2-3-4, 3-4-5…` em
+  tercinas; sequência com bordadura `1-2-3-2, 2-3-4-3…`; quatro notas por
+  grau), *Padrões de 4 notas* (o padrão digital `1-2-3-5` em cada grau; o
+  mesmo descendo `5-3-2-1`; e o padrão de 4 notas deslocando o início —
+  `1-2-3-5, 2-3-5-6, 3-5-6-1, 5-6-1-2`) e *Arpejo e notas-alvo* (arpejo do
+  acorde da escala; escala + arpejo na mesma frase,
+  `1-2-3-4-5-3-1 → 1-2-3-5-7-5-3-1`; notas-alvo em notas longas);
 - barra de **metrônomo / andamento / repetir** na própria tela, e atalhos
   "🎼 Fraseados nesta escala" (abre a Biblioteca de Fraseados já na mesma
   escala e tom) e "📘 Exercícios de Padrões".
@@ -510,11 +516,12 @@ ajuste por `theory.chordNotes` e casos especiais como a cromática, que serve
 em qualquer acorde). A barra de transporte passou a poder ser ligada em telas
 montadas na hora (`window.IL.ui.setupTransportBars()`).
 
-Testes: `tests/escalas.test.js` (6 testes — os grupos cobrem exatamente o
+Testes: `tests/escalas.test.js` (8 testes — os grupos cobrem exatamente o
 catálogo, grafia sem acidentes dobrados em 6 tons × 46 escalas, símbolo e
 notas do acorde, os 6 exercícios de cada escala fecham o compasso e ficam
-dentro da tessitura, busca sem acento, ficha de texto completa) e
-`tests/escalas.smoke.js`.
+dentro da tessitura, cada sequência conferida nota a nota contra o que o
+método pede, ids e blocos sem repetição, busca sem acento, ficha de texto
+completa) e `tests/escalas.smoke.js`.
 
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas

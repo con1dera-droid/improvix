@@ -209,38 +209,100 @@
     while (ladder[s0 + n] && ladder[s0 + n].midi > HIGH) s0 -= n;
 
     var out = [];
-    var seq;
+    var seq, i, j;
+    var G1 = 'A escala e o desenho dela';
+    var G2 = 'Padrões de 4 notas';
+    var G3 = 'Arpejo e notas-alvo';
 
     // 1) a escala subindo e descendo
     seq = [];
-    for (var i = 0; i <= n; i++) seq.push(s0 + i);
+    for (i = 0; i <= n; i++) seq.push(s0 + i);
     for (i = n - 1; i >= 0; i--) seq.push(s0 + i);
     out.push({
-      id: 'escala', title: 'A escala subindo e descendo',
+      id: 'escala', grupo: G1, title: 'A escala subindo e descendo',
       dica: 'Toque devagar, com o metrônomo, dizendo o nome (ou o grau) de cada nota.',
       events: toEvents(seq, ladder, 0.5, true)
     });
 
-    // 2) terças (pares)
+    // 2) terças (pares) — 1-3-2-4-3-5… e a volta 7-5-6-4-5-3…
     seq = [];
     for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 2); }
     for (i = n - 1; i >= 0; i--) { seq.push(s0 + i + 2); seq.push(s0 + i); }
     out.push({
-      id: 'tercas', title: 'Em terças (dois graus de cada vez)',
-      dica: 'Cada par salta dois graus da escala: é o exercício que mais ajuda a ouvir o modo.',
+      id: 'tercas', grupo: G1, title: 'Em terças (1-3-2-4-3-5… e a volta)',
+      dica: 'Cada par salta dois graus da escala: é o exercício que mais ajuda a ouvir o modo, e desenvolve a visão intervalar.',
       events: toEvents(seq, ladder, 0.5, true)
     });
 
-    // 3) quatro notas por grau
+    // 3) sequência de 3 notas: 1-2-3, 2-3-4, 3-4-5… (tercinas)
     seq = [];
-    for (i = 0; i < n; i++) for (var j = 0; j < 4; j++) seq.push(s0 + i + j);
+    for (i = 0; i < n; i++) for (j = 0; j < 3; j++) seq.push(s0 + i + j);
+    seq.push(s0 + n);
     out.push({
-      id: 'quatro', title: 'Quatro notas por grau (1-2-3-4, 2-3-4-5…)',
+      id: 'seq3', grupo: G1, title: 'Sequência de 3 notas (1-2-3, 2-3-4, 3-4-5…)',
+      dica: 'Em tercinas: comece em cada grau e toque as três notas seguidas da escala, até fechar a oitava.',
+      events: toEvents(seq, ladder, 1 / 3, true)
+    });
+
+    // 4) sequência com bordadura: 1-2-3-2, 2-3-4-3, 3-4-5-4…
+    seq = [];
+    for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 1); seq.push(s0 + i + 2); seq.push(s0 + i + 1); }
+    seq.push(s0 + n);
+    out.push({
+      id: 'seq1232', grupo: G1, title: 'Sequência 1-2-3-2 (2-3-4-3, 3-4-5-4…)',
+      dica: 'Sobe três graus e volta um: a nota que volta é a bordadura, e é ela que dá o balanço da frase.',
+      events: toEvents(seq, ladder, 0.25, true)
+    });
+
+    // 5) quatro notas por grau
+    seq = [];
+    for (i = 0; i < n; i++) for (j = 0; j < 4; j++) seq.push(s0 + i + j);
+    out.push({
+      id: 'quatro', grupo: G1, title: 'Quatro notas por grau (1-2-3-4, 2-3-4-5…)',
       dica: 'Semicolcheias: comece em cada grau e toque as quatro notas seguintes da escala.',
       events: toEvents(seq, ladder, 0.25, false)
     });
 
-    // 4) arpejo do acorde da escala
+    // 6) padrão 1-2-3-5 por grau
+    if (n >= 5) {
+      seq = [];
+      for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 1); seq.push(s0 + i + 2); seq.push(s0 + i + 4); }
+      out.push({
+        id: 'digital', grupo: G2, title: 'Padrão 1-2-3-5 em cada grau',
+        dica: 'O "padrão digital" clássico do jazz: quatro notas por grau, sempre 1-2-3-5 dentro da escala.',
+        events: toEvents(seq, ladder, 0.5, false)
+      });
+
+      // 7) o mesmo padrão descendo: 5-3-2-1
+      seq = [];
+      for (i = n - 1; i >= 0; i--) { seq.push(s0 + i + 4); seq.push(s0 + i + 2); seq.push(s0 + i + 1); seq.push(s0 + i); }
+      out.push({
+        id: 'digital_desce', grupo: G2, title: 'O mesmo padrão descendo (5-3-2-1)',
+        dica: 'Todo padrão tem que ser estudado nos dois sentidos — descendo é sempre mais difícil, e é o que falta na maioria dos solos.',
+        events: toEvents(seq, ladder, 0.5, false)
+      });
+
+      // 8) padrão de 4 notas deslocando o início:
+      //    1-2-3-5, 2-3-5-6, 3-5-6-1, 5-6-1-2 — uma janela de 4 notas
+      //    correndo pelo desenho 1-2-3-5-6 (em escalas de 5 notas, pela escala toda).
+      var sub = n >= 6 ? [0, 1, 2, 4, 5] : [0, 1, 2, 3, 4];
+      var subNames = sub.map(function (k) { return names[k % n]; });
+      var subLadder = ladderOf(subNames);
+      var b0 = startIndex(subLadder, pcOf(info.tonic));
+      while (subLadder[b0].midi < LOW && b0 + 5 < subLadder.length) b0 += 5;
+      while (subLadder[b0 + 7] && subLadder[b0 + 7].midi > HIGH) b0 -= 5;
+      if (b0 >= 0 && subLadder[b0 + 7]) {
+        seq = [];
+        for (i = 0; i < 4; i++) for (j = 0; j < 4; j++) seq.push(b0 + i + j);
+        out.push({
+          id: 'quatro_desloca', grupo: G2, title: 'Padrão de 4 notas deslocando o início (1-2-3-5, 2-3-5-6, 3-5-6-1…)',
+          dica: 'Mesmo desenho, começando cada vez uma nota adiante. Só com esse deslocamento saem dezenas de frases diferentes.',
+          events: toEvents(seq, subLadder, 0.5, false), ladderName: 'sub'
+        });
+      }
+    }
+
+    // 9) arpejo do acorde da escala
     var ch = chordOf(tonic, scaleKey);
     var arp = ladderOf(ch.tones);
     var a0 = startIndex(arp, pcOf(ch.root));
@@ -249,28 +311,27 @@
     for (i = 0; i <= ch.tones.length; i++) seq.push(a0 + i);
     for (i = ch.tones.length - 1; i >= 0; i--) seq.push(a0 + i);
     out.push({
-      id: 'arpejo', title: 'Arpejo do acorde da escala (' + ch.symbol + ')',
+      id: 'arpejo', grupo: G3, title: 'Arpejo do acorde da escala (' + ch.symbol + ')',
       dica: 'As notas do acorde são os "pontos de descanso": termine suas frases nelas.',
       events: toEvents(seq, arp, 0.5, true), ladderName: 'arpejo'
     });
 
-    // 5) padrão 1-2-3-5 por grau
-    if (n >= 5) {
-      seq = [];
-      for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 1); seq.push(s0 + i + 2); seq.push(s0 + i + 4); }
+    // 10) escala + arpejo na mesma frase: 1-2-3-4-5-3-1 e 1-2-3-5-7-5-3-1
+    if (n >= 7) {
+      seq = [0, 1, 2, 3, 4, 2, 0, 0, 1, 2, 4, 6, 4, 2, 0].map(function (k) { return s0 + k; });
       out.push({
-        id: 'digital', title: 'Padrão 1-2-3-5 em cada grau',
-        dica: 'O "padrão digital" clássico do jazz: quatro notas por grau, sempre 1-2-3-5 dentro da escala.',
-        events: toEvents(seq, ladder, 0.5, false)
+        id: 'escala_arpejo', grupo: G3, title: 'Escala + arpejo (1-2-3-4-5-3-1 → 1-2-3-5-7-5-3-1)',
+        dica: 'A primeira metade é escala, a segunda é arpejo: misturar os dois na mesma frase é o que faz o solo soar "falado" em vez de exercício.',
+        events: toEvents(seq, ladder, 0.5, true)
       });
     }
 
-    // 6) notas-alvo: tônica → 3ª → 5ª → 7ª em notas longas
+    // 11) notas-alvo: tônica → 3ª → 5ª → 7ª em notas longas
     var alvo = [];
     [0, 2, 4, 6].forEach(function (k) { if (k < n) alvo.push(s0 + k); });
     if (alvo.length >= 3) {
       out.push({
-        id: 'alvo', title: 'Notas-alvo em notas longas',
+        id: 'alvo', grupo: G3, title: 'Notas-alvo em notas longas',
         dica: 'Segure cada nota do acorde por um compasso e ouça como ela soa dentro da escala.',
         events: toEvents(alvo.concat([s0 + n]), ladder, 2, false)
       });
