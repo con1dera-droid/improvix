@@ -761,6 +761,19 @@ repetir na lista) e `tests/library.test.js` a 16 (as células novas estão em
 roteiro e geram frases sem nota repetida e dentro do âmbito).
 `tests/phrases.test.js` continua com 40, agora exercitando os corpos novos.
 
+## Notas tocadas embaixo da tablatura — ✅ (2026-09-12)
+Na Biblioteca de Escalas, cada um dos 21 exercícios passou a mostrar, logo
+abaixo da tablatura (ou da partitura, nos instrumentos sem traste), a
+**sequência de notas que está sendo tocada**, uma etiqueta por nota e uma
+barra `|` separando os compassos — ex.: `C D E F G A B C | B A G F E D C`.
+Assim dá para dizer o nome da nota enquanto toca, que é o exercício que a
+própria dica pede ("toque devagar, dizendo o nome de cada nota").
+
+Implementado em `notasHTML()` (`js/scales-ui.js`), a partir dos próprios
+eventos do exercício (pausas ficam de fora), com `.esc-notas` / `.esc-nota` /
+`.esc-barra` em `css/styles.css`. `tests/escalas.smoke.js` confere que as 21
+linhas aparecem, que nenhuma etiqueta sai vazia e o conteúdo da primeira.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
