@@ -57,11 +57,12 @@
   var transport = {
     prog: { metro: false, bpm: 110, loop: false },
     linha: { metro: false, bpm: 100, loop: false },
-    escala: { metro: false, bpm: 88, loop: false }
+    escala: { metro: false, bpm: 88, loop: false },
+    transcricao: { metro: false, bpm: 100, loop: true }
   };
   try {
     var savedTr = JSON.parse(window.localStorage.getItem('il_transport') || 'null');
-    if (savedTr) ['prog', 'linha', 'escala'].forEach(function (k) { if (savedTr[k]) Object.assign(transport[k], savedTr[k]); });
+    if (savedTr) ['prog', 'linha', 'escala', 'transcricao'].forEach(function (k) { if (savedTr[k]) Object.assign(transport[k], savedTr[k]); });
   } catch (e) { /* sem storage */ }
   function saveTransport() { try { window.localStorage.setItem('il_transport', JSON.stringify(transport)); } catch (e) { /* ignora */ } }
   function transportOpts(key) { var t = transport[key]; return { bpm: t.bpm, metronome: t.metro }; }

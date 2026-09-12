@@ -12,6 +12,7 @@ const ESPERADO = [
   ['biblioteca-escalas', '📚 Biblioteca de Escalas'],
   ['biblioteca-fraseados', '🎼 Biblioteca de Fraseados'],
   ['padroes', '📘 Exercícios de Padrões'],
+  ['transcricao', '🎤 Transcrição / Treino'],
   ['laboratorio', '🧪 Laboratório'],
   ['meus-exercicios', '📋 Meus Exercícios'],
   ['config', '⚙ Configurações']
@@ -50,7 +51,8 @@ const ESPERADO = [
   const VIEW = {
     inicio: 'inicio', 'biblioteca-escalas': 'biblioteca-escalas',
     'biblioteca-fraseados': 'biblioteca-fraseados', padroes: 'padroes',
-    laboratorio: 'laboratorio', 'meus-exercicios': 'exercicios', config: 'config'
+    transcricao: 'transcricao', laboratorio: 'laboratorio',
+    'meus-exercicios': 'exercicios', config: 'config'
   };
   for (const [nav, view] of Object.entries(VIEW)) {
     await page.click('.nav-item[data-nav="' + nav + '"]');

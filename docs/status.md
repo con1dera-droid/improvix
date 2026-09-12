@@ -593,6 +593,67 @@ estilo). `tests/etapa4.smoke.js`, `tests/etapa4.e2e.js`,
 `tests/etapa5.aulas.smoke.js` e `tests/fusion.smoke.js` foram ajustados para
 os caminhos novos e continuam passando.
 
+## Transcrição / Treino — ✅ (2026-09-12)
+Item novo do menu, logo abaixo de Exercícios de Padrões: **🎤 Transcrição /
+Treino**. Você põe um áudio de um solo e o sistema escreve as notas, em
+tablatura e partitura, já divididas em seções para treinar. **Roda 100% no
+navegador — o áudio não é enviado para lugar nenhum** e não há servidor nem
+custo envolvido.
+
+**Como o áudio entra**: arquivo (arrastando ou escolhendo: mp3, wav, m4a,
+ogg, flac, mp4) ou **gravação** — do som de uma aba do navegador (Chrome e
+Edge; Safari e Firefox não têm esse recurso) ou do microfone, que também
+serve para gravar o próprio usuário tocando. Áudios de mais de 10 minutos são
+recusados com um aviso, porque o que se estuda é o trecho.
+
+**O caminho**: áudio → 22.050 Hz mono normalizado → rede neural (Basic Pitch,
+do Spotify, Apache 2.0) → notas cruas → `extrairMelodia()` → andamento →
+quantização → seções.
+
+O detector sozinho devolve muita sujeira: harmônicos agudos que ele confunde
+com notas, e o acompanhamento inteiro. O `extrairMelodia()` (em
+`js/transcribe.js`) faz três limpezas, calibradas em gravações reais:
+descarta blocos de acorde (3+ notas atacadas juntas e longas), corta o que
+vem fraco demais para ser a nota tocada, e resolve as sobreposições ficando
+com a mais forte de cada **ataque** — e não de cada intervalo de tempo, senão
+a ressonância da guitarra (que soa mais que o espaço até a próxima nota)
+apagaria metade da linha. Medido num teste controlado (solo escrito nota a
+nota, gerado em áudio e transcrito às cegas): **96% das notas certas** com o
+instrumento sozinho e **82% a 100%** com acompanhamento, contra 4% a 79% sem
+essas limpezas.
+
+Também saem da transcrição: o **andamento** (estimado pelos ataques da
+própria melodia, sem precisar de bateria; dá para escolher na mão quando a
+confiança vier baixa) e o **tom provável**, com o quanto das notas cabe numa
+escala só — quando essa cobertura fica baixa, a tela avisa que ou o solo é
+muito cromático ou o detector se confundiu com a banda.
+
+**Cada seção** traz tablatura (ou partitura, nos instrumentos sem traste), as
+notas escritas, **🔊 Transcrição** (toca a seção com o som do sistema),
+**🎧 Original** (toca aquele mesmo trecho do áudio que você subiu — é assim
+que se confere transcrição) e **⭐ Treinar** (guarda em Meus Exercícios). Uma
+barra de metrônomo / andamento / repetir vale para todas.
+
+**Bibliotecas** (`vendor/`, ~2,6 MB): TensorFlow.js e Basic Pitch, as duas
+Apache 2.0, guardadas no projeto em vez de vir de CDN. O modelo foi embutido
+como JavaScript em base64 porque o formato original precisa de `fetch`, que o
+navegador bloqueia em `file://` — assim o site continua abrindo direto, sem
+servidor. Só são carregadas quando alguém realmente manda um áudio: quem
+nunca abre essa tela não baixa nada disso (o smoke test confere isso).
+
+**Limite conhecido e documentado**: a precisão cai quando solo e
+acompanhamento dividem o mesmo registro (guitarra com piano por cima, banda
+inteira em fusion rápido). O resultado é um rascunho muito bom para corrigir
+de ouvido — que é o próprio exercício —, não uma partitura pronta.
+
+Testes: `tests/transcricao.test.js` (10 testes das partes puras: as três
+limpezas, ressonância que não pode cortar nota, andamento em 4 bpm
+diferentes, quantização sem nota em cima de nota, pausas fechando a linha do
+tempo, fatiamento sem perder nota nem deixar sobra de duas notas, tom e
+grafia com bemóis) e `tests/transcricao.smoke.js`, que sobe um áudio real no
+Chromium, roda o modelo de verdade e confere as seções, a tablatura, os dois
+botões de tocar e a carga sob demanda das bibliotecas.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
@@ -617,10 +678,10 @@ do escopo cobrado, mas vale registrar): leitura transposta de sax/trompete
 
 ## Arquivos do projeto
 `index.html`, `css/styles.css`, `js/data.js`, `js/theory.js`, `js/phrases.js`,
-`js/notation.js`, `js/audio.js`, `js/articulation.js`, `js/scale-info.js`, `js/patterns.js`, `js/patterns-ui.js`, `js/scales.js`, `js/scales-ui.js`, `sounds/*.js` (+ `sounds/CREDITOS.md`), `js/lab.js`, `js/lessons.js`, `js/library.js`, `js/app.js`, `js/library-ui.js`,
+`js/notation.js`, `js/audio.js`, `js/articulation.js`, `js/scale-info.js`, `js/patterns.js`, `js/patterns-ui.js`, `js/scales.js`, `js/scales-ui.js`, `js/transcribe.js`, `js/transcribe-ui.js`, `vendor/*` (+ `vendor/CREDITOS.md`), `sounds/*.js` (+ `sounds/CREDITOS.md`), `js/lab.js`, `js/lessons.js`, `js/library.js`, `js/app.js`, `js/library-ui.js`,
 `js/config.js`, `js/supabaseClient.js`, `js/auth-ui.js`, `sql/schema.sql`,
 `tests/theory.test.js`, `tests/phrases.test.js`, `tests/lab.test.js`,
-`tests/lessons.test.js`, `tests/library.test.js`, `tests/articulation.test.js`, `tests/fusion.smoke.js`, `tests/scaleinfo.test.js`, `tests/scaleinfo.smoke.js`, `tests/som.smoke.js`, `tests/patterns.test.js`, `tests/padroes.smoke.js`, `tests/escalas.test.js`, `tests/escalas.smoke.js`, `tests/ambiencia.smoke.js`, `tests/menu.smoke.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
+`tests/lessons.test.js`, `tests/library.test.js`, `tests/articulation.test.js`, `tests/fusion.smoke.js`, `tests/scaleinfo.test.js`, `tests/scaleinfo.smoke.js`, `tests/som.smoke.js`, `tests/patterns.test.js`, `tests/padroes.smoke.js`, `tests/escalas.test.js`, `tests/escalas.smoke.js`, `tests/ambiencia.smoke.js`, `tests/menu.smoke.js`, `tests/transcricao.test.js`, `tests/transcricao.smoke.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
 `tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`, `tests/etapa5.smoke.js`,
 `tests/etapa5.planos.smoke.js`, `tests/etapa5.laboratorio.smoke.js`,
 `tests/etapa5.aulas.smoke.js`, `tests/fraseados.smoke.js`, `tests/biblioteca.smoke.js`, `tests/screenshot*.js` (dev only),

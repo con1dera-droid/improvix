@@ -25,6 +25,7 @@
       <a href="#" class="nav-item" data-nav="biblioteca-escalas">📚 Biblioteca de Escalas</a>
       <a href="#" class="nav-item" data-nav="biblioteca-fraseados">🎼 Biblioteca de Fraseados</a>
       <a href="#" class="nav-item" data-nav="padroes">📘 Exercícios de Padrões</a>
+      <a href="#" class="nav-item" data-nav="transcricao">🎤 Transcrição / Treino</a>
       <a href="#" class="nav-item" data-nav="laboratorio">🧪 Laboratório <span class="soon">Pro</span></a>
       <a href="#" class="nav-item" data-nav="meus-exercicios">📋 Meus Exercícios</a>
       <a href="#" class="nav-item" data-nav="config">⚙ Configurações</a>
@@ -539,6 +540,74 @@
       </div>
     </div>
 
+    <!-- View: Transcrição / Treino -->
+    <div class="content view" data-view="transcricao" hidden>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-icon">🎤</span>
+          <div>
+            <div class="card-title">Transcrição / Treino</div>
+            <div class="card-subtitle">Ponha um áudio de um solo e o sistema escreve as notas, em tablatura e partitura, já divididas em seções para você treinar. Tudo acontece no seu navegador — o áudio não é enviado para lugar nenhum.</div>
+          </div>
+        </div>
+
+        <div class="tr-fonte">
+          <label class="tr-drop" id="tra-drop">
+            <input type="file" id="tra-arquivo" accept="audio/*,video/mp4,video/quicktime,.mp3,.wav,.m4a,.mp4,.mov,.ogg,.flac" hidden/>
+            <span class="tr-drop-icone">📂</span>
+            <span class="tr-drop-txt"><strong>Escolher um arquivo</strong><small>mp3, wav, m4a, ogg, flac ou mp4 — ou arraste até aqui</small></span>
+          </label>
+          <div class="tr-ou">ou</div>
+          <div class="tr-gravar">
+            <button class="btn-secondary" id="tra-gravar">🎙 Gravar o que está tocando</button>
+            <select id="tra-origem" title="De onde vem o som da gravação">
+              <option value="aba">Som de uma aba do navegador</option>
+              <option value="mic">Microfone</option>
+            </select>
+            <div class="muted-note" id="tra-gravar-nota">Toque o vídeo numa outra aba e grave o trecho do solo. A captura do som da aba funciona no Chrome e no Edge; no Safari e no Firefox, use o microfone.</div>
+          </div>
+        </div>
+
+        <div class="lib-controls tra-controles">
+          <div class="field"><label for="tra-instrumento">Instrumento do solo</label>
+            <select id="tra-instrumento">
+              <option value="guitarra">Guitarra</option>
+              <option value="violao">Violão</option>
+              <option value="baixo">Baixo</option>
+              <option value="teclado">Teclado / Piano</option>
+              <option value="sax">Sax</option>
+              <option value="trompete">Trompete</option>
+              <option value="violino">Violino</option>
+              <option value="flauta">Flauta</option>
+              <option value="voz">Voz</option>
+            </select>
+          </div>
+          <div class="field field-small"><label for="tra-bpm">Andamento</label>
+            <select id="tra-bpm">
+              <option value="auto">Detectar sozinho</option>
+              <option value="60">60</option><option value="70">70</option><option value="80">80</option>
+              <option value="90">90</option><option value="100">100</option><option value="110">110</option>
+              <option value="120">120</option><option value="130">130</option><option value="140">140</option>
+              <option value="152">152</option><option value="160">160</option><option value="180">180</option>
+              <option value="200">200</option><option value="240">240</option>
+            </select>
+          </div>
+          <div class="field field-small"><label for="tra-compassos">Compassos por seção</label>
+            <select id="tra-compassos">
+              <option value="2">2</option><option value="4" selected>4</option><option value="8">8</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="tra-estado" class="tra-estado" hidden>
+          <div class="tra-barra"><div class="tra-barra-fill" id="tra-barra-fill"></div></div>
+          <div class="tra-estado-txt" id="tra-estado-txt"></div>
+        </div>
+
+        <div id="tra-resultado"></div>
+      </div>
+    </div>
+
     <!-- View: Aulas (Etapa 5, parte 4) -->
     <div class="content view" data-view="aulas" hidden>
       <div class="card">
@@ -609,6 +678,8 @@
 <script src="js/library-ui.js"></script>
 <script src="js/patterns-ui.js"></script>
 <script src="js/scales-ui.js"></script>
+<script src="js/transcribe.js"></script>
+<script src="js/transcribe-ui.js"></script>
 
 <!-- Etapa 4: contas de usuário (Supabase). Se js/config.js ainda tiver os
      valores de exemplo, ou se não houver internet, o login fica desativado

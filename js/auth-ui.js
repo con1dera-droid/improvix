@@ -133,6 +133,7 @@
     'biblioteca-fraseados': 'biblioteca-fraseados',
     'biblioteca-fusion': 'biblioteca-fraseados',
     padroes: 'padroes',
+    transcricao: 'transcricao',
     'biblioteca-escalas': 'biblioteca-escalas',
     config: 'config'
   };
@@ -172,6 +173,7 @@
         else if (view === 'laboratorio') renderLaboratorioView();
         else if (view === 'aulas' && window.IL.ui.renderAulasView) window.IL.ui.renderAulasView();
         else if (view === 'padroes' && window.IL.ui.renderPadroesView) window.IL.ui.renderPadroesView();
+        else if (view === 'transcricao' && window.IL.ui.renderTranscricaoView) window.IL.ui.renderTranscricaoView();
         else if (view === 'biblioteca-escalas' && window.IL.ui.renderEscalasView) window.IL.ui.renderEscalasView();
         else if (view === 'biblioteca-fraseados' && window.IL.ui.renderBibliotecaView) {
           window.IL.ui.renderBibliotecaView(item.getAttribute('data-nav') === 'biblioteca-fusion'

@@ -443,6 +443,43 @@
   function timer(fn, ms) { activeTimers.push(setTimeout(fn, Math.max(0, ms))); }
 
   /**
+   * Toca um trecho de um áudio já decodificado — usado pela tela de
+   * Transcrição para ouvir o original de cada seção ao lado da transcrição.
+   * `de` e `ate` em segundos; devolve uma função que interrompe.
+   */
+  function playBuffer(buffer, de, ate, onDone) {
+    var ac = getCtx();
+    var src = ac.createBufferSource();
+    src.buffer = buffer;
+    var g = ac.createGain();
+    g.gain.value = 0.9;
+    src.connect(g).connect(getOut(ac));
+    activeNodes.push(src, g);
+    var inicio = Math.max(0, de || 0);
+    var dur = Math.max(0.05, (ate == null ? buffer.duration : ate) - inicio);
+    var meu = playToken;
+    src.onended = function () { if (meu === playToken && onDone) onDone(); };
+    src.start(ac.currentTime + 0.02, inicio, dur);
+    return function () { try { src.stop(0); } catch (e) { /* já parou */ } };
+  }
+
+  /** Decodifica um File/Blob (mp3, wav, m4a, mp4...) em AudioBuffer. */
+  function decodeFile(file) {
+    var ac = getCtx();
+    return file.arrayBuffer().then(function (bytes) {
+      return new Promise(function (resolve, reject) {
+        var p = ac.decodeAudioData(bytes, resolve, function (err) {
+          reject(new Error('O navegador não conseguiu abrir esse áudio. ' +
+            'Arquivos .mp4 e .m4a dependem do navegador (Chrome e Safari abrem; ' +
+            'Chromium e alguns Firefox não). Tente converter para .mp3 ou .wav.' +
+            (err && err.message ? ' [' + err.message + ']' : '')));
+        });
+        if (p && p.then) p.then(resolve, function () { /* o callback acima já trata */ });
+      });
+    });
+  }
+
+  /**
    * Toca uma frase com ritmo: respeita durações, pausas, tercinas, swing
    * opcional, articulações e dinâmica, com o acompanhamento por baixo.
    * opts: { bpm, swing, humanize, chords: [{beat, beats, root, tones}], onNote(i), onBeat(beat) }
@@ -599,6 +636,9 @@
     getSoundMode: getSoundMode,
     setAmbience: setAmbience,
     getAmbience: getAmbience,
+    playBuffer: playBuffer,
+    decodeFile: decodeFile,
+    getContext: function () { return getCtx(); },
     preload: preload,
     SOUND_MODES: SOUND_MODES,
     AMBIENCE_MODES: ['sala', 'pouca', 'seco']
