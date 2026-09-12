@@ -523,6 +523,42 @@ dentro da tessitura, cada sequência conferida nota a nota contra o que o
 método pede, ids e blocos sem repetição, busca sem acento, ficha de texto
 completa) e `tests/escalas.smoke.js`.
 
+## Som: samples MusyngKite + ambiência — ✅ (2026-09-12)
+O dono do projeto achou que os sons não pareciam o instrumento de verdade.
+Foram comparados quatro bancos gratuitos (FluidR3_GM, MusyngKite, FatBoy e
+GeneralUser GS) tocando a mesma frase no mesmo motor, mais uma versão do
+banco antigo só com ambiência; ele escolheu **MusyngKite + ambiência**.
+
+**Samples** (`sounds/*.js`): banco trocado de FluidR3_GM (de 2008) para
+**MusyngKite**, do mesmo repositório `gleitz/midi-js-soundfonts`, licença
+**CC BY-SA 3.0** — o crédito ficou no cabeçalho de cada arquivo e em
+`sounds/CREDITOS.md`, e o ShareAlike vale só para os arquivos de som, não
+para o código do site. A densidade passou de uma nota a cada 3 semitons para
+uma a cada **2**: nenhuma nota é transposta mais que meio tom (antes chegava
+a um tom e meio, que era o que mais denunciava o sample). São 269 notas
+gravadas no total, contra 159. Tamanho: 4,5 MB → 7,4 MB, ainda carregados só
+quando aquele instrumento toca.
+
+**Ambiência** (`js/audio.js`): nota seca soa sintética mesmo com sample bom —
+falta a sala. Foi criado um envio paralelo com `ConvolverNode` e um impulso
+**gerado no próprio navegador** (nada é baixado, continua funcionando em
+`file://`): o som direto continua inteiro e por cima entra uma cauda curta,
+com passa-alta em 260 Hz para o grave não lavar a mistura. Seletor novo no
+topo, ao lado do de som: **Com sala** (padrão), **Pouca sala** e **Sem sala**,
+guardado no navegador. O acompanhamento recebe 35% mais ambiência que a
+melodia (fica ao fundo) e o clique do metrônomo não passa pela ambiência, de
+propósito, para o tempo não borrar.
+
+Medido no Chromium, cauda 150–350 ms depois do ataque de uma nota curta:
+Com sala −19 dB, Pouca sala −23 dB, Sem sala −96 dB (silêncio).
+
+Testes: `tests/ambiencia.smoke.js` (mede a cauda real na saída nos três modos,
+confere que o convolver é criado e que a escolha é lembrada ao recarregar) e
+2 testes novos em `tests/articulation.test.js` (licença e origem no cabeçalho
+de cada banco, tabela de créditos completa, nenhum buraco maior que 2
+semitons entre as notas gravadas, metrônomo fora da ambiência).
+`tests/som.smoke.js` segue medindo volume saudável nos 8 instrumentos.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
