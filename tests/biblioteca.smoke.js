@@ -31,6 +31,20 @@ const path = require('path');
   await page.waitForTimeout(200);
   console.log('Após "Mais 12 frases":', await page.$$eval('.lib-card', (e) => e.length));
 
+  // "🎲 Gerar frases" tem de trazer frases DIFERENTES a cada clique (a geração
+  // é determinística; sem a rodada, o botão recalculava as mesmas 12).
+  const conteudo = () => page.$$eval('#lib-lista .lib-card', (c) => c.map((x) => x.textContent.replace(/\s+/g, ' ')).join('|'));
+  const vistas = [];
+  for (let i = 0; i < 3; i++) {
+    await page.click('#btn-lib-gerar');
+    await page.waitForTimeout(700);
+    const c = await conteudo();
+    console.log('Gerar frases #' + (i + 1) + ': ' + (await page.$$eval('#lib-lista .lib-card', (e) => e.length)) +
+      ' frases | inédito: ' + (vistas.indexOf(c) < 0));
+    if (vistas.indexOf(c) >= 0) { console.log('FALHA: o botão repetiu um conjunto anterior'); process.exitCode = 1; }
+    vistas.push(c);
+  }
+
   await page.click('.lib-card:first-child button[data-v="tab"]');
   await page.waitForTimeout(80);
   const tab = await page.$eval('.lib-card:first-child .tab-block', (e) => e.textContent.split('\n').length);

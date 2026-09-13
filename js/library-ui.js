@@ -19,7 +19,7 @@
   // liberado para todos (decisão do dono do projeto em 10/09/2026). Para
   // voltar a exigir o plano Pro, basta mudar para false.
   var ADVANCED_FREE = true;
-  var state = { list: [], built: false, playingId: null, userPickedScale: false };
+  var state = { list: [], built: false, playingId: null, userPickedScale: false, rodada: 0 };
 
   // Escalas que mais combinam com cada estilo (aparecem primeiro no seletor).
   var RECOMMENDED = {
@@ -84,7 +84,12 @@
       if (mainInstr) { mainInstr.value = $('lib-instrumento').value; mainInstr.dispatchEvent(new Event('change')); }
       renderList();
     });
-    $('btn-lib-gerar').addEventListener('click', regenerate);
+    // 🎲 = sortear de novo. Sem isto o botão recalculava exatamente as mesmas
+    // 12 frases (a geração é determinística) e parecia que nada acontecia.
+    $('btn-lib-gerar').addEventListener('click', function () {
+      state.rodada = (state.rodada || 0) + 1;
+      regenerate();
+    });
     $('btn-lib-mais').addEventListener('click', morePhrases);
     var link = document.querySelector('#lib-gate-note a[data-nav="config"]');
     if (link) link.addEventListener('click', function (ev) {
@@ -111,6 +116,7 @@
 
   function currentOpts(start) {
     return {
+      rodada: state.rodada || 0,
       interval: $('lib-estilo').value === 'intervalado' ? $('lib-intervalo').value : undefined,
       scaleKey: $('lib-escala').value,
       tonic: $('lib-tom').value,

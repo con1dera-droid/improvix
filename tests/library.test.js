@@ -153,6 +153,30 @@ test('determinística e sem repetição: mesma busca = mesmas frases; 4 páginas
   assert.ok(Object.keys(sigs).length >= 46, 'só ' + Object.keys(sigs).length + ' frases distintas em 48');
 });
 
+test('"Gerar frases" (rodada) traz um conjunto novo, sem perder o determinismo', function () {
+  var o = { scaleKey: 'bebop_dominante', tonic: 'todos', style: 'bebop', level: 'intermediario', bars: 1, count: 12 };
+  function sig(ps) { return ps.map(function (p) { return p.notes.join(); }).join('|'); }
+  var r0 = lib.generate(o);
+  // rodada 0 é a de sempre: nada muda no que já existia
+  assert.strictEqual(sig(lib.generate(Object.assign({}, o, { rodada: 0 }))), sig(r0));
+  // cada rodada nova dá frases diferentes...
+  var vistas = [sig(r0)];
+  for (var r = 1; r <= 4; r++) {
+    var s = sig(lib.generate(Object.assign({}, o, { rodada: r })));
+    assert.ok(vistas.indexOf(s) < 0, 'a rodada ' + r + ' repetiu uma rodada anterior');
+    vistas.push(s);
+  }
+  // ...e continua determinística: a mesma rodada dá sempre a mesma coisa
+  assert.strictEqual(sig(lib.generate(Object.assign({}, o, { rodada: 3 }))), vistas[3]);
+  // e as frases da rodada continuam válidas (nada de compasso torto ou nota fora)
+  lib.generate(Object.assign({}, o, { rodada: 2 })).forEach(function (p) {
+    var fim = 0;
+    p.events.forEach(function (e) { fim = Math.max(fim, e.onset + e.dur); });
+    assert.ok(Math.abs(fim - Math.round(fim / 4) * 4) < 0.01, 'compasso não fecha na rodada 2');
+    assert.ok(p.notes.length >= 4, 'frase curta demais na rodada 2');
+  });
+});
+
 test('grafia do tom escolhe o enarmônico mais simples (ex.: lócrio de C#, não de Db)', function () {
   var ps = lib.generate({ scaleKey: 'locrio', tonic: 'Db', style: 'jazz', level: 'intermediario', count: 1 });
   assert.strictEqual(ps[0].tonic, 'C#');

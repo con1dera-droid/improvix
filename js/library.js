@@ -1090,13 +1090,18 @@
     var level = LEVEL_IDX[opts.level] !== undefined ? opts.level : 'intermediario';
     var bars = opts.bars === 2 ? 2 : 1;
     var start = opts.start || 0;
+    // `rodada` deixa o botão "Gerar frases" dar um conjunto novo a cada clique
+    // sem perder o determinismo: a rodada 0 é sempre a mesma coisa, a rodada 1
+    // também, e assim por diante.
+    var rodada = Math.max(0, Math.floor(opts.rodada || 0));
     var count = opts.count || 12;
     var tries = opts.candidates || 28;
     var out = [];
     var seenSig = {};
     for (var i = start; i < start + count; i++) {
       var tonic = bestSpelling(opts.tonic && opts.tonic !== 'todos' ? opts.tonic : KEYS_CYCLE[i % 12], scaleKey);
-      var seedBase = [scaleKey, opts.tonic || 'todos', style, level, bars, i].join('|');
+      var seedBase = [scaleKey, opts.tonic || 'todos', style, level, bars, i].join('|') +
+        (rodada ? '|r' + rodada : '');
       var c = buildCtx(tonic, scaleKey, style, level);
       if (STYLES[style].intervalic) {
         var ip = intervalPhrase(c, i, level, bars, opts.interval, tonic);
