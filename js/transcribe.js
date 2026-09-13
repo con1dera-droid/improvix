@@ -97,10 +97,13 @@
   // e sem banda. Linha rápida precisa de limiar de ataque alto (senão o
   // acompanhamento entra) e nota mínima curta (senão as semicolcheias somem);
   // linha lenta precisa do contrário. Ver docs/status.md.
+  // `junto` = largura do agrupamento de ataque. Linha rápida precisa de janela
+  // curta (semicolcheia a 150 bpm dá 100 ms); linha lenta aguenta o dobro, e
+  // com isso descarta o acompanhamento que ataca quase junto com o solo.
   var PERFIS = {
-    rapido: { onset: 0.80, frame: 0.40, minLen: 2, piso: 0.40 },
-    lento:  { onset: 0.65, frame: 0.40, minLen: 3, piso: 0.45 },
-    neutro: { onset: 0.50, frame: 0.35, minLen: 4, piso: 0.50 }
+    rapido: { onset: 0.80, frame: 0.40, minLen: 2, piso: 0.40, junto: 0.06 },
+    lento:  { onset: 0.65, frame: 0.50, minLen: 8, piso: 0.45, junto: 0.10 },
+    neutro: { onset: 0.50, frame: 0.35, minLen: 4, piso: 0.50, junto: 0.06 }
   };
   var DENSIDADE_RAPIDO = 7;   // notas por segundo
 
@@ -135,20 +138,53 @@
     var piso = quantil(m.map(function (x) { return x.amplitude; }), 0.75) * (opts.piso == null ? PERFIS.neutro.piso : opts.piso);
     m = m.filter(function (x) { return x.amplitude >= piso; });
 
+    // Monofônica pelo ATAQUE. Quando duas notas atacam juntas, a mais forte
+    // costuma ser a do solo — mas nem sempre: o baixo e a mão esquerda do
+    // piano batem forte. Por isso, se uma das duas estiver MUITO longe do
+    // registro que o solo vinha ocupando (CONT semitons a mais que a outra),
+    // o registro decide no lugar da força. Só desempata quando a diferença é
+    // grande, para não atrapalhar solo com saltos largos de verdade.
     var JUNTO = opts.junto == null ? 0.06 : opts.junto;
-    var out = [];
+    var CONT = opts.cont == null ? 12 : opts.cont;   // 0 desliga
+    var CONT_K = 3;                                  // últimas notas que definem o registro
+    var out = [], ult = [];
+    function lembrar(x) { ult.push(x.pitchMidi); if (ult.length > CONT_K) ult.shift(); }
     m.forEach(function (x) {
       var u = out[out.length - 1];
-      if (!u) { out.push(x); return; }
+      if (!u) { out.push(x); lembrar(x); return; }
       if (x.startTimeSeconds - u.startTimeSeconds < JUNTO) {
         var ganha = x.amplitude > u.amplitude * 1.05 ||
           (Math.abs(x.amplitude - u.amplitude) <= u.amplitude * 0.05 && x.pitchMidi > u.pitchMidi);
-        if (ganha) out[out.length - 1] = x;
+        if (CONT && ult.length >= 2) {
+          var anteriores = ult.slice(0, -1);
+          var ref = mediana(anteriores.length ? anteriores : ult);
+          var dx = Math.abs(x.pitchMidi - ref), du = Math.abs(u.pitchMidi - ref);
+          if (dx + CONT <= du) ganha = true;
+          else if (du + CONT <= dx) ganha = false;
+        }
+        if (ganha) { out[out.length - 1] = x; ult[ult.length - 1] = x.pitchMidi; }
         return;
       }
       u.durationSeconds = Math.min(u.durationSeconds, x.startTimeSeconds - u.startTimeSeconds);
-      out.push(x);
+      out.push(x); lembrar(x);
     });
+
+    // Fora do registro: nota isolada a mais de FORA_DIST semitons da mediana
+    // das vizinhas (janela de FORA_JAN segundos) é quase sempre o baixo ou um
+    // acorde do acompanhamento caindo num buraco da melodia.
+    var FORA_DIST = opts.foraDist == null ? 12 : opts.foraDist;   // 0 desliga
+    var FORA_JAN = 2;
+    if (FORA_DIST) {
+      var meio = FORA_JAN / 2;
+      out = out.filter(function (x) {
+        var viz = out.filter(function (y) {
+          return y !== x && Math.abs(y.startTimeSeconds - x.startTimeSeconds) <= meio;
+        });
+        if (viz.length < 4) return true;
+        var med = mediana(viz.map(function (y) { return y.pitchMidi; }));
+        return Math.abs(x.pitchMidi - med) <= FORA_DIST;
+      });
+    }
     return out;
   }
 
@@ -454,6 +490,38 @@
     return modeloCarregado;
   }
 
+  /** A nota mais grave e a mais aguda de uma linha já extraída. */
+  function registroDe(mel) {
+    if (!mel || !mel.length) return null;
+    var lo = mel[0].pitchMidi, hi = lo;
+    mel.forEach(function (x) { if (x.pitchMidi < lo) lo = x.pitchMidi; if (x.pitchMidi > hi) hi = x.pitchMidi; });
+    return { min: lo, max: hi };
+  }
+
+  /** Só as notas dentro de um registro (inclusive). */
+  function noRegistro(mel, reg) {
+    if (!reg) return mel;
+    return mel.filter(function (x) { return x.pitchMidi >= reg.min && x.pitchMidi <= reg.max; });
+  }
+
+  /**
+   * Da linha de notas até as seções de treino: andamento, grafia, quantização
+   * e fatiamento. Separado de `transcrever` para poder ser refeito na hora
+   * quando o usuário aperta o registro do solo — sem rodar a rede de novo.
+   * `opts`: { bpm, compassos }
+   */
+  function montar(mel, opts) {
+    opts = opts || {};
+    var and = opts.bpm ? { bpm: opts.bpm, confianca: 1 } : estimarAndamento(mel);
+    var evs = paraEventos(mel, and.bpm, { bemol: false });
+    var tom = adivinharTom(evs);
+    if (tom && tom.bemol) evs = paraEventos(mel, and.bpm, { bemol: true });
+    return {
+      bpm: and.bpm, confiancaAndamento: and.confianca, tom: tom,
+      eventos: evs, secoes: fatiar(evs, { compassos: opts.compassos || 4 })
+    };
+  }
+
   /**
    * O caminho completo, no navegador.
    * `opts`: { instrumento, bpm, compassos, onProgresso(0..1, etapa) }
@@ -489,7 +557,7 @@
             perfil.onset, perfil.frame, perfil.minLen, true, lim.max, lim.min, true);
           c = L.addPitchBendsToNoteEvents(contours, c);
           var todas = L.noteFramesToTime(c).sort(function (a, b) { return a.startTimeSeconds - b.startTimeSeconds; });
-          return { todas: todas, mel: extrairMelodia(todas, { piso: perfil.piso }) };
+          return { todas: todas, mel: extrairMelodia(todas, { piso: perfil.piso, junto: perfil.junto }) };
         }
         var primeira = extrairCom(PERFIS.neutro);
         var densidade = densidadeDe(primeira.mel);
@@ -499,22 +567,16 @@
         var mel = r2.mel;
 
         prog(0.96, 'medindo o andamento');
-        var and = opts.bpm ? { bpm: opts.bpm, confianca: 1 } : estimarAndamento(mel);
-        var tom = null;
-        var evs = paraEventos(mel, and.bpm, { bemol: false });
-        tom = adivinharTom(evs);
-        if (tom && tom.bemol) evs = paraEventos(mel, and.bpm, { bemol: true });
-
-        prog(0.99, 'dividindo em seções');
-        var secoes = fatiar(evs, { compassos: opts.compassos || 4 });
+        var m = montar(mel, opts);
         prog(1, 'pronto');
         return {
-          bpm: and.bpm, confiancaAndamento: and.confianca,
-          instrumento: instrumento, tom: tom,
+          bpm: m.bpm, confiancaAndamento: m.confiancaAndamento,
+          instrumento: instrumento, tom: m.tom,
           duracao: audioBuffer.duration,
-          notasCruas: todas.length, notas: evs.length,
+          notasCruas: todas.length, notas: m.eventos.length,
           densidade: densidade, perfil: perfil === PERFIS.rapido ? 'rapido' : 'lento',
-          eventos: evs, secoes: secoes
+          melodia: mel, registro: registroDe(mel),
+          eventos: m.eventos, secoes: m.secoes
         };
       });
     });
@@ -529,6 +591,9 @@
     perfilPara: perfilPara,
     densidadeDe: densidadeDe,
     extrairMelodia: extrairMelodia,
+    registroDe: registroDe,
+    noRegistro: noRegistro,
+    montar: montar,
     estimarAndamento: estimarAndamento,
     paraEventos: paraEventos,
     comPausas: comPausas,

@@ -200,4 +200,69 @@ test('nomeDeMidi grafa com sustenido ou bemol conforme o tom', function () {
   });
 });
 
+test('o baixo que ataca junto com o solo perde para o registro, não para a força', function () {
+  // linha de solo em volta do dó central, e um baixo FORTE atacando junto
+  var mel = [];
+  var alturas = [72, 74, 76, 74, 72, 71, 72, 74, 76, 77];
+  alturas.forEach(function (m, i) {
+    mel.push({ pitchMidi: m, startTimeSeconds: i * 0.25, durationSeconds: 0.2, amplitude: 0.6 });
+    // baixo duas oitavas abaixo, mais forte, atacando 20 ms depois
+    if (i % 2 === 0) mel.push({ pitchMidi: m - 26, startTimeSeconds: i * 0.25 + 0.02, durationSeconds: 0.2, amplitude: 0.95 });
+  });
+  var out = T.extrairMelodia(mel, { piso: 0.4, junto: 0.10 });
+  var graves = out.filter(function (x) { return x.pitchMidi < 60; });
+  assert.strictEqual(graves.length, 0, 'sobrou baixo na linha: ' + graves.map(function (x) { return x.pitchMidi; }).join(' '));
+  assert.ok(out.length >= alturas.length - 1, 'perdeu nota do solo (' + out.length + ' de ' + alturas.length + ')');
+});
+
+test('salto largo de verdade continua na linha', function () {
+  // solo intervalado: saltos de sexta e sétima, sem acompanhamento nenhum
+  var alturas = [60, 69, 62, 71, 64, 72, 65, 74, 67, 76, 69, 77];
+  var mel = alturas.map(function (m, i) {
+    return { pitchMidi: m, startTimeSeconds: i * 0.25, durationSeconds: 0.2, amplitude: 0.7 };
+  });
+  var out = T.extrairMelodia(mel, { piso: 0.4, junto: 0.10 });
+  assert.strictEqual(out.length, alturas.length, 'a limpeza comeu salto legítimo');
+  assert.deepStrictEqual(out.map(function (x) { return x.pitchMidi; }), alturas);
+});
+
+test('nota isolada fora do registro (o baixo num buraco da melodia) sai', function () {
+  var mel = [];
+  [72, 74, 76, 74, 72, 74, 76, 77, 76, 74].forEach(function (m, i) {
+    mel.push({ pitchMidi: m, startTimeSeconds: i * 0.3, durationSeconds: 0.25, amplitude: 0.7 });
+  });
+  // baixo sozinho, no meio, longe de todo mundo — e forte
+  mel.push({ pitchMidi: 45, startTimeSeconds: 1.05, durationSeconds: 0.25, amplitude: 0.9 });
+  mel.sort(function (a, b) { return a.startTimeSeconds - b.startTimeSeconds; });
+  var out = T.extrairMelodia(mel, { piso: 0.4, junto: 0.10 });
+  assert.ok(out.every(function (x) { return x.pitchMidi !== 45; }), 'o baixo ficou na linha');
+  assert.strictEqual(out.length, 10, 'levou nota do solo junto (' + out.length + ')');
+});
+
+test('registroDe e noRegistro apertam a faixa do solo', function () {
+  var mel = [40, 60, 64, 67, 84].map(function (m, i) {
+    return { pitchMidi: m, startTimeSeconds: i * 0.3, durationSeconds: 0.2, amplitude: 0.7 };
+  });
+  assert.deepStrictEqual(T.registroDe(mel), { min: 40, max: 84 });
+  assert.strictEqual(T.registroDe([]), null);
+  var dentro = T.noRegistro(mel, { min: 60, max: 72 });
+  assert.deepStrictEqual(dentro.map(function (x) { return x.pitchMidi; }), [60, 64, 67]);
+  assert.strictEqual(T.noRegistro(mel, null).length, 5, 'sem registro, não filtra nada');
+});
+
+test('montar refaz andamento, grafia e seções a partir da linha', function () {
+  var mel = [];
+  for (var i = 0; i < 24; i++) {
+    mel.push({ pitchMidi: [60, 62, 64, 65, 67, 65, 64, 62][i % 8], startTimeSeconds: i * 0.25,
+      durationSeconds: 0.2, amplitude: 0.7 });
+  }
+  var m = T.montar(mel, { compassos: 2 });
+  assert.ok(m.bpm > 40 && m.bpm < 300, 'bpm estranho: ' + m.bpm);
+  assert.strictEqual(m.eventos.length, 24, 'perdeu nota ao remontar');
+  assert.ok(m.secoes.length >= 1);
+  assert.ok(m.tom && m.tom.cobertura > 0.9, 'devia achar a tonalidade fácil');
+  // com o bpm na mão, é ele que manda
+  assert.strictEqual(T.montar(mel, { bpm: 120, compassos: 4 }).bpm, 120);
+});
+
 console.log('\n' + passed + ' testes ok');

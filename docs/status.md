@@ -774,6 +774,83 @@ eventos do exercício (pausas ficam de fora), com `.esc-notas` / `.esc-nota` /
 `.esc-barra` em `css/styles.css`. `tests/escalas.smoke.js` confere que as 21
 linhas aparecem, que nenhuma etiqueta sai vazia e o conteúdo da primeira.
 
+## Transcrição: 2ª rodada de precisão (90,5 → 93,8 F1) — ✅ (2026-09-13)
+O dono do projeto pediu para melhorar mais a transcrição. Como na rodada
+anterior, nada foi ajustado de ouvido: o **banco de provas com gabarito**
+ganhou **4 casos novos** (10 no total, 4 deles de banda inteira), escolhidos
+para cobrir o que faltava — um solo **intervalado** (saltos de 4ª a 6ª o tempo
+todo, que é justamente o que uma limpeza por "continuidade" pode estragar) e
+um **bossa/MPB médio no sax com piano e baixo no mesmo registro**. O modelo
+roda uma vez por caso e a saída fica guardada em disco (`*_frames.f32`), o que
+permite varrer centenas de variantes de pós-processamento em segundos.
+
+A base de comparação também foi refeita: agora todos os casos passam pela
+atenuação de grave que o site aplica de verdade, então o "antes" da tabela é o
+sistema como estava no ar.
+
+**O que entrou (tudo medido):**
+
+1. **Quem ganha quando duas notas atacam juntas.** Antes era sempre a mais
+   forte — e o baixo e a mão esquerda do piano batem forte. Agora, se uma das
+   duas estiver **12 semitons ou mais longe** do registro que o solo vinha
+   ocupando (mediana das 3 últimas notas), quem decide é o registro. A margem
+   é grande de propósito: solo com salto largo de verdade não é afetado (o
+   caso "intervalado" subiu 91,2 → 98,8, em vez de cair).
+2. **Nota isolada fora do registro sai.** Quando a melodia dá uma respirada, o
+   acompanhamento preenche o buraco. Nota a mais de 12 semitons da mediana das
+   vizinhas (janela de 2 s) é descartada.
+3. **Perfil lento reajustado** agora que as duas limpezas existem: agrupamento
+   de ataque de 60 ms → **100 ms** (a semicolcheia rápida precisa de janela
+   curta, a linha lenta não — e a janela maior derruba o acompanhamento que
+   ataca quase junto), limiar de nota 0,40 → **0,50** e nota mínima 3 → **8**
+   quadros. O perfil rápido foi re-varrido e já estava no ótimo: ficou igual.
+
+| caso | antes | depois |
+|---|---|---|
+| intervalado (saltos), guitarra só | 99,2 | 98,4 |
+| intervalado + banda | 91,2 | **98,8** |
+| bossa média, sax só | 99,4 | 98,9 |
+| bossa média, sax + piano | 60,4 | **70,2** |
+| fusion rápido, guitarra só | 99,6 | 99,6 |
+| fusion rápido + banda e bateria | 81,9 | **89,8** |
+| bebop lento, guitarra só | 96,4 | **98,2** |
+| bebop lento, guitarra + piano | 87,7 | **90,9** |
+| bebop lento, sax só | 98,2 | 98,2 |
+| bebop lento, sax + piano | 91,2 | **94,5** |
+| **média** | **90,5** | **93,8** |
+
+**Controle novo na tela: "Onde está o solo"** (registro). O detector ouve tudo
+o que toca; dizer em que faixa o solo mora resolve a maior parte do que sobra.
+São dois seletores (da nota X até a nota Y), preenchidos com o registro
+detectado, e mexer neles **refaz as seções na hora** — a rede neural já rodou,
+daí para a frente é só filtrar e remontar (medido no navegador: meio segundo).
+Vale +1,7 na média e **+12,6 no pior caso** (bossa com piano: 70,2 → 82,8).
+Para isso, `transcrever()` passou a devolver a linha de notas (`melodia`) e o
+registro detectado, e a parte "andamento → grafia → quantização → seções"
+virou `montar()`, chamada de novo a cada mudança. Botão "↺ soltar" volta ao
+registro cheio; se houver correções manuais feitas, a tela avisa que elas
+foram refeitas do zero porque as seções mudaram.
+
+**Testado e descartado** (fica registrado para não ser tentado de novo):
+supressão de harmônico (8ª/12ª/15ª acima de nota simultânea mais forte): 0,0 —
+a escolha por ataque já resolvia; fusão de fragmentos da mesma altura: −0,9
+(come nota repetida de verdade); piso de amplitude por janela deslizante: 0,0;
+filtro de "voz de cima" (skyline) com distância fixa: ajuda o caso com piano
+(+8) mas destrói solo de âmbito largo (−13), negativo na média; corte
+automático de Otsu na distância abaixo do teto: −5,3, dispara em solo largo,
+que é bimodal por natureza.
+
+**Limite que continua**: quando o acompanhamento toca **as mesmas alturas** do
+solo (piano comping no mesmo registro), não há pós-processamento que separe —
+seria preciso separação de fontes. No caso "bossa + piano", 39 das 64 sobras
+são exatamente isso. É por essa razão que a correção manual existe.
+
+Testes: `tests/transcricao.test.js` foi a **19** (o baixo forte atacando junto
+perde para o registro; salto largo legítimo continua na linha; nota isolada
+fora do registro sai; `registroDe`/`noRegistro`; `montar` refazendo andamento,
+grafia e seções) e `tests/transcricao.smoke.js` passou a exercer o controle de
+registro no navegador (filtra, é instantâneo, o botão soltar volta ao que era).
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

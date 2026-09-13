@@ -105,6 +105,30 @@ const AUDIO = process.argv[2] || path.resolve(__dirname, 'fixtures/solo-teste.wa
   check(await page.$$eval('.tra-secao:first-child .tra-nota', (n) => n.length) === qtd - 1,
     'apagar tira a nota da seção');
 
+  // ---- registro do solo: filtra na hora, sem rodar o detector de novo ----
+  check(await page.$('.tra-registro') !== null, 'a tela mostra o controle de registro do solo');
+  const regAntes = await page.evaluate(() => ({
+    min: Number(document.getElementById('tra-reg-min').value),
+    max: Number(document.getElementById('tra-reg-max').value),
+    notas: Number(document.querySelector('.tra-resumo .n b').textContent)
+  }));
+  console.log('registro detectado:', regAntes);
+  const t1 = Date.now();
+  await page.selectOption('#tra-reg-min', String(regAntes.min + 7));
+  await page.waitForTimeout(500);
+  const msFiltro = Date.now() - t1;
+  const regDepois = await page.evaluate(() => ({
+    notas: Number(document.querySelector('.tra-resumo .n b').textContent),
+    bp: typeof window.BasicPitchLib
+  }));
+  check(regDepois.notas < regAntes.notas, 'apertar o grave tira notas (' + regAntes.notas + ' -> ' + regDepois.notas + ')');
+  check(msFiltro < 4000, 'o filtro é instantâneo (' + msFiltro + ' ms, sem rodar a rede de novo)');
+  check(await page.$('[data-act="reg-solta"]') !== null, 'aparece o botão de soltar o registro');
+  await page.click('[data-act="reg-solta"]');
+  await page.waitForTimeout(500);
+  const soltou = await page.evaluate(() => Number(document.querySelector('.tra-resumo .n b').textContent));
+  check(soltou === regAntes.notas, 'soltar volta ao que era (' + soltou + ')');
+
   // Trocar o instrumento refaz a transcrição. O Teclado é o caso que já
   // quebrou: a faixa dele começa na nota mais grave que o modelo conhece, e o
   // limite de frequência acabava zerando a transcrição inteira (0 notas).

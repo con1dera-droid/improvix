@@ -176,6 +176,7 @@
     state.carregando = true;
     state.selecao = null;
     state.historico = {};
+    state.registro = null;
     pararTudo();
     $('tra-resultado').innerHTML = '';
     estado('preparando', 0.01);
@@ -200,6 +201,64 @@
         state.carregando = false;
         erro(e && e.message ? e.message : String(e));
       });
+  }
+
+  // ---------------- registro do solo ----------------
+  // O detector ouve tudo o que toca. Quando há banda, o baixo e a mão esquerda
+  // do piano entram na linha. Dizer onde o solo mora resolve boa parte disso —
+  // e é instantâneo: a rede neural já rodou, aqui é só filtrar e remontar.
+
+  function nomeComOitava(m) {
+    var bemol = !!(state.resultado && state.resultado.tom && state.resultado.tom.bemol);
+    return T.nomeDeMidi(m, bemol) + (Math.floor(m / 12) - 1);
+  }
+
+  function opcoesNota(sel, de, ate) {
+    var o = '';
+    for (var m = de; m <= ate; m++) {
+      o += '<option value="' + m + '"' + (m === sel ? ' selected' : '') + '>' + esc(nomeComOitava(m)) + '</option>';
+    }
+    return o;
+  }
+
+  function registroHTML() {
+    var r = state.resultado;
+    if (!r || !r.melodia || !r.melodia.length) return '';
+    var faixa = T.FAIXA[$('tra-instrumento').value] || T.FAIXA.guitarra;
+    var reg = state.registro || r.registro;
+    var cheio = !state.registro;
+    return '<div class="tra-registro">' +
+      '<div class="tra-registro-tit">Onde está o solo</div>' +
+      '<label>da <select id="tra-reg-min">' + opcoesNota(reg.min, faixa[0], faixa[1]) + '</select></label>' +
+      '<label>até <select id="tra-reg-max">' + opcoesNota(reg.max, faixa[0], faixa[1]) + '</select></label>' +
+      (cheio ? '' : '<button class="view-btn" data-act="reg-solta">↺ soltar</button>') +
+      '<small>Aperte a faixa quando o baixo ou o piano entrarem na transcrição: ' +
+      'nota fora daí some na hora, sem ouvir o áudio de novo.</small>' +
+      '</div>';
+  }
+
+  function aplicarRegistro(min, max, solto) {
+    var r = state.resultado;
+    if (!r || !r.melodia) return;
+    if (min > max) { var t = min; min = max; max = t; }
+    var corrigidas = 0;
+    r.secoes.forEach(function (s) {
+      s.eventos.forEach(function (e) { if (e.corrigida) corrigidas++; });
+    });
+    state.registro = solto ? null : { min: min, max: max };
+    var mel = T.noRegistro(r.melodia, state.registro);
+    if (!mel.length) { alertaInline('Nenhuma nota sobrou nessa faixa.'); state.registro = null; render(); return; }
+    var bpmSel = $('tra-bpm').value;
+    var m = T.montar(mel, {
+      bpm: bpmSel === 'auto' ? 0 : Number(bpmSel),
+      compassos: Number($('tra-compassos').value) || 4
+    });
+    r.bpm = m.bpm; r.confiancaAndamento = m.confiancaAndamento; r.tom = m.tom;
+    r.eventos = m.eventos; r.secoes = m.secoes; r.notas = m.eventos.length;
+    state.selecao = null; state.historico = {};
+    pararTudo();
+    render();
+    if (corrigidas) alertaInline('As ' + corrigidas + ' correções manuais foram refeitas do zero, porque as seções mudaram.');
   }
 
   // ---------------- desenho ----------------
@@ -285,7 +344,7 @@
     var html =
       '<div class="tra-cabeca"><h3 class="esc-sub">' + esc(state.nomeArquivo) + '</h3>' +
       '<span class="lib-badge">' + r.duracao.toFixed(1) + ' s de áudio</span></div>' +
-      resumo + aviso +
+      resumo + registroHTML() + aviso +
       '<div class="transport" data-transport="transcricao">' +
       '<button type="button" class="tr-btn tr-metro" data-act="metro" title="Metrônomo" aria-pressed="false">⏱</button>' +
       '<button type="button" class="tr-btn" data-act="menos" title="Mais devagar">−</button>' +
@@ -299,6 +358,12 @@
       '</div>';
 
     $('tra-resultado').innerHTML = html;
+    ['tra-reg-min', 'tra-reg-max'].forEach(function (id) {
+      var el = $(id);
+      if (el) el.addEventListener('change', function () {
+        aplicarRegistro(Number($('tra-reg-min').value), Number($('tra-reg-max').value));
+      });
+    });
     if (window.IL.ui.setupTransportBars) window.IL.ui.setupTransportBars();
     // A barra tem de nascer no andamento desta transcrição (detectado ou
     // escolhido) — senão ela toca a frase no bpm da última vez que foi usada.
@@ -470,6 +535,11 @@
     var act = b.getAttribute('data-act');
     var i = Number(b.getAttribute('data-i'));
     var s = state.resultado.secoes[i];
+    if (act === 'reg-solta') {
+      var cheio = state.resultado.registro;
+      aplicarRegistro(cheio.min, cheio.max, true);
+      return;
+    }
     if (act === 'ouvir' && s) tocarSecao(b, s);
     else if (act === 'original' && s) tocarOriginal(b, s);
     else if (act === 'exercicio' && s) salvarExercicio(s);
