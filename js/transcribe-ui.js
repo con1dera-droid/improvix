@@ -384,7 +384,7 @@
 
   function opts() {
     var t = window.IL.ui.transportOpts ? window.IL.ui.transportOpts('transcricao') : { bpm: state.resultado.bpm };
-    return { bpm: t.bpm || state.resultado.bpm, metronome: t.metronome, humanize: false };
+    return { bpm: t.bpm || state.resultado.bpm, metronome: t.metronome, loop: t.loop, humanize: false };
   }
 
   function tocarSecao(btn, s) {
@@ -397,15 +397,10 @@
     btn.classList.add('playing');
     btn.textContent = '⏸ Parar';
     var o = opts();
-    function toca() {
-      audio.playEvents(prep.events, instrument, o, function () {
-        if (state.tocando !== tag) return;
-        var tr = window.IL.ui.transportOpts ? window.IL.ui.transportLoop && window.IL.ui.transportLoop('transcricao') : false;
-        if (tr && btn.classList.contains('playing')) { toca(); return; }
-        pararTudo();
-      });
-    }
-    toca();
+    // o "repetir" da barra é feito dentro do motor de áudio, sem buraco
+    audio.playEvents(prep.events, instrument, o, function () {
+      if (state.tocando === tag) pararTudo();
+    });
   }
 
   function tocarOriginal(btn, s) {

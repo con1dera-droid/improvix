@@ -53,7 +53,9 @@
   var ctx = null;
   var activeNodes = [];
   var activeTimers = [];
+  var activeIntervals = [];
   var playToken = 0;
+  var laco = null;            // estado do "repetir" da reprodução atual
 
   var SOUND_MODES = ['real', 'drive', 'synth'];
   var soundMode = 'real';
@@ -431,6 +433,7 @@
 
   function stopAll() {
     playToken++;
+    laco = null;
     activeNodes.forEach(function (n) {
       try { n.stop && n.stop(0); } catch (e) { /* já parado */ }
       try { n.disconnect(); } catch (e) { /* ignora */ }
@@ -438,9 +441,24 @@
     activeNodes = [];
     activeTimers.forEach(function (t) { clearTimeout(t); });
     activeTimers = [];
+    activeIntervals.forEach(function (i) { clearInterval(i); });
+    activeIntervals = [];
   }
 
-  function timer(fn, ms) { activeTimers.push(setTimeout(fn, Math.max(0, ms))); }
+  function timer(fn, ms) {
+    var id = setTimeout(function () {
+      var i = activeTimers.indexOf(id);
+      if (i >= 0) activeTimers.splice(i, 1);
+      fn();
+    }, Math.max(0, ms));
+    activeTimers.push(id);
+  }
+
+  /**
+   * Liga/desliga o "repetir" no meio da reprodução. Desligar não corta o som:
+   * o que já foi agendado toca até o fim do ciclo, e aí para.
+   */
+  function setLoop(ligado) { if (laco) laco.ativo = !!ligado; }
 
   /**
    * Toca um trecho de um áudio já decodificado — usado pela tela de
@@ -500,7 +518,6 @@
         return Math.abs(f - 0.5) < 1e-6 ? b + 0.62 : beat;
       }
       var t0 = ac.currentTime + 0.08;
-      function timeOf(beat) { return t0 + swung(beat) * spb; }
       var out = getOut(ac);
       // A melodia vai um pouco mais à frente; o acompanhamento, um pouco mais
       // ao fundo (mais ambiência). O metrônomo, mais abaixo, continua seco.
@@ -511,27 +528,80 @@
       var noteEvents = events.filter(function (e) { return !e.rest; });
       var realized = notation.realizeForInstrument(noteEvents.map(function (e) { return e.name; }), instrument,
         noteEvents.map(function (e) { return e.midi; }));
-      var voices = buildVoices(noteEvents, realized.map(function (r) { return r.midi; }), timeOf, spb, opts);
+      var midis = realized.map(function (r) { return r.midi; });
       var timbre = TIMBRES[instrument] || TIMBRES.teclado;
-      voices.forEach(function (v) {
-        if (useSamples) voiceSample(ac, set, v, master); else voiceSynth(ac, timbre, v, master);
-      });
-      if (opts.onNote) noteEvents.forEach(function (e, i) { timer(function () { opts.onNote(i); }, (timeOf(e.onset) - ac.currentTime) * 1000); });
 
       var end = 0;
       events.forEach(function (e) { end = Math.max(end, e.onset + e.dur); });
-      (opts.chords || []).forEach(function (ch, ci) {
-        var st = t0 + ch.beat * spb;
-        var dur = (ch.beats || 4) * spb * 0.97;
-        playChord(ac, ch, st, dur, comp, useSamples);
-        if (opts.onChord) timer(function () { opts.onChord(ci); }, (st - ac.currentTime) * 1000);
-      });
-      // metrônomo: um clique por tempo, mais forte no tempo 1 de cada compasso
-      if (opts.metronome) {
-        var bpb = opts.beatsPerBar || 4;
-        for (var b = 0; b < Math.ceil(end - 1e-6); b++) scheduleClick(ac, t0 + b * spb, b % bpb === 0, out);
+      var bpb = opts.beatsPerBar || 4;
+      // O ciclo do laço fecha no compasso: é o que faz a repetição cair no
+      // tempo certo em vez de emendar no meio de um compasso.
+      var cicloBeats = Math.max(bpb, Math.ceil((end - 1e-6) / bpb) * bpb);
+      var ciclo = cicloBeats * spb;
+
+      var passadas = [];   // { fim, nos } de cada volta, para liberar depois
+
+      /** Agenda uma passada inteira (notas, acordes, cliques e avisos). */
+      function agendarPassada(n) {
+        var base = t0 + n * ciclo;
+        var antes = activeNodes.length;
+        function timeOf(beat) { return base + swung(beat) * spb; }
+        var voices = buildVoices(noteEvents, midis, timeOf, spb, opts);
+        voices.forEach(function (v) {
+          if (useSamples) voiceSample(ac, set, v, master); else voiceSynth(ac, timbre, v, master);
+        });
+        if (opts.onNote) noteEvents.forEach(function (e, i) {
+          timer(function () { opts.onNote(i); }, (timeOf(e.onset) - ac.currentTime) * 1000);
+        });
+        (opts.chords || []).forEach(function (ch, ci) {
+          var st = base + ch.beat * spb;
+          playChord(ac, ch, st, (ch.beats || 4) * spb * 0.97, comp, useSamples);
+          if (opts.onChord) timer(function () { opts.onChord(ci); }, (st - ac.currentTime) * 1000);
+        });
+        if (opts.metronome) {
+          for (var b = 0; b < cicloBeats; b++) scheduleClick(ac, base + b * spb, b % bpb === 0, out);
+        }
+        passadas.push({ fim: base + ciclo + 1, nos: activeNodes.slice(antes) });
       }
-      if (onDone) timer(onDone, (timeOf(end) - ac.currentTime) * 1000 + 250);
+
+      agendarPassada(0);
+
+      // O laço é agendado ADIANTADO, no relógio do áudio: a passada seguinte
+      // já está marcada antes de a atual acabar, então não existe buraco entre
+      // uma volta e outra — toca como um ciclo contínuo. (Antes, a repetição
+      // só recomeçava depois de o fim chegar, e dava a pausinha.)
+      var ADIANTE = 1.5;                 // segundos agendados à frente
+      var proxima = 1, fimAgendado = t0 + ciclo, avisou = false;
+      laco = { ativo: !!opts.loop };
+      var iv = setInterval(function () {
+        if (token !== playToken) { clearInterval(iv); return; }
+        var agora = ac.currentTime;
+        if (laco.ativo) {
+          while (t0 + proxima * ciclo < agora + ADIANTE) {
+            agendarPassada(proxima++);
+            fimAgendado = t0 + proxima * ciclo;
+          }
+        } else if (!avisou && agora >= fimAgendado + 0.05) {
+          avisou = true;
+          clearInterval(iv);
+          var i = activeIntervals.indexOf(iv);
+          if (i >= 0) activeIntervals.splice(i, 1);
+          if (onDone) onDone();
+          return;
+        }
+        // Limpeza: solta os nós das passadas que já terminaram, senão uma
+        // repetição longa vai acumulando osciladores em memória.
+        var soltou = false;
+        while (passadas.length > 1 && passadas[0].fim < agora) {
+          passadas.shift().nos.forEach(function (n) {
+            n._ilFora = true; soltou = true;
+            try { n.stop && n.stop(0); } catch (e) { /* já parou */ }
+            try { n.disconnect(); } catch (e) { /* ignora */ }
+          });
+        }
+        if (soltou) activeNodes = activeNodes.filter(function (n) { return !n._ilFora; });
+      }, 200);
+      activeIntervals.push(iv);
     });
   }
 
@@ -579,7 +649,7 @@
     var beats = extra.beatsPerChord || 2;
     var list = chords.map(function (c, i) { return { beat: i * beats, beats: beats, root: c.root, tones: c.tones }; });
     return playEvents([{ rest: true, onset: 0, dur: chords.length * beats }], instrument,
-      { bpm: extra.bpm || 110, metronome: !!extra.metronome, chords: list, onChord: onChordStart }, onDone);
+      { bpm: extra.bpm || 110, metronome: !!extra.metronome, loop: !!extra.loop, chords: list, onChord: onChordStart }, onDone);
   }
 
   /** Converte uma frase de 8 colcheias (aba Fraseados) em eventos, se preciso. */
@@ -596,7 +666,7 @@
     extra = extra || {};
     var ev = phraseEvents(phrase, 0);
     var chords = phrase.chord ? [{ beat: 0, beats: 4, root: phrase.chord.root, tones: phrase.chord.tones }] : [];
-    return playEvents(ev, instrument, { bpm: extra.bpm || 100, metronome: !!extra.metronome, swing: phrase.rhythm === 'colcheias', humanize: true, chords: chords, onNote: onNoteStart }, onDone);
+    return playEvents(ev, instrument, { bpm: extra.bpm || 100, metronome: !!extra.metronome, loop: !!extra.loop, swing: phrase.rhythm === 'colcheias', humanize: true, chords: chords, onNote: onNoteStart }, onDone);
   }
 
   /** Toca a LINHA INTEIRA (todas as frases de compasso) com acompanhamento. */
@@ -610,7 +680,7 @@
       chords.push({ beat: b * 4, beats: 4, root: p.chord.root, tones: p.chord.tones });
     });
     var swing = barPhrases[0].rhythm ? barPhrases[0].rhythm === 'colcheias' : true;
-    return playEvents(events, instrument, { bpm: extra.bpm || 100, metronome: !!extra.metronome, swing: swing, humanize: true, chords: chords, onChord: onBarStart }, onDone);
+    return playEvents(events, instrument, { bpm: extra.bpm || 100, metronome: !!extra.metronome, loop: !!extra.loop, swing: swing, humanize: true, chords: chords, onChord: onBarStart }, onDone);
   }
 
   function setSoundMode(mode) {
@@ -625,6 +695,9 @@
     return ensureSets([setFor(instrument), 'piano_eletrico', 'baixo']);
   }
 
+  // atalho para os testes medirem se um laço longo acumula nós
+  root.__ilNodes = function () { return activeNodes.length; };
+
   root.IL = root.IL || {};
   root.IL.audio = {
     playEvents: playEvents,
@@ -636,6 +709,7 @@
     getSoundMode: getSoundMode,
     setAmbience: setAmbience,
     getAmbience: getAmbience,
+    setLoop: setLoop,
     playBuffer: playBuffer,
     decodeFile: decodeFile,
     getContext: function () { return getCtx(); },

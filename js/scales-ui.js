@@ -86,7 +86,7 @@
 
   function opts() {
     var t = window.IL.ui.transportOpts ? window.IL.ui.transportOpts('escala') : { bpm: 88 };
-    return { bpm: t.bpm, metronome: t.metronome, humanize: false };
+    return { bpm: t.bpm, metronome: t.metronome, loop: t.loop, humanize: false };
   }
 
   function toggle(btn, tag, ex) {
@@ -99,22 +99,8 @@
     btn.textContent = '⏸ Parar';
     var o = opts();
     o.chords = ex.chords || [];
+    // o "repetir" fica por conta do motor de áudio (emenda sem pausa)
     audio.playEvents(prep.events, instrument, o, function () {
-      if (state.playing === tag) {
-        var tr = window.IL.ui.transportOpts ? window.IL.ui.transportOpts('escala') : {};
-        if (tr.loop && btn.classList.contains('playing')) { toggleReplay(btn, tag, ex); return; }
-        stopAudio();
-      }
-    });
-  }
-  function toggleReplay(btn, tag, ex) {
-    var instrument = $('esc-instrumento').value;
-    var prep = notation.prepareForInstrument(ex.events, instrument);
-    var o = opts();
-    o.chords = ex.chords || [];
-    audio.playEvents(prep.events, instrument, o, function () {
-      var tr = window.IL.ui.transportOpts ? window.IL.ui.transportOpts('escala') : {};
-      if (state.playing === tag && tr.loop && btn.classList.contains('playing')) { toggleReplay(btn, tag, ex); return; }
       if (state.playing === tag) stopAudio();
     });
   }

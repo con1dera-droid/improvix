@@ -65,7 +65,7 @@
     if (savedTr) ['prog', 'linha', 'escala', 'transcricao'].forEach(function (k) { if (savedTr[k]) Object.assign(transport[k], savedTr[k]); });
   } catch (e) { /* sem storage */ }
   function saveTransport() { try { window.localStorage.setItem('il_transport', JSON.stringify(transport)); } catch (e) { /* ignora */ } }
-  function transportOpts(key) { var t = transport[key]; return { bpm: t.bpm, metronome: t.metro }; }
+  function transportOpts(key) { var t = transport[key]; return { bpm: t.bpm, metronome: t.metro, loop: t.loop }; }
 
   // Pode ser chamado quantas vezes for preciso: barras já ligadas são
   // ignoradas (flag data-tr-ready), então telas montadas dinamicamente
@@ -91,7 +91,12 @@
         if (!b) return;
         var act = b.getAttribute('data-act');
         if (act === 'metro') t.metro = !t.metro;
-        else if (act === 'loop') t.loop = !t.loop;
+        else if (act === 'loop') {
+          t.loop = !t.loop;
+          // vale já para o que está tocando: ligar emenda a próxima volta,
+          // desligar deixa terminar o ciclo atual e para.
+          if (audio && audio.setLoop) audio.setLoop(t.loop);
+        }
         else if (act === 'menos') return setBpm(t.bpm - 5);
         else if (act === 'mais') return setBpm(t.bpm + 5);
         sync(); saveTransport();
@@ -554,19 +559,17 @@
         resetAudioButtons();
         lineBtn.classList.add('playing');
         lineBtn.textContent = '⏸ Tocando... (clique para parar)';
-        (function playOnce() {
-          audio.playLine(bars, instrumento, function (b) {
-            highlightChord(b);
-            document.querySelectorAll('#lista-fraseados .phrase-item').forEach(function (el, idx) {
-              el.classList.toggle('playing', idx === b);
-            });
-          }, function () {
-            // repetir: recomeça enquanto o botão continuar "tocando"
-            if (transport.linha.loop && lineBtn.classList.contains('playing')) { playOnce(); return; }
-            resetAudioButtons();
-            document.querySelectorAll('#lista-fraseados .phrase-item.playing').forEach(function (el) { el.classList.remove('playing'); });
-          }, transportOpts('linha'));
-        })();
+        // O "repetir" é feito dentro do motor de áudio, agendado adiantado no
+        // relógio do som: a volta seguinte emenda na anterior sem pausa.
+        audio.playLine(bars, instrumento, function (b) {
+          highlightChord(b);
+          document.querySelectorAll('#lista-fraseados .phrase-item').forEach(function (el, idx) {
+            el.classList.toggle('playing', idx === b);
+          });
+        }, function () {
+          resetAudioButtons();
+          document.querySelectorAll('#lista-fraseados .phrase-item.playing').forEach(function (el) { el.classList.remove('playing'); });
+        }, transportOpts('linha'));
       });
     }
   }
@@ -587,13 +590,10 @@
     btn.classList.add('playing');
     btn.textContent = '⏸ Tocando...';
     var pr = preparedPhrase(phrase, instrumento, document.getElementById('input-nivel').value);
-    (function playOnce() {
-      audio.playPhrase(Object.assign({}, phrase, { events: pr.events }), instrumento, null, function () {
-        if (transport.linha.loop && btn.classList.contains('playing')) { playOnce(); return; }
-        btn.classList.remove('playing');
-        btn.textContent = '🔊 Áudio';
-      }, transportOpts('linha'));
-    })();
+    audio.playPhrase(Object.assign({}, phrase, { events: pr.events }), instrumento, null, function () {
+      btn.classList.remove('playing');
+      btn.textContent = '🔊 Áudio';
+    }, transportOpts('linha'));
   }
 
   // ===================== Aulas (Etapa 5, parte 4) =====================
@@ -694,12 +694,9 @@
       var instrumento = document.getElementById('input-instrumento').value;
       btn.classList.add('playing');
       btn.textContent = '⏸ Tocando... (clique para parar)';
-      (function playOnce() {
-        audio.playProgression(state.lastResult, instrumento, highlightChord, function () {
-          if (transport.prog.loop && btn.classList.contains('playing')) { playOnce(); return; }
-          resetAudioButtons();
-        }, transportOpts('prog'));
-      })();
+      audio.playProgression(state.lastResult, instrumento, highlightChord, function () {
+        resetAudioButtons();
+      }, transportOpts('prog'));
     });
   }
 
