@@ -91,6 +91,30 @@ test('generateRandom sem categoria (ou "todas") sorteia entre todos os modelos',
   assert.ok(Object.keys(seen).length > 1, 'generateRandom nunca variou de modelo em 60 tentativas');
 });
 
+test('sugestaoPara dá 5 acordes na tonalidade, com grafia certa em todos os tons', function () {
+  var TONS = ['C', 'G', 'D', 'A', 'E', 'B', 'F#', 'Db', 'Ab', 'Eb', 'Bb', 'F', 'C#', 'G#'];
+  ['maior', 'menor'].forEach(function (modo) {
+    TONS.forEach(function (tom) {
+      var s = lab.sugestaoPara(tom, modo);
+      var cifras = s.texto.split(' | ');
+      assert.strictEqual(cifras.length, 5, tom + ' ' + modo + ': ' + s.texto);
+      assert.ok(s.label && s.label.length > 5, tom + ': sem rótulo');
+      cifras.forEach(function (c) {
+        assert.ok(/^[A-G](#|b)?/.test(c), tom + ' ' + modo + ': cifra estranha ' + c + ' (' + s.texto + ')');
+        assert.ok(!/##|bb/.test(c), tom + ' ' + modo + ': alteração dobrada em ' + c);
+        // e o motor de teoria tem de reconhecer o que foi escrito
+        assert.ok(theory.parseChordSymbol(c), tom + ' ' + modo + ': o parser não reconhece ' + c);
+      });
+      // começa e termina na tônica
+      assert.strictEqual(cifras[0].charAt(0), tom.charAt(0), tom + ': não começa na tônica');
+      assert.strictEqual(cifras[0], cifras[4], tom + ': não fecha na tônica');
+    });
+  });
+  assert.strictEqual(lab.sugestaoPara('C', 'maior').texto, 'Cmaj7 | Am7 | Dm7 | G7 | Cmaj7');
+  assert.strictEqual(lab.sugestaoPara('A', 'menor').texto, 'Am7 | Dm7 | Bm7b5 | E7 | Am7');
+  assert.strictEqual(lab.sugestaoPara('Bb', 'maior').texto, 'Bbmaj7 | Gm7 | Cm7 | F7 | Bbmaj7');
+});
+
 console.log('\n' + passed + ' teste(s) passaram.');
 if (process.exitCode) {
   console.log('ALGUM TESTE FALHOU.');

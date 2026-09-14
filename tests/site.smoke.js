@@ -54,6 +54,23 @@ function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!c
     const acordes = await p.$$eval('.chord-chip, .chord-card, .chain-chord', c => c.length).catch(()=>0);
     const abas = await p.$$eval('.tab-btn, [data-tab]', t => t.map(x=>x.textContent.trim())).catch(()=>[]);
     ok(acordes > 0 || abas.length > 0, 'INÍCIO: analisou "Dm7 | G7 | C7M" (' + acordes + ' acordes, abas: ' + abas.slice(0,6).join('/') + ')');
+    // a progressão acompanha a tonalidade
+    const prog = () => p.$eval('#input-progressao', e => e.value);
+    await p.click('#btn-clear'); await p.waitForTimeout(200);   // some a progressão digitada acima
+    await p.selectOption('#input-tonalidade', 'C|maior'); await p.waitForTimeout(500);
+    ok(await prog() === 'Cmaj7 | Am7 | Dm7 | G7 | Cmaj7', 'INÍCIO: mudar para C maior sugere 5 acordes (' + await prog() + ')');
+    await p.selectOption('#input-tonalidade', 'A|menor'); await p.waitForTimeout(500);
+    ok(await prog() === 'Am7 | Dm7 | Bm7b5 | E7 | Am7', 'INÍCIO: em A menor vem o giro menor (' + await prog() + ')');
+    await p.fill('#input-progressao', 'Am7 | D7 | Gmaj7');
+    await p.dispatchEvent('#input-progressao', 'input');
+    await p.selectOption('#input-tonalidade', 'C|menor'); await p.waitForTimeout(500);
+    ok(await prog() === 'Cm7 | F7 | Bbmaj7', 'INÍCIO: a progressão digitada é transposta, não apagada (' + await prog() + ')');
+    await p.selectOption('#input-tonalidade', 'A|menor'); await p.waitForTimeout(500);
+    ok(await prog() === 'Am7 | D7 | Gmaj7', 'INÍCIO: voltar ao tom original devolve o que foi digitado');
+    await p.click('#btn-clear'); await p.waitForTimeout(200);
+    await p.selectOption('#input-tonalidade', 'D|maior'); await p.waitForTimeout(500);
+    ok(await prog() === 'Dmaj7 | Bm7 | Em7 | A7 | Dmaj7', 'INÍCIO: limpar e escolher o tom traz a sugestão de novo');
+
     const fr = await p.$('[data-tab="fraseados"]');
     if (fr) { await fr.click(); await p.waitForTimeout(1200);
       const n = await p.$$eval('.phrase-card, .frase, .lib-card', c => c.length);

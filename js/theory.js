@@ -297,6 +297,67 @@
     }).filter(Boolean).join('  →  ');
   }
 
+  // --- Transposição de cifras ----------------------------------------------
+
+  var NOMES_SUSTENIDO = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  var NOMES_BEMOL = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+
+  /**
+   * Troca só a fundamental (e o baixo invertido) de uma cifra, mantendo o
+   * resto do texto exatamente como está: "Am7(b5)" vira "Cm7(b5)", "D7/F#"
+   * vira "F7/A". O deslocamento vem em passos de letra + semitons (como em
+   * `noteAt`), que é o que garante a grafia certa — de G para Bb, o Em7 vira
+   * Gm7, e não um "F##m7" qualquer.
+   */
+  function transposeChordSymbol(symbol, letterSteps, semitones, preferBemol) {
+    var texto = String(symbol == null ? '' : symbol).trim();
+    if (!texto) return texto;
+    var m = /^([A-Ga-g])(#{1,2}|b{1,2})?/.exec(texto);
+    if (!m || !parseNoteName(m[1].toUpperCase() + (m[2] || ''))) return texto;
+
+    function mover(nome) {
+      var novo;
+      try { novo = noteAt(nome, letterSteps, semitones); } catch (e) { return nome; }
+      // Grafia dura de ler (dobrado, ou E#/B#/Cb/Fb): troca pelo enarmônico
+      // simples, na preferência do tom de destino. Transpor de Eb para F#,
+      // por exemplo, é uma segunda aumentada no papel — sem isto o C7M viraria
+      // "D#7M" em vez do "Eb7M" que qualquer músico escreveria.
+      if (/##|bb|x/.test(novo) || /^(E#|B#|Cb|Fb)$/.test(novo)) {
+        var pc = pitchClassOf(novo);
+        novo = (preferBemol ? NOMES_BEMOL : NOMES_SUSTENIDO)[pc] || novo;
+      }
+      return novo;
+    }
+
+    var raiz = mover(m[1].toUpperCase() + (m[2] || ''));
+    var resto = texto.slice(m[0].length);
+    // baixo invertido no fim ("/F#"); "/4" e "/9" são tensões e ficam quietos
+    resto = resto.replace(/\/([A-Ga-g](?:#{1,2}|b{1,2})?)\s*$/, function (all, nota) {
+      return '/' + mover(nota.charAt(0).toUpperCase() + nota.slice(1));
+    });
+    return raiz + resto;
+  }
+
+  /**
+   * Transpõe uma progressão escrita ("Gmaj7 | Em7 | Am7 | D7") de uma
+   * tonalidade para outra, preservando os separadores e o que o usuário
+   * escreveu em cada cifra.
+   */
+  function transposeProgression(texto, deTonica, paraTonica) {
+    var de = parseNoteName(deTonica || ''), para = parseNoteName(paraTonica || '');
+    if (!texto || !de || !para) return texto;
+    var passos = ((NOTE_LETTERS.indexOf(para.letter) - NOTE_LETTERS.indexOf(de.letter)) % 7 + 7) % 7;
+    var semitons = mod12(para.pitchClass - de.pitchClass);
+    if (!passos && !semitons) return texto;
+    var bemol = (paraTonica || '').indexOf('b') >= 0 || paraTonica === 'F';
+    return String(texto).split('|').map(function (parte) {
+      var espacoIni = /^\s*/.exec(parte)[0], espacoFim = /\s*$/.exec(parte)[0];
+      var cifra = parte.trim();
+      if (!cifra) return parte;
+      return espacoIni + transposeChordSymbol(cifra, passos, semitons, bemol) + espacoFim;
+    }).join('|');
+  }
+
   // --- Campo harmônico -----------------------------------------------------
 
   function keyDataFor(mode) {
@@ -608,6 +669,8 @@
     parseChordSymbol: parseChordSymbol,
     chordNotes: chordNotes,
     chordNotesText: chordNotesText,
+    transposeChordSymbol: transposeChordSymbol,
+    transposeProgression: transposeProgression,
     familyOf: familyOf,
     buildDiatonicField: buildDiatonicField,
     triadFromThird: triadFromThird,

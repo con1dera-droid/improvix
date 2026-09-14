@@ -201,6 +201,12 @@ select, input[type="text"] {
 .view-btn.playing { background: #dc2626; border-color: #dc2626; color: #fff; }
 .chord-pill { transition: box-shadow 0.15s, transform 0.15s; }
 .chord-pill.playing { box-shadow: 0 0 0 3px rgba(255,255,255,0.55) inset; transform: translateY(-2px); }
+.progressao-nota {
+  margin: 0.45rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
 .form-error {
   margin-top: 0.6rem;
   color: #f87171;

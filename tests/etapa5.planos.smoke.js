@@ -107,6 +107,12 @@ async function login(page, email) {
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
   page.on('pageerror', (err) => errors.push('pageerror: ' + err.message));
 
+  // A biblioteca do Supabase vem de CDN. Aqui o cliente é falso (window.supabase
+  // já foi posto por addInitScript), então o arquivo de verdade não precisa ser
+  // baixado — e o teste passa a rodar sem internet.
+  await page.route('**/supabase-js@2*', (route) => route.fulfill({
+    contentType: 'application/javascript', body: '/* stub: cliente falso em window.supabase */'
+  }));
   await page.route('**/js/config.js', (route) => {
     route.fulfill({
       contentType: 'application/javascript',

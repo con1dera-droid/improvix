@@ -238,6 +238,51 @@ test('notas que formam o acorde a partir da cifra (com tensões)', function () {
   assert.strictEqual(theory.chordNotesText('xyz'), '');
 });
 
+test('transposeProgression leva a progressão para outro tom sem estragar a cifra', function () {
+  // o desenho de graus tem de ser o mesmo, com a grafia do tom de destino
+  assert.strictEqual(theory.transposeProgression('Gmaj7 | Em7 | Am7 | D7', 'G', 'Bb'),
+    'Bbmaj7 | Gm7 | Cm7 | F7');
+  assert.strictEqual(theory.transposeProgression('Gmaj7 | Em7 | Am7 | D7', 'G', 'C'),
+    'Cmaj7 | Am7 | Dm7 | G7');
+  // preserva EXATAMENTE como a pessoa escreve (7M, tensões, alt, baixo invertido)
+  assert.strictEqual(theory.transposeProgression('C7M | A7(b9) | Dm7 | G7alt | Em7(b5)', 'C', 'Eb'),
+    'Eb7M | C7(b9) | Fm7 | Bb7alt | Gm7(b5)');
+  assert.strictEqual(theory.transposeProgression('D7/F# | G7M', 'D', 'F'), 'F7/A | Bb7M');
+  // "G7/4" é tensão, não baixo: o 4 não pode virar nota
+  assert.strictEqual(theory.transposeProgression('G7/4', 'G', 'A'), 'A7/4');
+  // espaços e separadores ficam como estavam
+  assert.strictEqual(theory.transposeProgression('C | F | G', 'C', 'D'), 'D | G | A');
+  assert.strictEqual(theory.transposeProgression('C|F|G', 'C', 'D'), 'D|G|A');
+  // mesmo tom não mexe em nada; entrada inválida volta inteira
+  assert.strictEqual(theory.transposeProgression('Cmaj7 | Am7', 'C', 'C'), 'Cmaj7 | Am7');
+  assert.strictEqual(theory.transposeProgression('Cmaj7', 'C', 'H'), 'Cmaj7');
+});
+
+test('transposição nunca escreve dobrado nem E#/B#/Cb/Fb', function () {
+  var TONS = ['C', 'G', 'D', 'A', 'E', 'B', 'F#', 'Db', 'Ab', 'Eb', 'Bb', 'F', 'C#', 'G#', 'A#', 'D#'];
+  var prog = 'C7M | A7(b9) | Dm7 | G7 | Em7(b5) | Bb7(#11) | F#m7';
+  TONS.forEach(function (de) {
+    TONS.forEach(function (para) {
+      var r = theory.transposeProgression(prog, de, para);
+      r.split('|').forEach(function (c) {
+        var raiz = /^\s*([A-G](?:#|b)?)/.exec(c);
+        assert.ok(raiz, de + '→' + para + ': cifra sem fundamental em "' + c + '"');
+        assert.ok(!/^\s*[A-G](##|bb|x)/.test(c), de + '→' + para + ': alteração dobrada em ' + c);
+        assert.ok(!/^\s*(E#|B#|Cb|Fb)(\s|$|[^A-Ga-g#b])/.test(c), de + '→' + para + ': grafia dura de ler em ' + c);
+        assert.ok(theory.parseChordSymbol(c.trim()), de + '→' + para + ': o parser perdeu "' + c.trim() + '"');
+      });
+    });
+  });
+});
+
+test('transpor ida e volta devolve exatamente a progressão original', function () {
+  var prog = 'C7M | A7(b9) | Dm7 | G7 | Em7(b5)';
+  ['G', 'Eb', 'F#', 'Bb', 'A'].forEach(function (tom) {
+    var ida = theory.transposeProgression(prog, 'C', tom);
+    assert.strictEqual(theory.transposeProgression(ida, tom, 'C'), prog, 'via ' + tom);
+  });
+});
+
 console.log('\n' + passed + ' teste(s) passaram.');
 if (process.exitCode) {
   console.error('Há testes falhando — corrija antes de publicar.');

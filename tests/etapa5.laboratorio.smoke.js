@@ -28,6 +28,14 @@ const FAKE_CLIENT_SRC = `
     setTimeout(function () { self._emit('SIGNED_IN', { user: user }); }, 0);
     return Promise.resolve({ data: { user: user, session: { user: user } }, error: null });
   };
+  FakeAuth.prototype.signInWithPassword = function (opts) {
+    var rec = this.users[opts.email];
+    if (!rec || rec.password !== opts.password) return Promise.resolve({ data: null, error: { message: 'Invalid login credentials' } });
+    this.currentUser = rec.user;
+    var self = this;
+    setTimeout(function () { self._emit('SIGNED_IN', { user: rec.user }); }, 0);
+    return Promise.resolve({ data: { user: rec.user, session: { user: rec.user } }, error: null });
+  };
   FakeAuth.prototype.signOut = function () {
     this.currentUser = null;
     var self = this;
@@ -97,6 +105,12 @@ async function login(page, email) {
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
   page.on('pageerror', (err) => errors.push('pageerror: ' + err.message));
 
+  // A biblioteca do Supabase vem de CDN. Aqui o cliente é falso (window.supabase
+  // já foi posto por addInitScript), então o arquivo de verdade não precisa ser
+  // baixado — e o teste passa a rodar sem internet.
+  await page.route('**/supabase-js@2*', (route) => route.fulfill({
+    contentType: 'application/javascript', body: '/* stub: cliente falso em window.supabase */'
+  }));
   await page.route('**/js/config.js', (route) => {
     route.fulfill({
       contentType: 'application/javascript',

@@ -127,6 +127,12 @@ const FAKE_CLIENT_SRC = `
   // do DOMContentLoaded) e sobrescreveria qualquer window.IL_CONFIG que a
   // gente tentasse injetar via addInitScript/evaluate — então interceptamos
   // o próprio arquivo e servimos uma versão "configurada" com dados falsos.
+  // A biblioteca do Supabase vem de CDN. Aqui o cliente é falso (window.supabase
+  // já foi posto por addInitScript), então o arquivo de verdade não precisa ser
+  // baixado — e o teste passa a rodar sem internet.
+  await page.route('**/supabase-js@2*', (route) => route.fulfill({
+    contentType: 'application/javascript', body: '/* stub: cliente falso em window.supabase */'
+  }));
   await page.route('**/js/config.js', (route) => {
     route.fulfill({
       contentType: 'application/javascript',

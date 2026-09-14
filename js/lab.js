@@ -176,6 +176,35 @@
     return realizeTemplate(template, tonicName);
   }
 
+  // --- Sequência inicial da tela de análise --------------------------------
+  // Cinco acordes na tonalidade escolhida, para a pessoa já cair numa
+  // harmonia de verdade em vez de um campo vazio. O giro I–vi–ii–V–I é o mais
+  // tocado do repertório (e o melhor para treinar encadeamento e resolução);
+  // no menor, o equivalente é i–iv–ii(b5)–V–i, com o V dominante da menor
+  // harmônica, que é como se toca.
+  var SUGESTAO_INICIAL = {
+    maior: {
+      label: 'I–vi–ii–V–I (o giro mais tocado)',
+      chords: [grau(I, 'major7', 'Imaj7'), grau(VI, 'minor7', 'vi7'), grau(II, 'minor7', 'ii7'),
+        grau(V, 'dominant7', 'V7'), grau(I, 'major7', 'Imaj7')]
+    },
+    menor: {
+      label: 'i–iv–ii(b5)–V–i (o giro menor)',
+      chords: [grau(I, 'minor7', 'i7'), grau(IV, 'minor7', 'iv7'), grau(II, 'm7b5', 'ii7(b5)'),
+        grau(V, 'dominant7', 'V7'), grau(I, 'minor7', 'i7')]
+    }
+  };
+
+  /**
+   * A progressão sugerida para uma tonalidade: `{ texto, label, chords }`.
+   * Usada pela tela de análise para preencher o campo quando o tom muda.
+   */
+  function sugestaoPara(tonicName, mode) {
+    var modelo = SUGESTAO_INICIAL[mode === 'menor' ? 'menor' : 'maior'];
+    var r = realizeTemplate({ mode: mode, chords: modelo.chords, label: modelo.label }, tonicName);
+    return { texto: r.progressionText, label: modelo.label, chords: r.chords, tonic: tonicName, mode: mode };
+  }
+
   return {
     CATEGORIES: CATEGORIES,
     PROGRESSION_TEMPLATES: PROGRESSION_TEMPLATES,
@@ -183,6 +212,8 @@
     templateById: templateById,
     randomTemplate: randomTemplate,
     realizeTemplate: realizeTemplate,
-    generateRandom: generateRandom
+    generateRandom: generateRandom,
+    SUGESTAO_INICIAL: SUGESTAO_INICIAL,
+    sugestaoPara: sugestaoPara
   };
 });

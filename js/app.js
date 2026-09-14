@@ -729,13 +729,80 @@
     });
   }
 
+  // --- A progressão acompanha a tonalidade ---------------------------------
+  // Trocar de tom sem trocar os acordes não faz sentido nenhum. Então:
+  // se o campo ainda tem a sugestão do sistema (ou está vazio), entra a
+  // sugestão do tom novo; se a pessoa escreveu a própria progressão, ela é
+  // TRANSPOSTA para o tom novo — o trabalho dela não se perde.
+
+  function tonalidadeAtual() {
+    var v = document.getElementById('input-tonalidade').value.split('|');
+    return { tonic: v[0], mode: v[1] };
+  }
+
+  function notaDaProgressao(texto) {
+    var el = document.getElementById('progressao-nota');
+    if (el) { el.textContent = texto || ''; el.hidden = !texto; }
+  }
+
+  function preencherSugestao(t, motivo) {
+    var lab = window.IL.lab;
+    if (!lab || !lab.sugestaoPara) return;
+    var s = lab.sugestaoPara(t.tonic, t.mode);
+    document.getElementById('input-progressao').value = s.texto;
+    state.sugestaoAtual = s.texto;
+    notaDaProgressao((motivo || 'Sugestão em ' + t.tonic + ' ' + t.mode + ': ') + s.label +
+      '. Se quiser outra, é só digitar por cima.');
+  }
+
+  function aoTrocarTonalidade() {
+    var campo = document.getElementById('input-progressao');
+    var antes = state.tonalidade;
+    var agora = tonalidadeAtual();
+    state.tonalidade = agora;
+    var texto = campo.value.trim();
+
+    if (!texto || texto === state.sugestaoAtual) {
+      preencherSugestao(agora);
+      if (state.lastResult) runAnalysis();
+      return;
+    }
+    // Transpõe sempre a partir do que a pessoa DIGITOU, e do tom em que ela
+    // digitou. Transpor em cima do resultado anterior acumularia grafias
+    // tortas a cada troca de tom (Eb → F# → G → ...).
+    var origem = state.progDigitada && state.progDigitada.tonic ? state.progDigitada : null;
+    var base = origem ? origem.texto : campo.value;
+    var deTom = origem ? origem.tonic : (antes && antes.tonic);
+    if (!deTom) return;
+    var novo = theory.transposeProgression(base, deTom, agora.tonic);
+    campo.value = novo;
+    state.sugestaoAtual = null;
+    notaDaProgressao(novo.trim() === texto
+      ? 'A sua progressão já estava em ' + agora.tonic + ' ' + agora.mode + '.'
+      : 'A sua progressão foi transposta de ' + deTom + ' para ' + agora.tonic +
+        '. Para começar do zero, limpe o campo (✕) e escolha o tom de novo.');
+    if (state.lastResult) runAnalysis();
+  }
+
   function setupForm() {
     document.getElementById('btn-analisar').addEventListener('click', runAnalysis);
+    state.tonalidade = tonalidadeAtual();
+    // o valor que já vem no HTML é a sugestão do tom padrão, completa em 5 acordes
+    preencherSugestao(state.tonalidade);
+    document.getElementById('input-tonalidade').addEventListener('change', aoTrocarTonalidade);
+    // guarda o que a pessoa escreveu, e em que tom, para transpor a partir daí
+    document.getElementById('input-progressao').addEventListener('input', function () {
+      var v = this.value;
+      state.progDigitada = (v.trim() && v !== state.sugestaoAtual)
+        ? { texto: v, tonic: tonalidadeAtual().tonic } : null;
+    });
     document.getElementById('input-progressao').addEventListener('keydown', function (e) {
       if (e.key === 'Enter') runAnalysis();
     });
     document.getElementById('btn-clear').addEventListener('click', function () {
       document.getElementById('input-progressao').value = '';
+      state.sugestaoAtual = null;
+      notaDaProgressao('Campo limpo. Escolha a tonalidade ali em cima para receber a sugestão dela.');
       showFormError(null);
     });
   }
