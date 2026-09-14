@@ -198,6 +198,14 @@ select, input[type="text"] {
   width: 100%;
 }
 .btn-secondary.playing { background: var(--accent); border-color: var(--accent); color: #fff; }
+/* "Tocar a linha inteira" é a ação principal desta coluna: azul, como o
+   "Outra ideia". Enquanto toca fica vermelho, que no resto do site quer
+   dizer "clique para parar". */
+#btn-tocar-linha {
+  background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600;
+}
+#btn-tocar-linha:hover:not(.playing) { background: #2f6fe0; border-color: #2f6fe0; }
+#btn-tocar-linha.playing { background: #dc2626; border-color: #dc2626; color: #fff; }
 .view-btn.playing { background: #dc2626; border-color: #dc2626; color: #fff; }
 .chord-pill { transition: box-shadow 0.15s, transform 0.15s; }
 .chord-pill.playing { box-shadow: 0 0 0 3px rgba(255,255,255,0.55) inset; transform: translateY(-2px); }
