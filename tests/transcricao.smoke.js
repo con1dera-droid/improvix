@@ -20,7 +20,7 @@ const AUDIO = process.argv[2] || path.resolve(__dirname, 'fixtures/solo-teste.wa
   page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource|net::ERR/.test(m.text())) erros.push(m.text()); });
   function check(ok, msg) { if (!ok) { failed = true; console.log('FALHA ' + msg); } else console.log('ok    ' + msg); }
 
-  await page.goto('file://' + path.resolve(__dirname, '../index.html'), { waitUntil: 'domcontentloaded' });
+  await page.goto(process.env.IL_URL || ('file://' + path.resolve(__dirname, '../index.html')), { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(600);
 
   await page.click('.nav-item[data-nav="transcricao"]');
