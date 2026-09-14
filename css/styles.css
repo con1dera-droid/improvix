@@ -407,6 +407,11 @@ select, input[type="text"] {
 .btn-chip-action:hover:not(:disabled) { border-color: var(--accent); }
 .btn-chip-action:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn-chip-action.btn-danger { color: #f87171; }
+/* "Outra ideia" é o botão mais usado desta aba: fica azul, para achar de longe. */
+#btn-outra-ideia {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+#btn-outra-ideia:hover:not(:disabled) { background: #2f6fe0; border-color: #2f6fe0; }
 .btn-inline-end { margin-left: auto; flex-shrink: 0; }
 
 .fraseado-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
