@@ -825,7 +825,22 @@
       });
     });
     document.getElementById('input-instrumento').addEventListener('change', highlightInstrumentBar);
+    document.getElementById('input-instrumento').addEventListener('change', espalharInstrumento);
     highlightInstrumentBar();
+    espalharInstrumento();
+  }
+
+  // O instrumento é um só para o site inteiro: escolher aqui vale também na
+  // Biblioteca de Escalas, na de Fraseados, nos Padrões e na Transcrição (cada
+  // uma dessas telas já empurrava a escolha dela para cá; agora vai nos dois
+  // sentidos). O valor é trocado em silêncio — a tela se redesenha quando você
+  // entra nela, e assim a Transcrição não reprocessa o áudio sem necessidade.
+  function espalharInstrumento() {
+    var v = document.getElementById('input-instrumento').value;
+    ['esc-instrumento', 'lib-instrumento', 'pad-instrumento', 'tra-instrumento'].forEach(function (id) {
+      var sel = document.getElementById(id);
+      if (sel && sel.value !== v) sel.value = v;
+    });
   }
 
   // Planos (Etapa 5): reage à troca manual de Nível e ao link "Ver planos"

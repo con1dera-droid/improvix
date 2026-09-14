@@ -114,7 +114,7 @@
     pouca: { seconds: 0.9, decay: 6.0, pre: 0.008, wet: 0.6 },
     seco:  null
   };
-  var ambience = 'sala';
+  var ambience = 'seco';      // padrão: som seco (quem quiser sala, troca no topo)
   try {
     var savedAmb = root.localStorage && root.localStorage.getItem('il_ambiencia');
     if (savedAmb && Object.prototype.hasOwnProperty.call(AMBIENCES, savedAmb)) ambience = savedAmb;

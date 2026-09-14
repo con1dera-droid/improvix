@@ -30,6 +30,10 @@ const AUDIO = process.argv[2] || path.resolve(__dirname, 'fixtures/solo-teste.wa
   check(await page.$('#tra-drop') !== null && await page.$('#tra-gravar') !== null,
     'a tela tem as duas entradas (arquivo e gravação)');
 
+  // o padrão do site é teclado (partitura); aqui queremos exercitar a tablatura
+  await page.selectOption('#tra-instrumento', 'guitarra');
+  await page.waitForTimeout(200);
+
   // Nenhuma biblioteca pesada antes de mandar um áudio
   const antes = await page.evaluate(() => ({ tf: typeof window.tf, bp: typeof window.BasicPitchLib }));
   check(antes.tf === 'undefined' && antes.bp === 'undefined',

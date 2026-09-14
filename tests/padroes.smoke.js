@@ -15,6 +15,9 @@ const path = require('path');
   await page.waitForTimeout(300);
   await page.click('.nav-item[data-nav="padroes"]');
   await page.waitForTimeout(300);
+  // este teste exercita a vista "Tab": escolhe um instrumento com traste
+  await page.selectOption('#pad-instrumento', 'guitarra');
+  await page.waitForTimeout(400);
   const view = await page.$eval('.content.view:not([hidden])', (v) => v.getAttribute('data-view'));
   const lines = await page.$$eval('#pad-lista .pad-line', (e) => e.length);
   console.log('View:', view, '| linhas (tons):', lines, '| padrão:', await page.$eval('#pad-info .pad-info-title', (e) => e.textContent));

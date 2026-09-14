@@ -16,6 +16,9 @@ const path = require('path');
 
   await page.click('.nav-item[data-nav="biblioteca-escalas"]');
   await page.waitForTimeout(400);
+  // o padrão do site é teclado; aqui queremos o braço e a tablatura
+  await page.selectOption('#esc-instrumento', 'guitarra');
+  await page.waitForTimeout(400);
   console.log('View:', await page.$eval('.content.view:not([hidden])', (v) => v.getAttribute('data-view')));
   console.log('Escalas no seletor:', await page.$$eval('#esc-escala option', (o) => o.length),
     '| famílias:', await page.$$eval('#esc-escala optgroup', (o) => o.map((x) => x.label)));

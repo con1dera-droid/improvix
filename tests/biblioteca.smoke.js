@@ -20,6 +20,10 @@ const path = require('path');
 
   await page.click('.nav-item[data-nav="biblioteca-fraseados"]');
   await page.waitForTimeout(250);
+  // este teste confere tablatura, então escolhe um instrumento com traste
+  // (o padrão do site é teclado, que mostra partitura)
+  await page.selectOption('#lib-instrumento', 'guitarra');
+  await page.waitForTimeout(400);
   const view = await page.$eval('.content.view:not([hidden])', (v) => v.getAttribute('data-view'));
   const cards = await page.$$eval('.lib-card', (e) => e.length);
   const beams = await page.$$eval('.lib-card:first-child svg line[stroke-width="4"]', (e) => e.length);
