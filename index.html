@@ -38,6 +38,8 @@
       <a href="#" class="nav-item" data-nav="transcricao">🎤 Transcrição / Treino</a>
       <a href="#" class="nav-item" data-nav="laboratorio">🧪 Laboratório <span class="soon">Pro</span></a>
       <a href="#" class="nav-item" data-nav="meus-exercicios">📋 Meus Exercícios</a>
+      <!-- só aparece para quem é admin (js/auth-ui.js cuida disso) -->
+      <a href="#" class="nav-item" data-nav="admin" id="nav-admin" hidden>👑 Administração</a>
       <a href="#" class="nav-item" data-nav="config">⚙ Configurações</a>
     </nav>
 
@@ -367,6 +369,20 @@
           <div id="auth-gate-historico" class="auth-gate" hidden>Entre na sua conta para ver seu histórico de análises.</div>
           <div id="lista-historico" class="record-list"></div>
         </div>
+      </div>
+    </div>
+
+    <!-- View: Administração (só aparece para quem é admin) -->
+    <div class="content view" data-view="admin" hidden>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-icon">👑</span>
+          <div>
+            <div class="card-title">Administração</div>
+            <div class="card-subtitle">Quem usa a plataforma, quem tem plano Pro e quem está bloqueado.</div>
+          </div>
+        </div>
+        <div id="admin-conteudo"><p class="muted-note">Carregando…</p></div>
       </div>
     </div>
 

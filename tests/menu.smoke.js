@@ -31,7 +31,9 @@ const ESPERADO = [
   await page.goto('file://' + path.resolve(__dirname, '../index.html'), { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(500);
 
-  const itens = await page.$$eval('.nav .nav-item', (a) => a.map((x) => ({
+  // "Administração" só existe para quem é admin, então o menu de um
+  // visitante é só o que está VISÍVEL aqui.
+  const itens = await page.$$eval('.nav .nav-item:not([hidden])', (a) => a.map((x) => ({
     nav: x.getAttribute('data-nav'), txt: x.textContent.trim()
   })));
   check(itens.length === ESPERADO.length, 'o menu tem ' + itens.length + ' itens (esperado ' + ESPERADO.length + ')');
@@ -42,7 +44,7 @@ const ESPERADO = [
   });
 
   // Os itens que saíram
-  const saiu = await page.$$eval('.nav .nav-item', (a) => a.map((x) => x.getAttribute('data-nav')));
+  const saiu = await page.$$eval('.nav .nav-item:not([hidden])', (a) => a.map((x) => x.getAttribute('data-nav')));
   ['nova-analise', 'favoritos', 'historico', 'biblioteca-fusion', 'aulas'].forEach((n) => {
     check(saiu.indexOf(n) < 0, 'o item "' + n + '" saiu do menu');
   });

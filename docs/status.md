@@ -851,7 +851,71 @@ fora do registro sai; `registroDe`/`noRegistro`; `montar` refazendo andamento,
 grafia e seções) e `tests/transcricao.smoke.js` passou a exercer o controle de
 registro no navegador (filtra, é instantâneo, o botão soltar volta ao que era).
 
-## Próxima etapa
+## Administração: papéis, bloqueio e a tela — ✅ (2026-09-15)
+
+Antes de publicar, o dono do projeto pediu um administrador que "dá
+permissão para os demais usuários e consegue parar o acesso de quem logou".
+Agora existe, e a parte que importa está **dentro do banco**.
+
+**No banco** (`sql/schema.sql`, que virou idempotente — pode rodar de novo
+quantas vezes quiser): `profiles` ganhou `papel` (`usuario`/`admin`),
+`bloqueado`, `bloqueado_em`, `bloqueado_por` e `motivo_bloqueio`. Duas
+funções de apoio (`eh_admin`, `esta_bloqueado`) são SECURITY DEFINER para
+evitar a recursão infinita que uma política de `profiles` que consulta
+`profiles` causaria. As políticas passaram a deixar o admin enxergar todos
+os perfis e a negar **qualquer** leitura ou escrita de quem está bloqueado.
+E o trigger antigo (que só protegia o `plano`) virou
+`protege_campos_privilegiados`: usuário comum não muda plano/papel/bloqueio
+de ninguém, admin muda os dos outros mas não os próprios, e o carimbo de
+quem bloqueou e quando é posto pelo banco, não pelo app.
+
+**Um furo sério apareceu no teste** e vale registrar: a primeira versão do
+trigger era `SECURITY DEFINER`, e dentro de uma função assim `current_user`
+é o **dono da função**, não quem chamou — a trava nunca disparava e um
+usuário comum conseguia se promover a admin pela API. Só apareceu porque o
+teste rodou num PostgreSQL de verdade; no papel, o código parecia certo.
+
+**Testado num banco real, não no papel**: `tests/rls.sql` + `tests/rls.sh`
+sobem um PostgreSQL local, criam o mínimo do Supabase (schema `auth`,
+`auth.uid()`, papel `authenticated`), aplicam o `sql/schema.sql` duas vezes
+(conferindo que é idempotente) e atacam o banco como cada tipo de usuário —
+**23 checagens**, incluindo "usuário comum tenta se promover", "admin tenta
+se bloquear", "bloqueado tenta ler os próprios dados" e "sem sessão não vê
+nada". Isso fecha a lacuna que o `docs/matriz-rbac.md` registrava desde a
+Etapa 4 ("não dá para automatizar sem um projeto Supabase de teste").
+
+**Na tela**: item **👑 Administração** no menu, visível só para admin, com
+a lista de contas (busca por e-mail, contadores de usuários/admins/Pro/
+bloqueados) e, em cada linha, tornar Pro, tornar admin e bloquear (com
+motivo, perguntado na hora). A própria conta do admin aparece sem botões,
+de propósito — é o que garante que sempre sobre um administrador.
+
+**Corte de acesso**: quem for bloqueado é desconectado assim que abrir o
+site ou voltar para a aba (`visibilitychange`), com o motivo na tela. Os
+dados já estavam inacessíveis pelo RLS desde o instante do bloqueio — a
+desconexão é só para não deixar a pessoa navegando como se estivesse
+dentro.
+
+**Privacidade**: o admin **não** vê histórico, favoritos nem exercícios de
+ninguém. Não é a tela que esconde: não existe política de RLS que dê esse
+acesso, e o teste confere isso.
+
+Testes: `tests/admin.smoke.js` (18 checagens no navegador, com um Supabase
+falso que reproduz as mesmas regras do banco de verdade) e o
+`tests/rls.sql` acima. `tests/menu.smoke.js` e `tests/site.smoke.js`
+passaram a contar só os itens visíveis do menu.
+
+## Pronto para publicar (GitHub + Vercel) — ✅ (2026-09-15)
+
+`vercel.json` com cabeçalhos de segurança, `Permissions-Policy` liberando
+microfone e captura de aba (a Transcrição precisa) e política de cache —
+página, `js/` e `css/` sempre revalidam (uma atualização aparece no
+primeiro reload), `sounds/` e `vendor/` ficam guardados uma semana.
+`.vercelignore` mantém `tests/`, `docs/`, `sql/` e arquivos de trabalho
+fora do site publicado. `index.html` ganhou description, theme-color e
+Open Graph. O passo a passo está no `README.md`.
+
+## Próxima etapa## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
 

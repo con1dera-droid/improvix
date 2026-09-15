@@ -263,6 +263,25 @@ mantém `tests/`, `docs/` e os arquivos de trabalho fora do site publicado.
 O domínio é pago (uns R$ 40–60 por ano no registro.br ou similar); o
 Vercel não cobra nada para apontar.
 
+### Administração
+
+Depois de configurar o Supabase, um dos usuários vira administrador por um
+`update` rodado no SQL Editor (passo 6 de `docs/etapa4-supabase.md`). O
+admin ganha o item **👑 Administração** no menu: lista de contas, tornar
+Pro, promover a admin e bloquear/desbloquear com motivo.
+
+Bloquear tira o acesso de verdade — as políticas do banco recusam leitura e
+escrita de quem está bloqueado, mesmo por fora do site, e a pessoa é
+desconectada assim que abrir ou voltar para a aba. Nem o admin muda o
+próprio papel ou se bloqueia, para nunca ficar sem administrador.
+
+As regras são conferidas por teste num PostgreSQL de verdade:
+
+```bash
+bash tests/rls.sh      # 23 checagens; falha se alguma regra deixar passar
+node tests/admin.smoke.js
+```
+
 ### Login e contas no site publicado
 
 Sem configurar o Supabase, o site publicado funciona inteiro para estudo —

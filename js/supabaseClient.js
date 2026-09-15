@@ -77,6 +77,25 @@
     return c.from('profiles').select('*').eq('id', userId).single();
   }
 
+  // ---------------- Administração ----------------
+  // Quem pode o quê é decidido pelo BANCO (ver sql/schema.sql): para um
+  // usuário comum, listProfiles devolve só o próprio perfil e qualquer
+  // tentativa de mudar plano/papel/bloqueio é revertida pelo trigger. Aqui
+  // não existe nenhuma checagem de segurança — existe conveniência.
+
+  function listProfiles() {
+    var c = getClient();
+    if (!c) return Promise.resolve({ data: null, error: notConfiguredError() });
+    return c.from('profiles').select('*').order('criado_em', { ascending: false });
+  }
+
+  /** `patch`: { plano } | { papel } | { bloqueado, motivo_bloqueio } */
+  function updateProfile(id, patch) {
+    var c = getClient();
+    if (!c) return Promise.resolve({ data: null, error: notConfiguredError() });
+    return c.from('profiles').update(patch).eq('id', id).select().single();
+  }
+
   // ---------------- Dados (analises / favoritos / exercicios) ----------------
 
   function withUser(fn) {
@@ -184,6 +203,8 @@
     getSession: getSession,
     onAuthStateChange: onAuthStateChange,
     getProfile: getProfile,
+    listProfiles: listProfiles,
+    updateProfile: updateProfile,
     saveAnalise: saveAnalise,
     listAnalises: listAnalises,
     deleteAnalise: deleteAnalise,

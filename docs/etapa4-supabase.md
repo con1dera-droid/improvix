@@ -100,9 +100,51 @@ Se algum dado "vazar" entre contas, revise se o `sql/schema.sql` foi
 executado por completo (as políticas de RLS ficam no final do arquivo) —
 isso é o item mais importante de segurança desta etapa.
 
+## Passo 6 — Virar administrador da plataforma
+
+Este é o único passo que **tem** de ser feito aqui no painel, e é de
+propósito: se desse para virar admin pelo site, qualquer pessoa logada
+faria isso pelo Console do navegador.
+
+1. Crie a sua conta normalmente pelo site (botão **Entrar** > **Criar
+   conta**), com o e-mail que você vai usar como administrador.
+2. No Supabase, vá em **SQL Editor** e rode, trocando pelo seu e-mail:
+
+   ```sql
+   update public.profiles set papel = 'admin' where email = 'voce@exemplo.com';
+   ```
+
+3. Volte ao site e recarregue. Vai aparecer o item **👑 Administração** no
+   menu lateral.
+
+Na tela de Administração você vê todas as contas e, em cada uma:
+
+* **↑ Tornar Pro / ↓ Voltar a Gratuito** — libera ou tira o nível Avançado
+  dos fraseados e o Laboratório.
+* **👑 Tornar admin / ↓ Tirar admin** — dá ou tira o acesso a essa própria
+  tela.
+* **⛔ Bloquear / ✓ Desbloquear** — corta o acesso da conta. Ao bloquear,
+  você pode registrar um motivo, que fica guardado e aparece para a pessoa.
+
+**O que o bloqueio faz, na prática**: os dados da pessoa ficam inacessíveis
+na hora — não é a tela que esconde, é o banco que recusa, então nem
+chamando a API direto ela consegue ler ou gravar qualquer coisa. E, se ela
+estiver com o site aberto, é desconectada assim que abrir ou voltar para a
+aba, com o aviso do motivo. O conteúdo de estudo do site continua aberto
+(ele é público para qualquer visitante); o que ela perde é a conta.
+
+**A sua própria conta não tem botões** na lista. É proposital: evita o
+clássico "me tirei de admin sem querer e agora ninguém administra nada".
+Se precisar mesmo mudar, rode o `update` do passo 2 no SQL Editor.
+
+**Um detalhe de privacidade**: o admin vê a lista de contas (e-mail, plano,
+papel, situação) — e **não** vê o histórico, os favoritos nem os exercícios
+de ninguém. Isso não é escolha da tela: não existe regra no banco que dê
+esse acesso.
+
 ## O que continua funcionando sem essa configuração
 
 Análise harmônica, fraseados, tablatura, partitura, cifra e áudio (Etapas
 1–3) funcionam normalmente mesmo sem Supabase configurado — apenas os
 recursos que dependem de conta (histórico, favoritos, exercícios salvos,
-planos) ficam bloqueados até você seguir este guia.
+planos e administração) ficam bloqueados até você seguir este guia.

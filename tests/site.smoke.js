@@ -27,7 +27,8 @@ function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!c
   await p.waitForTimeout(800);
 
   // --- menu ---
-  const itens = await p.$$eval('.nav-item', n => n.map(x => x.textContent.replace(/\s+/g,' ').trim()));
+  const itens = await p.$$eval('.nav-item:not([hidden])', n => n.map(x => x.textContent.replace(/\s+/g,' ').trim()));
+  ok(await p.$eval('#nav-admin', e => e.hidden), 'MENU: "Administração" fica escondido para quem não é admin');
   console.log('\nMENU (' + itens.length + '):', itens.join(' · '));
   ok(itens.length === 8, 'o menu tem os 8 itens');
 

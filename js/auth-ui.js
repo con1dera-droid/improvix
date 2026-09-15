@@ -23,7 +23,9 @@
   window.IL = window.IL || {};
   window.IL.account = {
     isLoggedIn: function () { return !!currentUser; },
-    isPro: function () { return !!(currentProfile && currentProfile.plano === 'pro'); }
+    isPro: function () { return !!(currentProfile && currentProfile.plano === 'pro'); },
+    isAdmin: function () { return !!(currentProfile && currentProfile.papel === 'admin' && !currentProfile.bloqueado); },
+    isBlocked: function () { return !!(currentProfile && currentProfile.bloqueado); }
   };
 
   function $(id) { return document.getElementById(id); }
@@ -135,6 +137,7 @@
     padroes: 'padroes',
     transcricao: 'transcricao',
     'biblioteca-escalas': 'biblioteca-escalas',
+    admin: 'admin',
     config: 'config'
   };
 
@@ -169,7 +172,8 @@
         // chegar por um caminho antigo cai na aba certa da tela única.
         if (view === 'historico' || view === 'favoritos' || view === 'exercicios') { abrirMeus(view); return; }
         window.IL.ui.switchView(view);
-        if (view === 'config') renderConfigView();
+        if (view === 'admin') renderAdminView();
+        else if (view === 'config') renderConfigView();
         else if (view === 'laboratorio') renderLaboratorioView();
         else if (view === 'aulas' && window.IL.ui.renderAulasView) window.IL.ui.renderAulasView();
         else if (view === 'padroes' && window.IL.ui.renderPadroesView) window.IL.ui.renderPadroesView();
@@ -344,6 +348,147 @@
     );
   }
 
+  // ---------------- Administração ----------------
+  // Nada aqui é uma trava de segurança: quem decide o que este usuário pode
+  // ver e mudar é o banco (sql/schema.sql). Se um não-admin abrir esta tela
+  // na marra pelo Console, a lista virá com o próprio perfil e só, e os
+  // botões não terão efeito nenhum. A tela é conveniência para quem PODE.
+
+  var adminState = { lista: [], busca: '', carregando: false, aviso: '' };
+
+  function escHtml(t) {
+    return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  }
+
+  function renderAdminView() {
+    var box = $('admin-conteudo');
+    if (!box) return;
+    if (!currentUser) {
+      box.innerHTML = '<p class="muted-note">Entre na sua conta para continuar.</p>';
+      return;
+    }
+    if (!window.IL.account.isAdmin()) {
+      box.innerHTML = '<p class="muted-note">Esta tela é só para administradores.</p>';
+      return;
+    }
+    if (!adminState.lista.length && !adminState.carregando) { carregarAdmin(); return; }
+    desenharAdmin();
+  }
+
+  function carregarAdmin() {
+    adminState.carregando = true;
+    $('admin-conteudo').innerHTML = '<p class="muted-note">Carregando a lista de usuários…</p>';
+    db.listProfiles().then(function (res) {
+      adminState.carregando = false;
+      if (res.error) {
+        $('admin-conteudo').innerHTML = '<div class="tra-erro">⚠️ ' + escHtml(res.error.message) + '</div>';
+        return;
+      }
+      adminState.lista = res.data || [];
+      desenharAdmin();
+    });
+  }
+
+  function desenharAdmin() {
+    var termo = adminState.busca.trim().toLowerCase();
+    var lista = adminState.lista.filter(function (p) {
+      return !termo || String(p.email || '').toLowerCase().indexOf(termo) >= 0;
+    });
+    var total = adminState.lista.length;
+    var admins = adminState.lista.filter(function (p) { return p.papel === 'admin'; }).length;
+    var pros = adminState.lista.filter(function (p) { return p.plano === 'pro'; }).length;
+    var bloqueados = adminState.lista.filter(function (p) { return p.bloqueado; }).length;
+
+    var resumo = '<div class="tra-resumo">' +
+      '<div class="n"><span>usuários</span><b>' + total + '</b></div>' +
+      '<div class="n"><span>administradores</span><b>' + admins + '</b></div>' +
+      '<div class="n"><span>plano Pro</span><b>' + pros + '</b></div>' +
+      '<div class="n"><span>bloqueados</span><b>' + bloqueados + '</b></div>' +
+      '</div>';
+
+    var linhas = lista.map(function (p) {
+      var eu = p.id === currentUser.id;
+      var ehAdmin = p.papel === 'admin';
+      return '<tr data-uid="' + escHtml(p.id) + '" class="' + (p.bloqueado ? 'adm-bloqueado' : '') + '">' +
+        '<td><div class="adm-email">' + escHtml(p.email || '(sem e-mail)') + (eu ? ' <span class="adm-eu">você</span>' : '') + '</div>' +
+        '<small class="adm-desde">desde ' + formatDate(p.criado_em) + '</small></td>' +
+        '<td><span class="plan-badge' + (p.plano === 'pro' ? ' plan-badge-pro' : '') + '">' +
+        (p.plano === 'pro' ? 'Pro' : 'Gratuito') + '</span></td>' +
+        '<td>' + (ehAdmin ? '<span class="adm-papel">👑 admin</span>' : '<span class="muted-note">usuário</span>') + '</td>' +
+        '<td>' + (p.bloqueado
+          ? '<span class="adm-status-bloq">bloqueado</span>' +
+            (p.motivo_bloqueio ? '<br/><small>' + escHtml(p.motivo_bloqueio) + '</small>' : '')
+          : '<span class="adm-status-ok">ativo</span>') + '</td>' +
+        '<td class="adm-acoes">' + (eu
+          ? '<small class="muted-note">Sua própria conta não pode ser alterada aqui — é o que garante que sempre sobre um admin.</small>'
+          : '<button class="view-btn" data-adm="plano" data-id="' + p.id + '">' +
+            (p.plano === 'pro' ? '↓ Voltar a Gratuito' : '↑ Tornar Pro') + '</button>' +
+            '<button class="view-btn" data-adm="papel" data-id="' + p.id + '">' +
+            (ehAdmin ? '↓ Tirar admin' : '👑 Tornar admin') + '</button>' +
+            '<button class="view-btn ' + (p.bloqueado ? '' : 'adm-perigo') + '" data-adm="bloqueio" data-id="' + p.id + '">' +
+            (p.bloqueado ? '✓ Desbloquear' : '⛔ Bloquear') + '</button>') +
+        '</td></tr>';
+    }).join('');
+
+    $('admin-conteudo').innerHTML = resumo +
+      (adminState.aviso ? '<div class="tra-aviso tra-flash">' + escHtml(adminState.aviso) + '</div>' : '') +
+      '<div class="adm-barra">' +
+      '<input type="search" id="admin-busca" placeholder="Procurar por e-mail" value="' + escHtml(adminState.busca) + '" />' +
+      '<button class="view-btn" data-adm="recarregar">↻ Atualizar</button>' +
+      '</div>' +
+      '<div class="adm-tabela-wrap"><table class="theory-table adm-tabela"><thead><tr>' +
+      '<th>Conta</th><th>Plano</th><th>Papel</th><th>Situação</th><th>Ações</th>' +
+      '</tr></thead><tbody>' +
+      (linhas || '<tr><td colspan="5"><p class="muted-note">Ninguém encontrado com esse e-mail.</p></td></tr>') +
+      '</tbody></table></div>' +
+      '<p class="si-legend">Bloquear tira o acesso na hora: a pessoa é desconectada assim que abrir ou voltar para a aba, ' +
+      'e os dados dela ficam inacessíveis mesmo por fora do site — quem recusa é o banco, não a tela.</p>';
+
+    var busca = $('admin-busca');
+    if (busca) {
+      busca.addEventListener('input', function () { adminState.busca = busca.value; desenharAdmin(); $('admin-busca').focus(); });
+    }
+    $('admin-conteudo').querySelectorAll('[data-adm]').forEach(function (b) {
+      b.addEventListener('click', function () { acaoAdmin(b.getAttribute('data-adm'), b.getAttribute('data-id')); });
+    });
+  }
+
+  function acaoAdmin(acao, id) {
+    if (acao === 'recarregar') { adminState.lista = []; adminState.aviso = ''; renderAdminView(); return; }
+    var p = adminState.lista.filter(function (x) { return x.id === id; })[0];
+    if (!p) return;
+    var patch = null, texto = '';
+    if (acao === 'plano') {
+      patch = { plano: p.plano === 'pro' ? 'gratuito' : 'pro' };
+      texto = p.email + ' agora é ' + (patch.plano === 'pro' ? 'Pro' : 'Gratuito') + '.';
+    } else if (acao === 'papel') {
+      patch = { papel: p.papel === 'admin' ? 'usuario' : 'admin' };
+      texto = p.email + (patch.papel === 'admin' ? ' agora é administrador.' : ' não é mais administrador.');
+    } else if (acao === 'bloqueio') {
+      if (p.bloqueado) { patch = { bloqueado: false }; texto = p.email + ' foi desbloqueado.'; }
+      else {
+        var motivo = prompt('Bloquear ' + p.email + '.\n\nMotivo (opcional, fica registrado):', '');
+        if (motivo === null) return;
+        patch = { bloqueado: true, motivo_bloqueio: motivo || null };
+        texto = p.email + ' foi bloqueado e perde o acesso agora.';
+      }
+    }
+    if (!patch) return;
+    db.updateProfile(id, patch).then(function (res) {
+      if (res.error) { adminState.aviso = 'Não deu certo: ' + res.error.message; desenharAdmin(); return; }
+      // Confia no que o BANCO devolveu, não no que pedimos: se o trigger
+      // tiver revertido algo, a tela mostra a verdade.
+      adminState.lista = adminState.lista.map(function (x) { return x.id === id ? res.data : x; });
+      adminState.aviso = texto;
+      desenharAdmin();
+    });
+  }
+
+  function syncAdminNav() {
+    var item = $('nav-admin');
+    if (item) item.hidden = !window.IL.account.isAdmin();
+  }
+
   function renderConfigView() {
     var wrap = $('config-conteudo');
     if (!currentUser) {
@@ -515,18 +660,55 @@
     }
   }
 
+  // Se o admin bloqueou alguém que já estava logado, a sessão dessa pessoa
+  // continua válida no navegador dela até expirar. O banco já recusa tudo
+  // (as políticas de RLS negam quem está bloqueado), mas deixar a pessoa
+  // navegando como se estivesse dentro seria confuso: aqui a conta é
+  // encerrada na hora, com o motivo na tela.
+  function cortarAcessoBloqueado() {
+    var email = currentUser ? currentUser.email : '';
+    var motivo = currentProfile && currentProfile.motivo_bloqueio;
+    currentProfile = null;
+    db.signOut().then(function () {
+      currentUser = null;
+      renderHeader();
+      syncAdminNav();
+      notifyAccountChange();
+      openAuthModal();
+      setAuthMsg('O acesso de ' + email + ' foi suspenso por quem administra a plataforma' +
+        (motivo ? ' — motivo: ' + motivo : '') + '. Fale com o administrador se achar que é engano.', true);
+    });
+  }
+
   function refreshUserAndProfile(session) {
     currentUser = session ? session.user : null;
     if (!currentUser) {
       currentProfile = null;
       renderHeader();
+      syncAdminNav();
       notifyAccountChange();
       return;
     }
     db.getProfile(currentUser.id).then(function (res) {
       currentProfile = res.data || null;
+      if (currentProfile && currentProfile.bloqueado) { cortarAcessoBloqueado(); return; }
       renderHeader();
+      syncAdminNav();
       notifyAccountChange();
+    });
+  }
+
+  /** Reconfere o perfil (bloqueio/plano/papel) sem mexer na tela à toa. */
+  function reconferirPerfil() {
+    if (!currentUser) return;
+    db.getProfile(currentUser.id).then(function (res) {
+      var p = res.data;
+      if (!p) return;
+      var mudou = !currentProfile || p.bloqueado !== currentProfile.bloqueado ||
+        p.plano !== currentProfile.plano || p.papel !== currentProfile.papel;
+      currentProfile = p;
+      if (p.bloqueado) { cortarAcessoBloqueado(); return; }
+      if (mudou) { renderHeader(); syncAdminNav(); notifyAccountChange(); }
     });
   }
 
@@ -558,6 +740,13 @@
 
     db.onAuthStateChange(function (event, session) {
       refreshUserAndProfile(session);
+    });
+
+    // Voltou para a aba depois de um tempo? Reconfere o perfil: é assim que
+    // um bloqueio (ou uma promoção a Pro/admin) aparece sem precisar
+    // recarregar a página.
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) reconferirPerfil();
     });
   });
 })();
