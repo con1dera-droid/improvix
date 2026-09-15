@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — tela "Transcrição / Treino"
+ * IMPROVIX — tela "Transcrição / Treino"
  *
  * Recebe um áudio (arquivo ou gravação), manda para js/transcribe.js e mostra
  * o solo escrito em seções: tablatura ou partitura, ouvir a transcrição,
@@ -92,7 +92,7 @@
     var nota = $('tra-gravar-nota');
     if (origem === 'aba' && !pode) {
       nota.innerHTML = '⚠️ Este navegador não captura o som de uma aba. Use o <strong>microfone</strong>, ' +
-        'ou abra o ImprovisaLab no Chrome ou no Edge.';
+        'ou abra o IMPROVIX no Chrome ou no Edge.';
     } else if (origem === 'aba') {
       nota.innerHTML = 'Toque o vídeo numa outra aba, clique em gravar e escolha essa aba — ' +
         '<strong>marque "compartilhar o áudio da aba"</strong> na janela que aparecer. Clique de novo para parar.';

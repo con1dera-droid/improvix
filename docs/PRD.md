@@ -1,4 +1,4 @@
-# PRD — ImprovisaLab
+# PRD — IMPROVIX
 
 ## 1. Visão
 Sistema web que transforma uma progressão de acordes em material pronto para
@@ -6,7 +6,7 @@ estudo de improvisação: análise harmônica, escalas e arpejos recomendados,
 notas-alvo, fraseados prontos (com tablatura/cifra/partitura) e, mais adiante,
 áudio.
 
-Layout de referência: tela "Início" enviada pelo usuário (ImprovisaLab —
+Layout de referência: tela "Início" enviada pelo usuário (IMPROVIX —
 Teoria • Harmonia • Prática), com os campos Tonalidade / Instrumento / Nível /
 Progressão de acordes e as abas Visão Geral, Escalas, Arpejos, Notas-alvo,
 Fraseados, Exercícios e Teoria.
@@ -19,7 +19,7 @@ aprender a improvisar sobre eles. Foco inicial em três instrumentos:
 ## 3. Problema que resolve
 Hoje o músico precisa cruzar várias fontes (teoria de campo harmônico, tabela
 de escalas por acorde, banco de frases, tablaturas) para montar um estudo de
-improvisação sobre uma progressão. O ImprovisaLab junta tudo isso em um único
+improvisação sobre uma progressão. O IMPROVIX junta tudo isso em um único
 fluxo: digitar a progressão → receber a análise completa.
 
 ## 4. Escopo por etapa

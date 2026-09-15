@@ -11,7 +11,7 @@ progressão e tonalidade. Nenhum trecho de texto, exercício, lick ou
 partitura dos livros foi copiado para o código ou para o site. Isso é
 importante porque vários desses materiais são obras protegidas por direito
 autoral (alguns trazem aviso de "distribuição proibida" ou licença
-individual), e o ImprovisaLab é um sistema público: ele pode ensinar os
+individual), e o IMPROVIX é um sistema público: ele pode ensinar os
 mesmos conceitos, mas não pode redistribuir o conteúdo dos livros.
 
 ## Por material

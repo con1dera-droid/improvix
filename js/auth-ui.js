@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — interface da Etapa 4 (contas de usuário)
+ * IMPROVIX — interface da Etapa 4 (contas de usuário)
  *
  * Liga a UI (cabeçalho, modal de login, telas de Histórico/Favoritos/
  * Meus Exercícios/Configurações, botões de salvar/favoritar) ao cliente

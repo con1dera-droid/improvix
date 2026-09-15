@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — tela "Exercícios de Padrões"
+ * IMPROVIX — tela "Exercícios de Padrões"
  *
  * Escolhe categoria e padrão (js/patterns.js), mostra a fórmula em graus e
  * o padrão escrito nos 12 tons (uma linha por tom), com partitura,

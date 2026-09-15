@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — Aulas (Etapa 5, parte 4)
+ * IMPROVIX — Aulas (Etapa 5, parte 4)
  *
  * Conteúdo educacional estruturado: lições curtas que explicam a teoria por
  * trás do que o motor de análise (js/theory.js), o gerador de fraseados
@@ -41,13 +41,13 @@
       id: 'como-ler-cifras',
       categoria: 'Fundamentos',
       titulo: 'Como ler cifras (maj7, m7, 7, m7b5...)',
-      resumo: 'O que cada sufixo de cifra significa e como digitar progressões corretamente no ImprovisaLab.',
+      resumo: 'O que cada sufixo de cifra significa e como digitar progressões corretamente no IMPROVIX.',
       corpo: [
         'Uma cifra tem duas partes: a fundamental (a nota, ex.: "G") e a qualidade (o resto, ex.: "maj7"). A fundamental diz qual é a nota mais grave do acorde; a qualidade diz que tipo de acorde é.',
         'As qualidades mais comuns: nada ou "maj" é maior (G = sol maior); "m" ou "min" é menor (Gm); "7" sozinho é dominante — maior com sétima menor (G7); "maj7" é maior com sétima maior (Gmaj7); "m7" é menor com sétima menor (Gm7); "m7b5" (ou "ø") é meio-diminuto; "dim7" é diminuto com sétima diminuta.',
-        'No Brasil é muito comum a cifra no padrão do Dicionário de Chediak, e o ImprovisaLab entende as duas formas: "7M" (ou "7+") é o mesmo que "maj7"; "m7(b5)" é o meio-diminuto; "°" é o diminuto (já com a 7ª diminuta); "m(7M)" é menor com 7ª maior; "7/4" ou "7(4)" é o dominante com 4ª suspensa; "6(9)" é o acorde de 6ª com 9ª.',
-        'O que vem entre parênteses são as tensões: G7(b9), G7(b13), G7(#11), G7(#9), C7M(#11)... Elas não são enfeite: dizem qual escala usar. G7(b9) pede a escala dominante-diminuta, G7(#11) pede o lídio b7, G7(alt) pede a alterada — e o ImprovisaLab já escolhe a escala (e os fraseados) de acordo. Baixo invertido também funciona: D7/F# é um D7 com F# no baixo.',
-        'No campo "Progressão de acordes" do ImprovisaLab, separe os acordes com "|", assim: "Gmaj7 | Em7 | Am7 | D7" ou "G7M | Em7 | Am7(9) | D7(b9)". O motor reconhece sustenidos (#) e bemóis (b) — "F#7" e "Gb7" funcionam igual.'
+        'No Brasil é muito comum a cifra no padrão do Dicionário de Chediak, e o IMPROVIX entende as duas formas: "7M" (ou "7+") é o mesmo que "maj7"; "m7(b5)" é o meio-diminuto; "°" é o diminuto (já com a 7ª diminuta); "m(7M)" é menor com 7ª maior; "7/4" ou "7(4)" é o dominante com 4ª suspensa; "6(9)" é o acorde de 6ª com 9ª.',
+        'O que vem entre parênteses são as tensões: G7(b9), G7(b13), G7(#11), G7(#9), C7M(#11)... Elas não são enfeite: dizem qual escala usar. G7(b9) pede a escala dominante-diminuta, G7(#11) pede o lídio b7, G7(alt) pede a alterada — e o IMPROVIX já escolhe a escala (e os fraseados) de acordo. Baixo invertido também funciona: D7/F# é um D7 com F# no baixo.',
+        'No campo "Progressão de acordes" do IMPROVIX, separe os acordes com "|", assim: "Gmaj7 | Em7 | Am7 | D7" ou "G7M | Em7 | Am7(9) | D7(b9)". O motor reconhece sustenidos (#) e bemóis (b) — "F#7" e "Gb7" funcionam igual.'
       ],
       exemplo: { tonalidade: 'G', modo: 'maior', progressao: 'G7M | Em7 | Am7(9) | D7(b9)' }
     },
@@ -59,9 +59,9 @@
       corpo: [
         'Um "modo" é a mesma escala maior, só que começando por uma nota diferente. Se você toca só as teclas brancas do piano começando em C, é Jônio (a escala maior "normal"); começando em D, é Dórico; em E, Frígio; em F, Lídio; em G, Mixolídio; em A, Eólio (o menor natural); em B, Lócrio.',
         'Cada modo tem uma "cor" e combina melhor com um tipo de acorde: Jônio com o Imaj7, Dórico com acordes menores (soa menos "triste" que o Eólio, por causa da 6ª maior), Mixolídio com acordes dominantes (7), Lídio com um IVmaj7 (a 4ª aumentada dá um brilho característico), Lócrio com o meio-diminuto (m7b5).',
-        'Além dos modos, o ImprovisaLab também recomenda escalas "de cor": a Alterada (super-Lócrio) para dominantes bem tensos, e as pentatônicas maior/menor, ótimas para frases mais simples e diretas, especialmente em power chords e acordes sem terça definida.',
+        'Além dos modos, o IMPROVIX também recomenda escalas "de cor": a Alterada (super-Lócrio) para dominantes bem tensos, e as pentatônicas maior/menor, ótimas para frases mais simples e diretas, especialmente em power chords e acordes sem terça definida.',
         'Na aba Escalas, cada acorde da sua progressão já vem com a escala mais indicada — no nível Avançado (Pro) você vê até 3 opções por acorde, para comparar as cores.',
-        'Cada modo tem uma nota característica — a que o diferencia dos vizinhos: a 6ª maior no dórico, a 2ª menor no frígio, a #4 no lídio, a 7ª menor no mixolídio, a 6ª menor no eólio. Nos fraseados, o ImprovisaLab avisa quando a frase passa por ela: é a nota que "faz o modo soar".'
+        'Cada modo tem uma nota característica — a que o diferencia dos vizinhos: a 6ª maior no dórico, a 2ª menor no frígio, a #4 no lídio, a 7ª menor no mixolídio, a 6ª menor no eólio. Nos fraseados, o IMPROVIX avisa quando a frase passa por ela: é a nota que "faz o modo soar".'
       ],
       exemplo: { tonalidade: 'C', modo: 'maior', progressao: 'Cmaj7 | Dm7 | G7' }
     },
@@ -73,7 +73,7 @@
       corpo: [
         'Um arpejo é o acorde tocado nota por nota, em vez de todas juntas — fundamental, 3ª, 5ª, 7ª. Praticar arpejos ajuda a "ouvir" o acorde por dentro, o que facilita construir frases que soam certas sobre ele.',
         'A nota-alvo é a nota que mais define o som de um acorde: quase sempre a 3ª (ela é que diz se o acorde é maior ou menor) ou a 7ª em acordes com sétima. Terminar ou começar uma frase bem em cima da nota-alvo do próximo acorde é um dos truques mais usados por improvisadores para fazer a frase "acompanhar" a harmonia.',
-        'A aba Arpejos mostra o arpejo recomendado de cada acorde; a aba Notas-alvo já aponta direto qual nota mirar. No nível Avançado, o ImprovisaLab também sugere um "arpejo substituto" — uma tríade construída a partir da 3ª do acorde, um jeito clássico de encontrar tensões interessantes sem sair da harmonia.'
+        'A aba Arpejos mostra o arpejo recomendado de cada acorde; a aba Notas-alvo já aponta direto qual nota mirar. No nível Avançado, o IMPROVIX também sugere um "arpejo substituto" — uma tríade construída a partir da 3ª do acorde, um jeito clássico de encontrar tensões interessantes sem sair da harmonia.'
       ],
       exemplo: { tonalidade: 'F', modo: 'maior', progressao: 'Fmaj7 | Bb7 | Fmaj7' }
     },
@@ -81,18 +81,18 @@
       id: 'dominantes-secundarios',
       categoria: 'Harmonia avançada',
       titulo: 'Dominantes secundários (V7/x)',
-      resumo: 'O "empréstimo" de dominante que aparece antes de quase qualquer grau — e como o ImprovisaLab identifica isso.',
+      resumo: 'O "empréstimo" de dominante que aparece antes de quase qualquer grau — e como o IMPROVIX identifica isso.',
       corpo: [
         'Um dominante secundário é um acorde dominante (7) que não pertence à tonalidade, mas que funciona como o "V7" de um dos outros graus da música — não do V7 da tonalidade principal, e sim do V7 "emprestado" para resolver em outro grau.',
         'Exemplo clássico: em Dó maior, o ii é Dm7. Se em vez disso a progressão usa A7 antes do Dm7, esse A7 é o V7/ii (o dominante que resolveria naturalmente em Dm) — mesmo A7 não pertencendo ao campo harmônico de Dó maior.',
-        'O ImprovisaLab detecta isso automaticamente: quando um acorde dominante tem a fundamental uma 5ª acima de um grau diatônico, ele é marcado como "Dominante secundário" em vez de simplesmente "fora do campo harmônico" — e ganha a escala certa para a resolução: se o alvo é menor (V7/ii, V7/iii, V7/vi), o mixolídio b9 b13; se é maior (V7/IV, V7/V), o mixolídio. O ImprovisaLab também reconhece o II cadencial que prepara esses dominantes (ex.: F#m7(b5) → B7 → Em7).'
+        'O IMPROVIX detecta isso automaticamente: quando um acorde dominante tem a fundamental uma 5ª acima de um grau diatônico, ele é marcado como "Dominante secundário" em vez de simplesmente "fora do campo harmônico" — e ganha a escala certa para a resolução: se o alvo é menor (V7/ii, V7/iii, V7/vi), o mixolídio b9 b13; se é maior (V7/IV, V7/V), o mixolídio. O IMPROVIX também reconhece o II cadencial que prepara esses dominantes (ex.: F#m7(b5) → B7 → Em7).'
       ],
       exemplo: { tonalidade: 'C', modo: 'maior', progressao: 'C | A7 | Dm7 | G7' }
     },
     {
       id: 'tipos-de-frase',
       categoria: 'Fraseados',
-      titulo: 'Como o ImprovisaLab monta os fraseados',
+      titulo: 'Como o IMPROVIX monta os fraseados',
       resumo: 'Uma linha contínua, um compasso por acorde, com as notas do acorde nos tempos fortes e cada frase preparando a próxima.',
       corpo: [
         'Os fraseados não são frases soltas: são uma linha de improviso só, em colcheias (8 notas por compasso de 4/4), um compasso por acorde. Cada compasso começa numa nota do acorde (quase sempre a 3ª, a nota-alvo) e termina já "apontando" para a nota-alvo do acorde seguinte — é o que os métodos chamam de pensamento linear: tocar ATRAVÉS da harmonia, e não acorde por acorde isolado.',
@@ -126,7 +126,7 @@
       corpo: [
         'Além dos 7 modos da escala maior, a improvisação usa os modos da menor melódica (menor melódica, dórico b2, lídio aumentado, lídio b7, mixolídio b13, lócrio 9 e alterada), o 5º modo da menor harmônica (mixolídio b9 b13) e a escala simétrica dominante-diminuta (semitom-tom). Com elas dá para tocar sobre praticamente qualquer acorde do jazz e da MPB.',
         'O dominante é o caso mais rico. Um V7 que resolve num acorde maior (G7 → C) soa bem com o mixolídio (ou, para mais tensão, com a alterada). Um V7 que resolve num acorde menor (E7 → Am, ou o A7 que prepara o Dm7) pede o mixolídio b9 b13, que já traz as notas da tonalidade menor. O SubV7 (Db7 → C), o IV7 do blues e o bVII7 pedem o lídio b7. E se a cifra trouxer tensões, elas mandam: 7(b9) = dominante-diminuta, 7(b13) = mixolídio b13, 7(#11) = lídio b7, 7(alt) = alterada, 7(#5) = tons inteiros.',
-        'Nos outros acordes: 7M no I grau = jônio, 7M nos demais graus = lídio; m7 no ii = dórico, no iii = frígio, no vi = eólio; m6 e m(7M) = menor melódica; m7(b5) diatônico = lócrio, e lócrio 9 nos demais; ° = diminuta (tom-semitom). É exatamente essa tabela que o ImprovisaLab usa para escolher as escalas e montar as frases.'
+        'Nos outros acordes: 7M no I grau = jônio, 7M nos demais graus = lídio; m7 no ii = dórico, no iii = frígio, no vi = eólio; m6 e m(7M) = menor melódica; m7(b5) diatônico = lócrio, e lócrio 9 nos demais; ° = diminuta (tom-semitom). É exatamente essa tabela que o IMPROVIX usa para escolher as escalas e montar as frases.'
       ],
       exemplo: { tonalidade: 'C', modo: 'maior', progressao: 'C7M | A7(b13) | Dm7 | G7(b9) | C7M | Db7 | C7M' }
     },

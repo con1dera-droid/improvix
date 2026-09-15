@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — articulações e dinâmica
+ * IMPROVIX — articulações e dinâmica
  *
  * Recebe os eventos de uma frase ({name, midi, onset, dur, rest}) e devolve
  * uma cópia com as técnicas de execução que deixam a frase "viva":

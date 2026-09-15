@@ -1,5 +1,5 @@
 #!/bin/bash
-# Sobe o ImprovisaLab em http://localhost:3000 e abre no navegador.
+# Sobe o IMPROVIX em http://localhost:3000 e abre no navegador.
 # Dois cliques neste arquivo. Para parar, feche esta janela do Terminal.
 cd "$(dirname "$0")"
 PORTA=3000

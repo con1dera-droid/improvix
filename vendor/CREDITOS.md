@@ -1,6 +1,6 @@
 # Bibliotecas de terceiros
 
-Arquivos desta pasta **não** são do ImprovisaLab: são bibliotecas de código
+Arquivos desta pasta **não** são do IMPROVIX: são bibliotecas de código
 aberto, guardadas aqui (em vez de vir de um CDN) para o site continuar
 funcionando aberto direto do `index.html`, sem servidor e sem internet.
 

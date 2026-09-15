@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — áudio
+ * IMPROVIX — áudio
  *
  * Dois motores de som, ambos 100% no navegador e sem custo:
  *   - "Realista" (padrão): samples de instrumentos de verdade (MusyngKite,
@@ -265,7 +265,7 @@
   function ensureSets(sets) {
     if (soundMode === 'synth' || typeof root.document === 'undefined') return Promise.resolve(false);
     var all = Promise.all(sets.map(loadSet)).then(function () { return true; }, function (err) {
-      if (root.console) root.console.warn('ImprovisaLab: usando som sintetizado (' + (err && err.message) + ')');
+      if (root.console) root.console.warn('IMPROVIX: usando som sintetizado (' + (err && err.message) + ')');
       return false;
     });
     // Se os samples demorarem demais (computador lento, navegador que não
@@ -278,7 +278,7 @@
     });
     return Promise.race([all, timeout]).then(function (r) {
       if (r === 'timeout') {
-        if (root.console) root.console.warn('ImprovisaLab: samples ainda carregando — tocando com som sintetizado desta vez');
+        if (root.console) root.console.warn('IMPROVIX: samples ainda carregando — tocando com som sintetizado desta vez');
         return false;
       }
       return r;

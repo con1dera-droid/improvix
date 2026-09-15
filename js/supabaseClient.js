@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — cliente Supabase (Etapa 4)
+ * IMPROVIX — cliente Supabase (Etapa 4)
  *
  * Fina camada sobre o supabase-js: autenticação (cadastro/login/logout) e
  * CRUD de analises/favoritos/exercicios/profiles. Toda a segurança real

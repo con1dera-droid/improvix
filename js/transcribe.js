@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — motor da tela "Transcrição / Treino"
+ * IMPROVIX — motor da tela "Transcrição / Treino"
  *
  * Pega um áudio (arquivo ou gravação), tira dele a LINHA DE SOLO e devolve
  * seções prontas para treinar, no mesmo formato de eventos que o resto do

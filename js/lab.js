@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — Laboratório (Etapa 5, parte 3)
+ * IMPROVIX — Laboratório (Etapa 5, parte 3)
  *
  * Primeiro experimento do Laboratório: um gerador de progressões prontas
  * para praticar, por estilo (Jazz, Blues, Pop, Modal). Cada modelo é

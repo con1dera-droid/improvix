@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — Biblioteca de Fraseados
+ * IMPROVIX — Biblioteca de Fraseados
  *
  * Gera frases (licks) de 1 ou 2 compassos para qualquer escala/modo, em
  * qualquer tom, em vários estilos — Bebop (estilo Parker), Jazz moderno,

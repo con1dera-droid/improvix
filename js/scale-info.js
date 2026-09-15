@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — ficha de cada escala / modo
+ * IMPROVIX — ficha de cada escala / modo
  *
  * Para cada escala da Biblioteca: fórmula em graus (1 2 b3 4 5 6 b7),
  * intervalos na nomenclatura brasileira (Tôn 2M 3m 4J 5J 6M 7m), desenho de

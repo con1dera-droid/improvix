@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — tela da Biblioteca de Fraseados
+ * IMPROVIX — tela da Biblioteca de Fraseados
  *
  * Liga os filtros (estilo, escala, tom, nível, tamanho, instrumento) ao
  * motor js/library.js e mostra cada frase com partitura rítmica, tablatura,

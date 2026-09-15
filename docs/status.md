@@ -1,4 +1,4 @@
-# Status do projeto — ImprovisaLab
+# Status do projeto — IMPROVIX
 
 ## Etapa 1 — ✅ Concluída (2026-09-10)
 Motor de teoria musical (parser de cifras, campo harmônico maior/menor,
@@ -175,7 +175,7 @@ não depende de login nem de plano Pro.
   secundários), Fraseados (os 5 tipos de frase gerados pelo motor) e
   Estilos (blues de 12 compassos e turnarounds; ii–V–I e giros de jazz).
   Cada lição referencia as telas/recursos correspondentes do próprio
-  ImprovisaLab (Visão Geral, Escalas, Arpejos, Fraseados, Laboratório).
+  IMPROVIX (Visão Geral, Escalas, Arpejos, Fraseados, Laboratório).
 - Cada lição pode trazer um **exemplo prático** (tonalidade + progressão);
   o botão "Testar este exemplo" manda direto para a análise, reaproveitando
   o mesmo fluxo já usado pelo Laboratório ("Analisar esta progressão").
@@ -369,7 +369,7 @@ cifra em cada compasso.
   que enviou (com poucas notas trocadas). Isso não foi feito: seria
   reproduzir material com direitos autorais. Aproveitou-se só a organização
   didática (categorias, ciclo de 4ªs, progressão de dificuldade); todas as
-  frases foram escritas para o ImprovisaLab com vocabulário comum do jazz
+  frases foram escritas para o IMPROVIX com vocabulário comum do jazz
   (graus do acorde, notas-guia, cercos, escala bebop, tensões).
 - Cada padrão mostra a **fórmula em graus por acorde** (ex.: Dm7 `b3 b7` →
   G7 `3 b7` → C7M `3 7`) e uma dica; cada tom vem numa linha com

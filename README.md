@@ -1,4 +1,4 @@
-# ImprovisaLab — Etapas 1 a 5 (instrumentos + planos + Laboratório + Aulas)
+# IMPROVIX — Etapas 1 a 5 (instrumentos + planos + Laboratório + Aulas)
 
 Sistema online de improvisação: transforma uma progressão de acordes em
 análise harmônica completa (campo harmônico, função de cada acorde, escalas,
@@ -235,7 +235,7 @@ Crie um repositório vazio em <https://github.com/new> — sem README, sem
 
 ```bash
 cd ~/IMPROVIX
-git remote add origin https://github.com/SEU-USUARIO/improvisalab.git
+git remote add origin https://github.com/SEU-USUARIO/improvix.git
 git branch -M main
 git push -u origin main
 ```
@@ -243,11 +243,11 @@ git push -u origin main
 **2. Publicar no Vercel** (uma vez só):
 
 1. Entre em <https://vercel.com> com a conta do GitHub.
-2. **Add New… → Project** e escolha o repositório `improvisalab`.
+2. **Add New… → Project** e escolha o repositório `improvix`.
 3. Em *Framework Preset*, escolha **Other**. Deixe *Build Command* e
    *Output Directory* vazios — não há build: o site é a própria raiz.
 4. **Deploy**. Em um minuto sai um endereço tipo
-   `improvisalab.vercel.app`, com HTTPS.
+   `improvix.vercel.app`, com HTTPS.
 
 **3. Atualizar depois**: `git push` e pronto. O Vercel publica sozinho a
 cada commit no `main` — nunca mais subir arquivo na mão.

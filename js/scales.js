@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — Biblioteca de Escalas (motor)
+ * IMPROVIX — Biblioteca de Escalas (motor)
  *
  * Catálogo completo das escalas do sistema, agrupadas por família, com:
  *   - as notas no tom escolhido (grafia limpa, sem acidentes dobrados);

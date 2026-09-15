@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — configuração do Supabase (Etapa 4)
+ * IMPROVIX — configuração do Supabase (Etapa 4)
  *
  * Troque os dois valores abaixo pelos do SEU projeto Supabase:
  * Project Settings > API > "Project URL" e "anon public" key.

@@ -1,4 +1,4 @@
-# Mapa do Sistema — ImprovisaLab
+# Mapa do Sistema — IMPROVIX
 
 ## 1. Arquitetura — Etapa 1 (sem login, custo zero)
 

@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — Exercícios de Padrões
+ * IMPROVIX — Exercícios de Padrões
  *
  * Método clássico de estudo do jazz: um padrão curto (arpejo, notas-guia,
  * cerco, escala bebop...) sobre um acorde ou uma cadência, repetido nos 12

@@ -1,6 +1,6 @@
 # Etapa 4 — configurar login (Supabase gratuito)
 
-O ImprovisaLab continua sendo um site estático (sem servidor próprio), mas a
+O IMPROVIX continua sendo um site estático (sem servidor próprio), mas a
 partir da Etapa 4 ele pode, opcionalmente, se conectar a um projeto
 [Supabase](https://supabase.com) gratuito para guardar contas de usuário,
 histórico de análises, favoritos e "Meus Exercícios".
@@ -16,7 +16,7 @@ serviço — eu não posso criar isso por você.
 1. Acesse [supabase.com](https://supabase.com) e crie uma conta gratuita
    (dá para entrar com GitHub ou e-mail).
 2. Clique em **New project**.
-3. Escolha um nome (ex.: `improvisalab`), uma senha para o banco (guarde-a,
+3. Escolha um nome (ex.: `improvix`), uma senha para o banco (guarde-a,
    mas ela não é usada no site) e a região mais próxima de você.
 4. Aguarde alguns minutos até o projeto ficar pronto.
 

@@ -1,4 +1,4 @@
-# Matriz RBAC — ImprovisaLab
+# Matriz RBAC — IMPROVIX
 
 Não é um sistema multi-tenant (não atende empresas/clientes separados); é
 B2C — cada usuário é dono só dos próprios dados (histórico, favoritos,

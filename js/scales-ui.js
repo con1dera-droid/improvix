@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — tela "Biblioteca de Escalas"
+ * IMPROVIX — tela "Biblioteca de Escalas"
  *
  * Lista todas as escalas (busca por nome), e para a escolhida mostra:
  * fórmula em graus e intervalos, tons e semitons, as notas no tom, o

@@ -11,10 +11,10 @@ de Benjamin Gleitzman:
 A licença **ShareAlike** vale para estes arquivos de som: qualquer versão
 modificada deles (recortada, reconvertida, remixada) tem de ser distribuída
 com a mesma licença e com este crédito. Ela **não** se estende ao restante do
-ImprovisaLab (o código do site continua sendo do projeto) — é o mesmo caso de
+IMPROVIX (o código do site continua sendo do projeto) — é o mesmo caso de
 usar uma trilha licenciada dentro de um programa.
 
-O ImprovisaLab guarda **uma nota a cada 2 semitons** de cada instrumento
+O IMPROVIX guarda **uma nota a cada 2 semitons** de cada instrumento
 (MP3 de ~3 s, como vieram do banco) e transpõe as vizinhas na hora de tocar,
 então nenhuma nota é esticada mais do que meio tom. Por cima disso o player
 faz por software os bends, slides, hammer-ons/pull-offs, vibrato, a dinâmica

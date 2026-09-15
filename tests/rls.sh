@@ -10,7 +10,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 PSQL=${PSQL:-psql}
-DB=${DB:-improvisalab_teste}
+DB=${DB:-improvix_teste}
 
 if ! command -v "$PSQL" >/dev/null; then
   echo "psql não encontrado. Instale o PostgreSQL para rodar este teste." >&2

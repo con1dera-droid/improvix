@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — motor de teoria musical (Etapa 1)
+ * IMPROVIX — motor de teoria musical (Etapa 1)
  *
  * Funções puras (sem DOM), reaproveitáveis no navegador (window.IL.theory)
  * e no Node (para os testes automáticos em tests/theory.test.js).

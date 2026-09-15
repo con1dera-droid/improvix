@@ -1,4 +1,4 @@
--- ImprovisaLab — banco de dados (contas, planos e administração)
+-- IMPROVIX — banco de dados (contas, planos e administração)
 -- Rode este script inteiro no SQL Editor do seu projeto Supabase
 -- (Project > SQL Editor > New query > colar tudo > Run).
 --

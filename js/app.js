@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — Etapa 1 (interface)
+ * IMPROVIX — Etapa 1 (interface)
  * Liga os campos da tela ao motor de teoria musical (js/theory.js) e
  * renderiza as abas Visão Geral / Escalas / Arpejos / Notas-alvo.
  * Sem backend, sem login — tudo roda no navegador.

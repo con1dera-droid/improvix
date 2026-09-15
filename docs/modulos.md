@@ -1,4 +1,4 @@
-# Catálogo de Módulos — ImprovisaLab
+# Catálogo de Módulos — IMPROVIX
 
 | Módulo | Tipo | Entra na etapa | Descrição |
 |---|---|---|---|

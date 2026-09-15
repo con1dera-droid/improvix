@@ -1,6 +1,6 @@
 # Etapa 5 — Planos (Gratuito / Pro)
 
-O ImprovisaLab agora distingue dois planos:
+O IMPROVIX agora distingue dois planos:
 
 - **Gratuito** (padrão de todo mundo que cria conta): análise harmônica
   completa em todos os instrumentos, fraseados nível Iniciante e

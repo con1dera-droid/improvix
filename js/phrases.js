@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — gerador de fraseados (Etapa 2, reescrito na etapa
+ * IMPROVIX — gerador de fraseados (Etapa 2, reescrito na etapa
  * "fraseados melhores")
  *
  * Gera UMA LINHA CONTÍNUA de improviso sobre a progressão: um compasso de

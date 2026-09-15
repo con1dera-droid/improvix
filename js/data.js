@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — dados de teoria musical (Etapa 1)
+ * IMPROVIX — dados de teoria musical (Etapa 1)
  * Notas, escalas, qualidades de acorde, campo harmônico e recomendações.
  * Arquivo sem dependências, funciona no navegador (window.IL) e no Node
  * (module.exports), para poder ser testado com `node tests/theory.test.js`.

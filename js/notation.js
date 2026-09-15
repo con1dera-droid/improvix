@@ -1,5 +1,5 @@
 /**
- * ImprovisaLab — notação (Etapa 2)
+ * IMPROVIX — notação (Etapa 2)
  *
  * Recebe uma sequência de nomes de nota (classes de altura, sem oitava —
  * o que o motor de teoria e o gerador de fraseados produzem) e "realiza"
