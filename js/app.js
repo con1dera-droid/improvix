@@ -406,10 +406,23 @@
     });
   }
 
-  function renderFraseadoDetalhe() {
-    if (audio) { audio.stopAll(); }
-    var audioBtnReset = document.querySelector('.view-btn[data-view="audio"]');
-    if (audioBtnReset) { audioBtnReset.classList.remove('playing'); audioBtnReset.textContent = '🔊 Áudio'; }
+  /**
+   * Desenha o cartão da frase selecionada.
+   *
+   * `semParar` é usado enquanto "Tocar a linha inteira" está rodando: a tela
+   * acompanha o som, trocando de frase a cada compasso, e aí NÃO pode parar
+   * o áudio (que é justamente o que esta função faz quando alguém clica numa
+   * frase da lista).
+   */
+  function renderFraseadoDetalhe(semParar) {
+    if (!semParar) {
+      if (audio) { audio.stopAll(); }
+      // Parou o som: todos os botões de tocar voltam ao estado de parado.
+      // (Antes, escolher outra frase no meio de "Tocar a linha inteira"
+      // calava o som mas deixava o botão dizendo "Tocando...".)
+      resetAudioButtons();
+      document.querySelectorAll('#lista-fraseados .phrase-item.playing').forEach(function (el) { el.classList.remove('playing'); });
+    }
 
     var phrase = state.phrases[state.selectedPhraseIndex];
     var titulo = document.getElementById('fraseado-titulo');
@@ -551,26 +564,63 @@
         if (lineBtn.classList.contains('playing')) { audio.stopAll(); resetAudioButtons(); return; }
         var instrumento = document.getElementById('input-instrumento').value;
         var nivelAtual = document.getElementById('input-nivel').value;
-        var bars = state.phrases.filter(function (p) { return p.category !== 'resolucao'; }).map(function (p) {
-          return Object.assign({}, p, { events: preparedPhrase(p, instrumento, nivelAtual).events });
+        // A linha não inclui a frase de resolução, então o compasso nº b do
+        // som não é necessariamente a frase nº b da lista: este mapa guarda
+        // a correspondência para a tela acompanhar o compasso certo.
+        var indiceDaBarra = [];
+        var bars = [];
+        state.phrases.forEach(function (p, i) {
+          if (p.category === 'resolucao') return;
+          indiceDaBarra.push(i);
+          bars.push(Object.assign({}, p, { events: preparedPhrase(p, instrumento, nivelAtual).events }));
         });
         if (!bars.length) return;
         audio.stopAll();
         resetAudioButtons();
         lineBtn.classList.add('playing');
         lineBtn.textContent = '⏸ Tocando... (clique para parar)';
+        mostrarPartitura();      // traz a partitura para a tela antes de começar
         // O "repetir" é feito dentro do motor de áudio, agendado adiantado no
         // relógio do som: a volta seguinte emenda na anterior sem pausa.
         audio.playLine(bars, instrumento, function (b) {
           highlightChord(b);
+          // A tela vira a página junto com o som: a frase que está tocando
+          // passa a ser a frase mostrada (partitura, tab, notas e explicação).
+          var i = indiceDaBarra[b];
+          if (i !== undefined && i !== state.selectedPhraseIndex) {
+            state.selectedPhraseIndex = i;
+            renderFraseadosList();
+            renderFraseadoDetalhe(true);   // true = sem parar o som
+          }
           document.querySelectorAll('#lista-fraseados .phrase-item').forEach(function (el, idx) {
-            el.classList.toggle('playing', idx === b);
+            el.classList.toggle('playing', idx === state.selectedPhraseIndex);
           });
         }, function () {
           resetAudioButtons();
           document.querySelectorAll('#lista-fraseados .phrase-item.playing').forEach(function (el) { el.classList.remove('playing'); });
         }, transportOpts('linha'));
       });
+    }
+  }
+
+  /**
+   * Leva o cartão da frase (partitura/tab) para a tela.
+   *
+   * No celular a lista de frases fica em cima e a partitura embaixo: sem
+   * isso, apertar "Tocar a linha inteira" tocava o som com a partitura fora
+   * da tela. Se o cartão já está inteiro à vista (é o caso no computador),
+   * não mexe na rolagem — rolar sem necessidade é desagradável.
+   */
+  function mostrarPartitura() {
+    var card = document.querySelector('.fraseado-detalhe-card');
+    if (!card || !card.getBoundingClientRect) return;
+    var r = card.getBoundingClientRect();
+    var altura = window.innerHeight || document.documentElement.clientHeight;
+    if (r.top >= 0 && r.bottom <= altura) return;        // já está à vista
+    try {
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e) {
+      card.scrollIntoView(true);                          // navegadores antigos
     }
   }
 

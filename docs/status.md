@@ -1001,6 +1001,35 @@ e, no fim, que o computador continua como era. `tests/admin.smoke.js` ganhou
 3 checagens de celular. As 10 baterias de teste e os 21 smokes anteriores
 continuam passando.
 
+## "Tocar a linha inteira": a tela acompanha o som — ✅ (2026-09-15)
+
+No celular a lista de frases fica em cima e a partitura embaixo, então
+apertar **▶ Tocar a linha inteira** tocava o solo com a partitura fora da
+tela — e ela ficava parada na frase 1 enquanto o som já ia no compasso 4.
+Agora:
+
+- ao começar, a tela **rola até o cartão da partitura** (só se ele não
+  estiver inteiro à vista — no computador, onde já está, nada se mexe);
+- a cada compasso, a frase que está soando **passa a ser a frase mostrada**:
+  partitura/tab, notas utilizadas e explicação viram a página junto com o
+  som, e o item correspondente fica marcado na lista.
+
+Detalhe que essa mudança exigiu: `renderFraseadoDetalhe()` começava
+parando o áudio (é o certo quando alguém escolhe outra frase na lista), o
+que mataria o som a cada troca. Ela ganhou o parâmetro `semParar`, usado só
+pelo acompanhamento. Outro detalhe: a linha **não** inclui a frase de
+resolução, então o compasso nº b do som não é a frase nº b da lista — o
+código guarda a correspondência, senão a tela mostraria a frase errada.
+
+De quebra, um defeito antigo apareceu e foi corrigido: escolher outra frase
+no meio da linha calava o som mas deixava o botão dizendo "⏸ Tocando…".
+Agora parar o som volta todos os botões de tocar ao estado parado.
+
+Testes: `tests/fraseados.smoke.js` passou a ter verificações de verdade
+(com `ok`/`FALHA` e código de saída) — rola até a partitura, a frase troca
+sozinha e sempre bate com a que está marcada na lista, só um compasso
+marcado de cada vez, e o botão volta ao normal ao escolher outra frase.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
