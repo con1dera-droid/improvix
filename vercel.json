@@ -16,7 +16,6 @@
       ]
     },
     {
-      "comment": "Página e código: sempre revalidar, para uma atualização aparecer no primeiro reload.",
       "source": "/(index.html)?",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
     },
@@ -25,7 +24,6 @@
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
     },
     {
-      "comment": "Samples de instrumento e bibliotecas do detector: pesados e quase imutáveis.",
       "source": "/(sounds|vendor)/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }]
     }
