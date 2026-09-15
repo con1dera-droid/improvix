@@ -221,3 +221,55 @@ que manda a progressão de exemplo direto para a análise. Conteúdo em
 
 Ver `docs/PRD.md` para o roadmap completo. Com a Etapa 5 (instrumentos,
 planos, Laboratório e Aulas), todo o escopo original do PRD foi entregue.
+
+## Publicar na internet (GitHub + Vercel, de graça)
+
+O site é estático: não tem servidor, não tem build, não tem custo. Os
+arquivos deste repositório já são o site pronto — por isso qualquer
+hospedagem de site estático serve, e o plano gratuito do Vercel sobra.
+
+**1. Mandar o código para o GitHub** (uma vez só):
+
+Crie um repositório vazio em <https://github.com/new> — sem README, sem
+.gitignore, sem licença (este projeto já tem os seus). Depois, no Terminal:
+
+```bash
+cd ~/IMPROVIX
+git remote add origin https://github.com/SEU-USUARIO/improvisalab.git
+git branch -M main
+git push -u origin main
+```
+
+**2. Publicar no Vercel** (uma vez só):
+
+1. Entre em <https://vercel.com> com a conta do GitHub.
+2. **Add New… → Project** e escolha o repositório `improvisalab`.
+3. Em *Framework Preset*, escolha **Other**. Deixe *Build Command* e
+   *Output Directory* vazios — não há build: o site é a própria raiz.
+4. **Deploy**. Em um minuto sai um endereço tipo
+   `improvisalab.vercel.app`, com HTTPS.
+
+**3. Atualizar depois**: `git push` e pronto. O Vercel publica sozinho a
+cada commit no `main` — nunca mais subir arquivo na mão.
+
+O `vercel.json` já cuida de duas coisas: cabeçalhos de segurança (e a
+permissão de microfone/captura de aba que a tela de Transcrição precisa) e
+o cache — página, `js/` e `css/` sempre revalidam (uma atualização aparece
+no primeiro reload), enquanto `sounds/` e `vendor/`, que são pesados e
+quase nunca mudam, ficam guardados por uma semana. O `.vercelignore`
+mantém `tests/`, `docs/` e os arquivos de trabalho fora do site publicado.
+
+**Domínio próprio** (opcional): no painel do projeto, *Settings → Domains*.
+O domínio é pago (uns R$ 40–60 por ano no registro.br ou similar); o
+Vercel não cobra nada para apontar.
+
+### Login e contas no site publicado
+
+Sem configurar o Supabase, o site publicado funciona inteiro para estudo —
+análise, escalas, fraseados, padrões, transcrição e áudio. Só o que depende
+de conta (salvar histórico, favoritos e Meus Exercícios) fica desativado,
+com um aviso explicando. Para ligar isso depois, siga
+`docs/etapa4-supabase.md`: crie um projeto gratuito no Supabase, rode
+`sql/schema.sql` e ponha a URL e a chave anônima em `js/config.js`. A chave
+anônima é pública por natureza (quem protege os dados é o RLS do banco),
+então ela pode ficar versionada normalmente.

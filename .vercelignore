@@ -1,0 +1,8 @@
+# O que NÃO precisa ir para o site publicado (continua no repositório).
+tests/
+docs/
+sql/
+Claude outputs/
+abrir-site.command
+*.png
+node_modules/
