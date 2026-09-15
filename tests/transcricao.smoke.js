@@ -6,7 +6,9 @@
 const { chromium } = require('playwright');
 const path = require('path');
 
-const AUDIO = process.argv[2] || path.resolve(__dirname, 'fixtures/solo-teste.wav');
+// Sem áudio na linha de comando, usa o solo sintético do teste — que é
+// recriado na hora se ainda não existir (o .wav não fica no repositório).
+const AUDIO = process.argv[2] || require('./fixtures/gera-solo.js').garantir();
 
 (async () => {
   const browser = await chromium.launch({

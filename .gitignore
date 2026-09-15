@@ -6,3 +6,6 @@ node_modules/
 # arquivos de trabalho (prints, páginas de comparação) — ficam no seu Mac,
 # fora do repositório
 Claude outputs/
+
+# áudio do teste de transcrição — recriado por tests/fixtures/gera-solo.js
+tests/fixtures/*.wav
