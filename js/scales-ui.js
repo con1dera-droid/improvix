@@ -244,6 +244,7 @@
       '<h3 class="esc-sub">Exercícios para treinar</h3>' +
       '<p class="si-legend">' + state.exercises.length + ' exercícios nesta escala — todos com tablatura/partitura e áudio. ' +
       'Use o metrônomo aí em cima e comece devagar.</p>' +
+      '<p class="dica-rolar">↔ no celular, deslize a partitura/tablatura para o lado</p>' +
       exerciciosHTML(instrument);
 
     $('esc-conteudo').innerHTML = html;

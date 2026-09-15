@@ -722,8 +722,44 @@
         if (item.classList.contains('is-soon')) return;
         document.querySelectorAll('.nav-item').forEach(function (i) { i.classList.remove('active'); });
         item.classList.add('active');
+        fecharMenu();   // no celular o menu é gaveta: escolheu, fechou
       });
     });
+  }
+
+  // --- Menu de celular (gaveta) --------------------------------------------
+  // No computador o menu lateral está sempre à vista. No celular ele sai da
+  // tela e volta pelo botão ☰. Quem manda é a classe `menu-aberto` no <body>:
+  // o CSS cuida do resto (a gaveta desliza e o fundo escurece).
+
+  function menuAberto() { return document.body.classList.contains('menu-aberto'); }
+
+  function abrirMenu() {
+    document.body.classList.add('menu-aberto');
+    var ov = document.getElementById('menu-overlay');
+    if (ov) ov.hidden = false;
+    var b = document.getElementById('btn-menu');
+    if (b) { b.setAttribute('aria-expanded', 'true'); b.setAttribute('aria-label', 'Fechar menu'); }
+  }
+
+  function fecharMenu() {
+    if (!menuAberto()) return;
+    document.body.classList.remove('menu-aberto');
+    var ov = document.getElementById('menu-overlay');
+    if (ov) ov.hidden = true;
+    var b = document.getElementById('btn-menu');
+    if (b) { b.setAttribute('aria-expanded', 'false'); b.setAttribute('aria-label', 'Abrir menu'); }
+  }
+
+  function setupMenuCelular() {
+    var btn = document.getElementById('btn-menu');
+    var ov = document.getElementById('menu-overlay');
+    if (btn) btn.addEventListener('click', function () { menuAberto() ? fecharMenu() : abrirMenu(); });
+    if (ov) ov.addEventListener('click', fecharMenu);
+    document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') fecharMenu(); });
+    // Virou o telefone ou voltou para o computador: a gaveta não faz mais
+    // sentido, e deixá-la aberta travaria a rolagem da página.
+    window.addEventListener('resize', function () { if (window.innerWidth > 860) fecharMenu(); });
   }
 
   // --- A progressão acompanha a tonalidade ---------------------------------
@@ -862,6 +898,7 @@
     buildTonalidadeOptions();
     setupTabs();
     setupNav();
+    setupMenuCelular();
     setupForm();
     setupFraseados();
     setupAudioProgressao();

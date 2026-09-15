@@ -272,6 +272,31 @@ async function sair(page) {
   const ehPro = await page.$eval('.user-plan', (e) => e.textContent);
   ok(/Pro/.test(ehPro), 'e continua com o plano que o admin deu (' + ehPro.trim() + ')');
 
+  // 6) a tela de administração num celular
+  await sair(page);
+  await entrar(page, 'alex+admin@teste.com', false);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForTimeout(300);
+  await page.click('#btn-menu');
+  await page.waitForTimeout(300);
+  await page.click('.nav-item[data-nav="admin"]');
+  await page.waitForTimeout(600);
+  const cel = await page.evaluate(() => ({
+    estoura: document.documentElement.scrollWidth - 390,
+    tabelaRola: (function () {
+      // a caixa precisa poder rolar; se a tabela couber, melhor ainda
+      const w = document.querySelector('.adm-tabela-wrap');
+      if (!w) return false;
+      const ov = getComputedStyle(w).overflowX;
+      return (ov === 'auto' || ov === 'scroll') && w.clientWidth <= 390;
+    })(),
+    linhas: document.querySelectorAll('.adm-tabela tbody tr').length
+  }));
+  ok(cel.estoura <= 0, 'CELULAR: a tela de administração cabe na tela do telefone' +
+    (cel.estoura > 0 ? ' (estoura ' + cel.estoura + 'px)' : ''));
+  ok(cel.tabelaRola, 'CELULAR: a tabela de contas rola dentro da própria caixa');
+  ok(cel.linhas >= 2, 'CELULAR: as contas continuam listadas (' + cel.linhas + ')');
+
   console.log('\nErros de página:', erros.length ? erros : 'nenhum');
   if (erros.length) falhas += erros.length;
   await page.screenshot({ path: '/tmp/admin.png', fullPage: false });

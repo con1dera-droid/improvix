@@ -171,10 +171,27 @@ node tests/etapa5.laboratorio.smoke.js
 node tests/etapa5.aulas.smoke.js
 node tests/fraseados.smoke.js
 node tests/biblioteca.smoke.js
+node tests/celular.smoke.js
 ```
+
+`tests/celular.smoke.js` percorre o site em três tamanhos de telefone
+(390×844, 360×740 e 320×568) e reprova qualquer tela que role para o lado,
+botão abaixo de 40px ou campo com fonte menor que 16px — no fim, confere
+que o computador continua como era.
 
 Todos os testes devem passar antes de qualquer alteração ser considerada
 pronta (é o item 9 do padrão de qualidade do projeto).
+
+## No celular
+
+Abaixo de 860px de largura o site se reorganiza sozinho: o menu lateral vira
+uma **gaveta** (botão ☰ no topo — escolher um item, tocar fora ou apertar Esc
+fecha), a barra do topo se desdobra em linhas e a tabela da análise, a
+tablatura e a partitura passam a rolar **dentro da própria caixa**, em vez de
+empurrar a página. A partitura fica no tamanho natural e não espremida, para
+o nome das notas continuar legível; onde isso acontece, aparece o aviso
+"↔ deslize para o lado". Os campos ficam com 16px de fonte de propósito:
+abaixo disso o iPhone dá zoom sozinho quando o dedo toca no campo.
 
 ## Login e dados salvos (Etapa 4)
 

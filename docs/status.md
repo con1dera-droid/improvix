@@ -948,6 +948,59 @@ republica o site sozinho.
   recria o solo sintético — semente fixa, sempre igual — quando o arquivo
   não existe, e o `.wav` fica fora do Git.
 
+## Celular: o site deixou de ser só de computador — ✅ (2026-09-15)
+
+O dono do projeto pediu que o site ficasse bem adaptado ao celular, e não só
+na proporção de PC. Medindo antes de mexer (num Chromium de 390×844), **as 8
+telas estouravam a largura em 225px** — ou seja, todas rolavam para o lado.
+Duas causas: o menu lateral de 250px virava uma fileira de itens mais larga
+que a tela, e a barra do topo (busca + 2 seletores de som + sino + conta)
+não quebrava em linhas.
+
+**O menu virou gaveta.** Abaixo de 860px a barra lateral sai da tela e volta
+pelo botão **☰** no topo, com o fundo escurecido; escolher um item, tocar
+fora ou apertar Esc fecha. Quem manda é a classe `menu-aberto` no `<body>`
+(`setupMenuCelular()` em `js/app.js`); o resto é CSS. Girar o telefone ou
+voltar para o computador fecha sozinho — senão a rolagem da página ficaria
+travada.
+
+**A barra do topo se desdobra**: ☰ + marca + entrar na primeira linha, busca
+na segunda, os dois seletores de som na terceira. O truque é
+`display: contents` na caixa da direita: ela se dissolve e cada controle
+vira um item da barra, podendo ser reordenado sozinho. O sino (decorativo)
+some no celular.
+
+**O que é largo por natureza passou a rolar dentro da própria caixa**, em
+vez de empurrar a página: a tabela de 5 colunas da análise (com um aviso
+"↔ deslize para o lado", que só aparece no celular), a tabela de contas da
+administração, a tablatura e a partitura.
+
+**A partitura foi o ponto menos óbvio.** Ela é um SVG de largura 100% e
+altura fixa: espremido em 311px o desenho encolhia para ~52% (nome de nota
+virava borrão) e ainda sobrava faixa branca em cima e embaixo. No celular
+ela volta ao tamanho natural (`width/height: auto`, que usam o viewBox) e
+quem rola é o cartão em volta.
+
+Também entraram: `minmax(0, 1fr)` nas grades de duas colunas (com `1fr` a
+coluna nunca fica menor que o conteúdo, e um seletor largo lá dentro
+empurrava a página inteira), alvos de toque de no mínimo 40px, campos com
+fonte de 16px (abaixo disso o iPhone dá zoom sozinho ao tocar no campo e
+desalinha tudo) e um segundo ajuste para telas de 400px ou menos.
+
+**Nada mudou no computador**: o menu continua fixo à esquerda, o ☰ e a marca
+do topo não aparecem e a barra do topo segue numa linha só (82px de altura,
+conferido no teste).
+
+Testes: novo `tests/celular.smoke.js` — percorre o site em **três tamanhos**
+(390×844, 360×740 e 320×568, o iPhone SE) e confere que nenhuma tela estoura
+a largura (inclusive depois de analisar uma progressão, abrir cada aba,
+gerar frases, abrir os 21 exercícios com tablatura de guitarra e as linhas
+dos 12 tons), que a gaveta abre/navega/fecha, que o modal de login cabe,
+que nenhum botão ou campo fica abaixo de 40px, que os campos estão em 16px —
+e, no fim, que o computador continua como era. `tests/admin.smoke.js` ganhou
+3 checagens de celular. As 10 baterias de teste e os 21 smokes anteriores
+continuam passando.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

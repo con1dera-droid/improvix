@@ -20,8 +20,11 @@
 
 <div class="app">
 
+  <!-- Escurece o conteúdo enquanto a gaveta do menu está aberta (só celular) -->
+  <div class="menu-overlay" id="menu-overlay" hidden></div>
+
   <!-- ===================== SIDEBAR ===================== -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="menu-lateral">
     <div class="brand">
       <span class="brand-icon">🎵</span>
       <div>
@@ -56,6 +59,9 @@
 
     <!-- Header -->
     <header class="topbar">
+      <!-- No celular o menu lateral vira gaveta: este botão abre e fecha. -->
+      <button class="btn-menu" id="btn-menu" aria-label="Abrir menu" aria-expanded="false" aria-controls="menu-lateral">☰</button>
+      <span class="topbar-brand">IMPROVIX</span>
       <div class="search">
         <span class="search-icon">🔍</span>
         <input type="text" placeholder="Ex.: Gmaj7 | Em7 | Am7 | D7" id="quick-search" />
@@ -164,6 +170,9 @@
 
               <div class="chord-chain" id="chord-chain"></div>
 
+              <!-- A tabela tem 5 colunas: no celular ela rola para o lado
+                   dentro da própria caixa, e este aviso diz isso. -->
+              <p class="dica-rolar">↔ deslize a tabela para o lado para ver as outras colunas</p>
               <table class="theory-table" id="tabela-visao-geral">
                 <thead>
                   <tr>
@@ -254,6 +263,7 @@
                   <button class="btn-chip-action" id="btn-exercicio" disabled title="Entre para adicionar aos exercícios">➕ Adicionar aos exercícios</button>
                 </div>
 
+                <p class="dica-rolar">↔ no celular, deslize a partitura/tablatura para o lado</p>
                 <div id="fraseado-conteudo" class="fraseado-conteudo"></div>
 
                 <div class="fraseado-notas">
@@ -463,6 +473,7 @@
           é exclusivo do plano <strong>Pro</strong>. <a href="#" data-nav="config">Ver planos</a>
         </p>
         <div id="lib-resumo" class="muted-note"></div>
+        <p class="dica-rolar">↔ no celular, deslize a partitura/tablatura para o lado</p>
         <div id="lib-lista" class="lib-lista"></div>
         <div class="lib-mais"><button class="btn-secondary" id="btn-lib-mais" hidden>➕ Mais 12 frases</button></div>
       </div>
@@ -563,6 +574,7 @@
             <p class="pad-erro" id="pad-erro" hidden></p>
           </div>
         </details>
+        <p class="dica-rolar">↔ no celular, deslize a partitura/tablatura para o lado</p>
         <div id="pad-lista" class="lib-lista"></div>
       </div>
     </div>

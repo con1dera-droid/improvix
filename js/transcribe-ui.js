@@ -353,6 +353,7 @@
       '<button type="button" class="tr-btn tr-loop" data-act="loop" title="Repetir" aria-pressed="false">🔁</button>' +
       '<small class="tra-dica-transporte">vale para o botão “Transcrição” de cada seção</small>' +
       '</div>' +
+      '<p class="dica-rolar">↔ no celular, deslize a partitura/tablatura para o lado</p>' +
       '<div class="lib-lista">' +
       r.secoes.map(function (s) { return secaoHTML(s, instrument, r.bpm); }).join('') +
       '</div>';
