@@ -15,6 +15,6 @@
  * explicando o que falta configurar.
  */
 window.IL_CONFIG = {
-  supabaseUrl: 'https://SEU-PROJETO.supabase.co',
-  supabaseAnonKey: 'SUA_CHAVE_ANON_AQUI'
+  supabaseUrl: 'https://vtrwhtakatphjwzipywx.supabase.co',
+  supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0cndodGFrYXRwaGp3emlweXd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk0NjUzNDAsImV4cCI6MjEwNTA0MTM0MH0.tIp1CioP-9qkpTCMiOy20qSisciq9d9X48JFMW0wBc8'
 };
