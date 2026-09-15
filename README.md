@@ -224,6 +224,11 @@ planos, Laboratório e Aulas), todo o escopo original do PRD foi entregue.
 
 ## Publicar na internet (GitHub + Vercel, de graça)
 
+> **No ar desde 15/09/2026: <https://improvix.vercel.app>**
+> Repositório `con1dera-droid/improvix`, site no Vercel (Hobby) e banco no
+> Supabase (Free) — tudo em plano gratuito. Daqui para a frente, publicar
+> uma mudança é só `git push` na branch `main`.
+
 O site é estático: não tem servidor, não tem build, não tem custo. Os
 arquivos deste repositório já são o site pronto — por isso qualquer
 hospedagem de site estático serve, e o plano gratuito do Vercel sobra.
@@ -258,6 +263,16 @@ o cache — página, `js/` e `css/` sempre revalidam (uma atualização aparece
 no primeiro reload), enquanto `sounds/` e `vendor/`, que são pesados e
 quase nunca mudam, ficam guardados por uma semana. O `.vercelignore`
 mantém `tests/`, `docs/` e os arquivos de trabalho fora do site publicado.
+Não ponha comentário no `vercel.json`: o Vercel valida o arquivo contra um
+schema fechado e recusa qualquer campo a mais (inclusive um `"comment"`).
+
+**4. Apontar o Supabase para o endereço público** (uma vez só, e importante):
+no painel do Supabase, *Authentication → URL Configuration*, ponha o
+endereço do site em **Site URL** (ex.: `https://improvix.vercel.app`) e
+deixe em **Redirect URLs** tanto ele (`https://improvix.vercel.app/**`)
+quanto `http://localhost:3000/**`, para continuar testando na sua máquina.
+Sem isso, o e-mail de confirmação de cadastro manda quem se cadastrar para
+`localhost`, que só existe no computador de quem programou.
 
 **Domínio próprio** (opcional): no painel do projeto, *Settings → Domains*.
 O domínio é pago (uns R$ 40–60 por ano no registro.br ou similar); o

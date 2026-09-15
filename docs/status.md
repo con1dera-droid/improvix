@@ -915,7 +915,40 @@ primeiro reload), `sounds/` e `vendor/` ficam guardados uma semana.
 fora do site publicado. `index.html` ganhou description, theme-color e
 Open Graph. O passo a passo está no `README.md`.
 
-## Próxima etapa## Próxima etapa
+## No ar: https://improvix.vercel.app — ✅ (2026-09-15)
+
+A plataforma está publicada, de graça, na conta do dono do projeto:
+repositório `con1dera-droid/improvix` no GitHub, site no Vercel (plano
+Hobby) e banco no Supabase (plano Free). Cada `git push` na branch `main`
+republica o site sozinho.
+
+- **Percalço no caminho, e a lição**: a primeira importação no Vercel foi
+  recusada com `headers[1] should NOT have additional property 'comment'`.
+  Erro meu: eu tinha posto campos `"comment"` dentro do `vercel.json` para
+  documentar o que cada bloco fazia, e o Vercel valida o arquivo contra um
+  schema fechado. Comentário em JSON de configuração não existe — a
+  explicação foi para o `README.md`, onde é lida por gente.
+- **Supabase apontado para o endereço público**: em Authentication → URL
+  Configuration, o Site URL passou de `http://localhost:3000` para
+  `https://improvix.vercel.app`, e a lista de Redirect URLs ficou com as
+  duas (`https://improvix.vercel.app/**` e `http://localhost:3000/**`, esta
+  para continuar testando no Mac). Sem isso, o e-mail de confirmação de
+  cadastro mandaria cada pessoa para a própria máquina dela.
+- **Testado no endereço público, não só no `file://`**: `site.smoke.js`,
+  `loop.smoke.js` e `transcricao.smoke.js` rodaram com
+  `IL_URL=https://improvix.vercel.app/` e passaram inteiros — as 8 telas do
+  menu, a análise de progressão com transposição, os 21 exercícios das
+  escalas com áudio por HTTP, os fraseados, o laço sem pausa (3 voltas,
+  nenhum silêncio > 150 ms) e a transcrição de ponta a ponta (92 de 92 notas
+  no solo de teste, 7 seções, correção manual e controle de registro). Zero
+  erro de console e zero resposta HTTP ≥ 400.
+- **Correção de teste**: `tests/transcricao.smoke.js` dependia de um
+  `tests/fixtures/solo-teste.wav` que nunca esteve no repositório (quebrava
+  com ENOENT em qualquer máquina nova). Agora `tests/fixtures/gera-solo.js`
+  recria o solo sintético — semente fixa, sempre igual — quando o arquivo
+  não existe, e o `.wav` fica fora do Git.
+
+## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
 
