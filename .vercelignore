@@ -6,3 +6,4 @@ Claude outputs/
 abrir-site.command
 *.png
 node_modules/
+publicar.command
