@@ -58,14 +58,18 @@
     prog: { metro: false, bpm: 110, loop: false },
     linha: { metro: false, bpm: 100, loop: false },
     escala: { metro: false, bpm: 88, loop: false },
+    treino: { metro: false, bpm: 80, loop: false },
     transcricao: { metro: false, bpm: 100, loop: true }
   };
   try {
     var savedTr = JSON.parse(window.localStorage.getItem('il_transport') || 'null');
-    if (savedTr) ['prog', 'linha', 'escala', 'transcricao'].forEach(function (k) { if (savedTr[k]) Object.assign(transport[k], savedTr[k]); });
+    if (savedTr) ['prog', 'linha', 'escala', 'treino', 'transcricao'].forEach(function (k) { if (savedTr[k]) Object.assign(transport[k], savedTr[k]); });
   } catch (e) { /* sem storage */ }
   function saveTransport() { try { window.localStorage.setItem('il_transport', JSON.stringify(transport)); } catch (e) { /* ignora */ } }
-  function transportOpts(key) { var t = transport[key]; return { bpm: t.bpm, metronome: t.metro, loop: t.loop }; }
+  function transportOpts(key) {
+    var t = transport[key] || transport.escala;   // barra desconhecida: usa o padrão
+    return { bpm: t.bpm, metronome: t.metro, loop: t.loop };
+  }
 
   // Pode ser chamado quantas vezes for preciso: barras já ligadas são
   // ignoradas (flag data-tr-ready), então telas montadas dinamicamente
@@ -697,7 +701,7 @@
       btn.addEventListener('click', function () {
         document.getElementById('input-tonalidade').value = lesson.exemplo.tonalidade + '|' + lesson.exemplo.modo;
         document.getElementById('input-progressao').value = lesson.exemplo.progressao;
-        window.IL.ui.switchView('inicio');
+        window.IL.ui.abrirHarmonia();
         window.IL.ui.switchTab('visao-geral');
         runAnalysis();
       });
@@ -923,7 +927,7 @@
   // entra nela, e assim a Transcrição não reprocessa o áudio sem necessidade.
   function espalharInstrumento() {
     var v = document.getElementById('input-instrumento').value;
-    ['esc-instrumento', 'lib-instrumento', 'pad-instrumento', 'tra-instrumento'].forEach(function (id) {
+    ['tre-instrumento', 'esc-instrumento', 'lib-instrumento', 'pad-instrumento', 'tra-instrumento'].forEach(function (id) {
       var sel = document.getElementById(id);
       if (sel && sel.value !== v) sel.value = v;
     });
@@ -957,7 +961,11 @@
     setupPlanGate();
     setupAulas();
     setupSom();
-    runAnalysis(); // já mostra um exemplo ao abrir, como no layout de referência
+    // A análise já vem pronta com um exemplo (a tela dela abre pelo menu).
+    runAnalysis();
+    // E o Início — a tela que abre de verdade — mostra os exercícios da
+    // escala maior em C, sem precisar clicar em nada.
+    if (window.IL.ui.renderTreinoView) window.IL.ui.renderTreinoView();
   });
 
   // Seletor de som (realista / com drive / sintetizado) + pré-carga dos
@@ -1022,6 +1030,16 @@
       document.querySelectorAll('.content.view').forEach(function (v) {
         v.hidden = v.getAttribute('data-view') !== viewName;
       });
+    },
+    /**
+     * Abre a Análise de Harmonia vindo de outra tela (Laboratório, Aulas,
+     * histórico, favoritos). Troca a tela e marca o item no menu — sem a
+     * marca, o menu ficaria mostrando a tela anterior como se fosse a atual.
+     */
+    abrirHarmonia: function () {
+      var nav = document.querySelector('.nav-item[data-nav="harmonia"]');
+      if (nav) { nav.click(); return; }
+      window.IL.ui.switchView('harmonia');
     },
     // `titulo` (opcional): título salvo em favoritos/exercícios — dele saem
     // a "ideia" (variação) e o padrão fixo que estavam na tela ao salvar.

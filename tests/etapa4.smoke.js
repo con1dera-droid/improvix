@@ -20,6 +20,9 @@ const path = require('path');
 
   await page.goto('file://' + path.resolve(__dirname, '../index.html'), { waitUntil: 'domcontentloaded', timeout: 15000 });
   await page.waitForTimeout(800); // dá tempo do CDN do supabase-js carregar (ou falhar, sem travar)
+  // A análise de harmonia saiu do Início e virou item do menu (07/10/2026).
+  await page.click('.nav-item[data-nav="harmonia"]');
+  await page.waitForTimeout(250);
 
   const saveDisabled = await page.$eval('#btn-salvar-historico', (b) => b.disabled);
   console.log('Botão "Salvar no histórico" desabilitado sem login:', saveDisabled);
@@ -51,7 +54,7 @@ const path = require('path');
   console.log('Aviso de login exibido na aba Histórico (sem estar logado):', gateVisible);
 
   // Botões da aba Fraseados devem estar desabilitados sem login
-  await page.click('.nav-item[data-nav="inicio"]');
+  await page.click('.nav-item[data-nav="harmonia"]');
   await page.click('.tab[data-tab="fraseados"]');
   await page.waitForTimeout(100);
   const favDisabled = await page.$eval('#btn-favoritar', (b) => b.disabled);

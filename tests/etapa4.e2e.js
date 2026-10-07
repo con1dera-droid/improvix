@@ -142,6 +142,9 @@ const FAKE_CLIENT_SRC = `
 
   await page.goto('file://' + path.resolve(__dirname, '../index.html'), { waitUntil: 'domcontentloaded', timeout: 15000 });
   await page.waitForTimeout(300);
+  // A análise de harmonia saiu do Início e virou item do menu (07/10/2026).
+  await page.click('.nav-item[data-nav="harmonia"]');
+  await page.waitForTimeout(250);
 
   // 1) Cadastro
   await page.click('#btn-entrar');
@@ -166,7 +169,7 @@ const FAKE_CLIENT_SRC = `
   console.log('Histórico após salvar:', historico);
 
   // 3) Favoritar um fraseado
-  await page.click('.nav-item[data-nav="inicio"]');
+  await page.click('.nav-item[data-nav="harmonia"]');
   await page.click('.tab[data-tab="fraseados"]');
   await page.waitForTimeout(100);
   await page.click('#lista-fraseados [data-phrase-index="1"]');
@@ -180,7 +183,7 @@ const FAKE_CLIENT_SRC = `
   console.log('Favoritos após favoritar a Frase 2:', favoritos);
 
   // 4) Adicionar exercício e mudar status
-  await page.click('.nav-item[data-nav="inicio"]');
+  await page.click('.nav-item[data-nav="harmonia"]');
   await page.click('.tab[data-tab="fraseados"]');
   await page.waitForTimeout(100);
   await page.click('#btn-exercicio');

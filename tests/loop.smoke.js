@@ -48,6 +48,9 @@ const MEDIDOR = () => {
 
   await page.goto(URL, { waitUntil: 'load' });
   await page.waitForTimeout(800);
+  // A análise de harmonia saiu do Início e virou item do menu (07/10/2026).
+  await page.click('.nav-item[data-nav="harmonia"]');
+  await page.waitForTimeout(250);
   await page.evaluate(MEDIDOR);
 
   await page.click('#btn-analisar');
@@ -119,13 +122,13 @@ const MEDIDOR = () => {
   await page.waitForTimeout(900);
   const loopEsc = '.transport[data-transport="escala"] [data-act="loop"]';
   if (!(await page.$eval(loopEsc, (b) => b.classList.contains('on')))) await page.click(loopEsc);
-  await page.click('.esc-ex [data-act="ouvir-ex"]');
+  await page.click('.content.view:not([hidden]) .esc-ex [data-act="ouvir-ex"]');
   await page.waitForTimeout(9000);
-  ok(await page.$eval('.esc-ex [data-act="ouvir-ex"]', (b) => b.classList.contains('playing')),
+  ok(await page.$eval('.content.view:not([hidden]) .esc-ex [data-act="ouvir-ex"]', (b) => b.classList.contains('playing')),
     'exercício da escala continua repetindo depois de 9 s');
-  await page.click('.esc-ex [data-act="ouvir-ex"]');
+  await page.click('.content.view:not([hidden]) .esc-ex [data-act="ouvir-ex"]');
   await page.waitForTimeout(300);
-  ok(!(await page.$eval('.esc-ex [data-act="ouvir-ex"]', (b) => b.classList.contains('playing'))),
+  ok(!(await page.$eval('.content.view:not([hidden]) .esc-ex [data-act="ouvir-ex"]', (b) => b.classList.contains('playing'))),
     'e para quando você clica de novo');
 
   console.log('\nErros de página:', erros.length ? erros : 'nenhum');

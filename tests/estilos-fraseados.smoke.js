@@ -13,6 +13,9 @@ const path = require('path');
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
   await page.goto('file://' + path.resolve(__dirname, '../index.html'), { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(300);
+  // A análise de harmonia saiu do Início e virou item do menu (07/10/2026).
+  await page.click('.nav-item[data-nav="harmonia"]');
+  await page.waitForTimeout(250);
   await page.fill('#input-progressao', 'Am7 | D7 | Gmaj7 | Cmaj7');
   await page.click('#btn-analisar');
   await page.waitForTimeout(300);

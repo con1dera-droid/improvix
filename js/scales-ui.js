@@ -290,4 +290,7 @@
 
   window.IL.ui = window.IL.ui || {};
   window.IL.ui.renderEscalasView = renderEscalasView;
+  // A tela de Início (treino de escalas) desenha os mesmos cartões de
+  // exercício desta tela — é a mesma coisa, não vale ter duas versões.
+  window.IL.ui.exercicioCardHTML = exercicioHTML;
 })();

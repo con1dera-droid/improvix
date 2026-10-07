@@ -126,7 +126,10 @@
 
   var VIEW_MAP = {
     inicio: 'inicio',
-    'nova-analise': 'inicio',
+    harmonia: 'harmonia',
+    // A análise de harmonia foi a tela de Início até 07/10/2026; quem chegar
+    // por um caminho antigo continua caindo nela.
+    'nova-analise': 'harmonia',
     'meus-exercicios': 'exercicios',
     favoritos: 'favoritos',
     historico: 'historico',
@@ -172,6 +175,7 @@
         // chegar por um caminho antigo cai na aba certa da tela única.
         if (view === 'historico' || view === 'favoritos' || view === 'exercicios') { abrirMeus(view); return; }
         window.IL.ui.switchView(view);
+        if (view === 'inicio' && window.IL.ui.renderTreinoView) { window.IL.ui.renderTreinoView(); return; }
         if (view === 'admin') renderAdminView();
         else if (view === 'config') renderConfigView();
         else if (view === 'laboratorio') renderLaboratorioView();
@@ -202,7 +206,7 @@
   }
 
   function loadAnaliseIntoForm(row) {
-    window.IL.ui.switchView('inicio');
+    window.IL.ui.abrirHarmonia();
     $('input-tonalidade').value = row.tonalidade + '|' + row.modo;
     $('input-instrumento').value = row.instrumento;
     $('input-nivel').value = row.nivel;
@@ -544,7 +548,7 @@
       if (!labLastResult) return;
       $('input-tonalidade').value = labLastResult.tonic + '|' + labLastResult.mode;
       $('input-progressao').value = labLastResult.progressionText;
-      window.IL.ui.switchView('inicio');
+      window.IL.ui.abrirHarmonia();
       window.IL.ui.switchTab('visao-geral');
       window.IL.ui.runAnalysis();
     });

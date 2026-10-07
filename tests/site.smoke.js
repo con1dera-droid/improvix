@@ -30,9 +30,9 @@ function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!c
   const itens = await p.$$eval('.nav-item:not([hidden])', n => n.map(x => x.textContent.replace(/\s+/g,' ').trim()));
   ok(await p.$eval('#nav-admin', e => e.hidden), 'MENU: "Administração" fica escondido para quem não é admin');
   console.log('\nMENU (' + itens.length + '):', itens.join(' · '));
-  ok(itens.length === 8, 'o menu tem os 8 itens');
+  ok(itens.length === 9, 'o menu tem os 9 itens');
 
-  const VIEWS = { 'inicio':'inicio', 'biblioteca-escalas':'biblioteca-escalas', 'biblioteca-fraseados':'biblioteca-fraseados',
+  const VIEWS = { 'inicio':'inicio', 'harmonia':'harmonia', 'biblioteca-escalas':'biblioteca-escalas', 'biblioteca-fraseados':'biblioteca-fraseados',
     'padroes':'padroes', 'transcricao':'transcricao', 'laboratorio':'laboratorio', 'meus-exercicios':'exercicios', 'config':'config' };
   for (const nav of Object.keys(VIEWS)) {
     const el = await p.$('.nav-item[data-nav="' + nav + '"]');
@@ -44,8 +44,27 @@ function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!c
     ok(v === VIEWS[nav], nav + ' → abre "' + v + '"  [' + texto + '…]');
   }
 
-  // --- INÍCIO: análise de uma progressão ---
+  // --- INÍCIO: o treino de escalas (tonalidade + escala → os 21 exercícios) ---
   await p.click('.nav-item[data-nav="inicio"]');
+  await p.waitForTimeout(600);
+  const treinoEx = await p.$$eval('#tre-conteudo .esc-ex', e => e.length);
+  ok(treinoEx === 21, 'INÍCIO: os 21 exercícios aparecem (' + treinoEx + ')');
+  const treinoEscalas = await p.$$eval('#tre-escala option', o => o.map(x => x.textContent));
+  ok(treinoEscalas.length === 5, 'INÍCIO: as 5 escalas no seletor (' + treinoEscalas.join(', ') + ')');
+  const ex1 = await p.$eval('#tre-conteudo .lib-card-title', e => e.textContent);
+  ok(/1-2-3-5-7-8/.test(ex1), 'INÍCIO: na maior, o 1º exercício é o 1-2-3-5-7-8 (' + ex1 + ')');
+  await p.selectOption('#tre-escala', 'blues_menor');
+  await p.waitForTimeout(700);
+  const exBlues = await p.$$eval('#tre-conteudo .esc-ex', e => e.length);
+  ok(exBlues >= 17, 'INÍCIO: trocar de escala redesenha os exercícios (' + exBlues + ' na pentablues)');
+  await p.selectOption('#tre-escala', 'jonio');
+  await p.selectOption('#tre-tom', 'Eb');
+  await p.waitForTimeout(700);
+  const notasEb = await p.$eval('#tre-conteudo .esc-notas', e => e.textContent.replace(/\s+/g, ' ').trim());
+  ok(/Eb/.test(notasEb), 'INÍCIO: trocar o tom muda as notas (' + notasEb.slice(0, 40) + '…)');
+
+  // --- ANÁLISE DE HARMONIA ---
+  await p.click('.nav-item[data-nav="harmonia"]');
   await p.waitForTimeout(400);
   const campo = await p.$('#input-progressao');
   if (campo) {
@@ -54,44 +73,44 @@ function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!c
     await p.waitForTimeout(1200);
     const acordes = await p.$$eval('.chord-chip, .chord-card, .chain-chord', c => c.length).catch(()=>0);
     const abas = await p.$$eval('.tab-btn, [data-tab]', t => t.map(x=>x.textContent.trim())).catch(()=>[]);
-    ok(acordes > 0 || abas.length > 0, 'INÍCIO: analisou "Dm7 | G7 | C7M" (' + acordes + ' acordes, abas: ' + abas.slice(0,6).join('/') + ')');
+    ok(acordes > 0 || abas.length > 0, 'HARMONIA: analisou "Dm7 | G7 | C7M" (' + acordes + ' acordes, abas: ' + abas.slice(0,6).join('/') + ')');
     // a progressão acompanha a tonalidade
     const prog = () => p.$eval('#input-progressao', e => e.value);
     await p.click('#btn-clear'); await p.waitForTimeout(200);   // some a progressão digitada acima
     await p.selectOption('#input-tonalidade', 'C|maior'); await p.waitForTimeout(500);
-    ok(await prog() === 'Cmaj7 | Am7 | Dm7 | G7 | Cmaj7', 'INÍCIO: mudar para C maior sugere 5 acordes (' + await prog() + ')');
+    ok(await prog() === 'Cmaj7 | Am7 | Dm7 | G7 | Cmaj7', 'HARMONIA: mudar para C maior sugere 5 acordes (' + await prog() + ')');
     await p.selectOption('#input-tonalidade', 'A|menor'); await p.waitForTimeout(500);
-    ok(await prog() === 'Am7 | Dm7 | Bm7b5 | E7 | Am7', 'INÍCIO: em A menor vem o giro menor (' + await prog() + ')');
+    ok(await prog() === 'Am7 | Dm7 | Bm7b5 | E7 | Am7', 'HARMONIA: em A menor vem o giro menor (' + await prog() + ')');
     await p.fill('#input-progressao', 'Am7 | D7 | Gmaj7');
     await p.dispatchEvent('#input-progressao', 'input');
     await p.selectOption('#input-tonalidade', 'C|menor'); await p.waitForTimeout(500);
-    ok(await prog() === 'Cm7 | F7 | Bbmaj7', 'INÍCIO: a progressão digitada é transposta, não apagada (' + await prog() + ')');
+    ok(await prog() === 'Cm7 | F7 | Bbmaj7', 'HARMONIA: a progressão digitada é transposta, não apagada (' + await prog() + ')');
     await p.selectOption('#input-tonalidade', 'A|menor'); await p.waitForTimeout(500);
-    ok(await prog() === 'Am7 | D7 | Gmaj7', 'INÍCIO: voltar ao tom original devolve o que foi digitado');
+    ok(await prog() === 'Am7 | D7 | Gmaj7', 'HARMONIA: voltar ao tom original devolve o que foi digitado');
     await p.click('#btn-clear'); await p.waitForTimeout(200);
     await p.selectOption('#input-tonalidade', 'D|maior'); await p.waitForTimeout(500);
-    ok(await prog() === 'Dmaj7 | Bm7 | Em7 | A7 | Dmaj7', 'INÍCIO: limpar e escolher o tom traz a sugestão de novo');
+    ok(await prog() === 'Dmaj7 | Bm7 | Em7 | A7 | Dmaj7', 'HARMONIA: limpar e escolher o tom traz a sugestão de novo');
 
     const fr = await p.$('[data-tab="fraseados"]');
     if (fr) { await fr.click(); await p.waitForTimeout(1200);
       const n = await p.$$eval('.phrase-card, .frase, .lib-card', c => c.length);
-      ok(n > 0, 'INÍCIO: a aba Fraseados gerou ' + n + ' frases'); }
+      ok(n > 0, 'HARMONIA: a aba Fraseados gerou ' + n + ' frases'); }
   } else console.log('(não achei #input-progressao)');
 
   // --- ESCALAS ---
   await p.click('.nav-item[data-nav="biblioteca-escalas"]');
   await p.waitForTimeout(900);
-  const exs = await p.$$eval('.esc-ex', e => e.length);
-  const grupos = await p.$$eval('.esc-grupo', e => e.map(x=>x.textContent.trim()));
-  const linhasNotas = await p.$$eval('.esc-ex .esc-notas', e => e.length);
-  const primeira = await p.$eval('.esc-ex .esc-notas', e => e.textContent.replace(/\s+/g,' ').trim());
+  const exs = await p.$$eval('.content.view:not([hidden]) .esc-ex', e => e.length);
+  const grupos = await p.$$eval('.content.view:not([hidden]) .esc-grupo', e => e.map(x=>x.textContent.trim()));
+  const linhasNotas = await p.$$eval('.content.view:not([hidden]) .esc-ex .esc-notas', e => e.length);
+  const primeira = await p.$eval('.content.view:not([hidden]) .esc-ex .esc-notas', e => e.textContent.replace(/\s+/g,' ').trim());
   ok(exs === 21 && linhasNotas === 21, 'ESCALAS: 21 exercícios, todos com linha de notas (' + exs + '/' + linhasNotas + ')');
   console.log('      grupos: ' + grupos.join(' · '));
   console.log('      ' + primeira);
   await p.selectOption('#esc-tom', 'Eb'); await p.waitForTimeout(600);
-  ok((await p.$eval('.esc-title', e=>e.textContent)).includes('Eb'), 'ESCALAS: troca de tom para Eb');
+  ok((await p.$eval('.content.view:not([hidden]) .esc-title', e=>e.textContent)).includes('Eb'), 'ESCALAS: troca de tom para Eb');
   await p.fill('#esc-busca', 'alterada'); await p.waitForTimeout(600);
-  ok(/Alterada/i.test(await p.$eval('.esc-title', e=>e.textContent)), 'ESCALAS: busca "alterada" acha a escala');
+  ok(/Alterada/i.test(await p.$eval('.content.view:not([hidden]) .esc-title', e=>e.textContent)), 'ESCALAS: busca "alterada" acha a escala');
   await p.click('[data-act="ouvir-escala"]'); await p.waitForTimeout(1500);
   ok(await p.$eval('[data-act="ouvir-escala"]', b=>b.textContent.includes('Parar')), 'ESCALAS: áudio toca (samples carregam por HTTP)');
   await p.click('[data-act="ouvir-escala"]'); await p.waitForTimeout(300);

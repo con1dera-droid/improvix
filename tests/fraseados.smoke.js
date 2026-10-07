@@ -26,6 +26,9 @@ function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!c
 
   await page.goto('file://' + path.resolve(__dirname, '../index.html'), { waitUntil: 'domcontentloaded', timeout: 15000 });
   await page.waitForTimeout(300);
+  // A análise de harmonia saiu do Início e virou item do menu (07/10/2026).
+  await page.click('.nav-item[data-nav="harmonia"]');
+  await page.waitForTimeout(250);
 
   await page.selectOption('#input-tonalidade', 'C|maior');
   await page.fill('#input-progressao', 'C7M | Am7 | Dm7(9) | G7(b9) | Em7 | A7(b13) | Dm7 | G7/4');

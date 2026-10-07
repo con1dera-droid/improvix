@@ -18,6 +18,9 @@ const path = require('path');
 
   await page.goto('file://' + path.resolve(__dirname, '../index.html'));
   await page.waitForTimeout(200);
+  // A análise de harmonia saiu do Início e virou item do menu (07/10/2026).
+  await page.click('.nav-item[data-nav="harmonia"]');
+  await page.waitForTimeout(250);
 
   // Toca a progressão, espera o primeiro acorde destacar, depois para no meio.
   await page.click('#btn-play-progressao');

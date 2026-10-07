@@ -9,6 +9,7 @@ const path = require('path');
 
 const ESPERADO = [
   ['inicio', '🏠 Início'],
+  ['harmonia', '🎹 Análise de Harmonia'],
   ['biblioteca-escalas', '📚 Biblioteca de Escalas'],
   ['biblioteca-fraseados', '🎼 Biblioteca de Fraseados'],
   ['padroes', '📘 Exercícios de Padrões'],
@@ -51,7 +52,7 @@ const ESPERADO = [
 
   // Cada item abre a tela certa
   const VIEW = {
-    inicio: 'inicio', 'biblioteca-escalas': 'biblioteca-escalas',
+    inicio: 'inicio', harmonia: 'harmonia', 'biblioteca-escalas': 'biblioteca-escalas',
     'biblioteca-fraseados': 'biblioteca-fraseados', padroes: 'padroes',
     transcricao: 'transcricao', laboratorio: 'laboratorio',
     'meus-exercicios': 'exercicios', config: 'config'

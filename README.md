@@ -72,6 +72,23 @@ quem guarda os dados é o Supabase (gratuito), acessado direto do navegador.
 Veja `docs/etapa4-supabase.md` para o passo a passo (é o único passo manual,
 porque exige criar uma conta em outro serviço).
 
+## A tela de Início: treinar escalas
+
+O site abre direto no treino: escolha a **tonalidade**, a **escala** e o
+**instrumento** e saem os 21 exercícios do método — todos subindo e
+descendo **duas oitavas** —, com partitura ou tablatura, as notas escritas,
+áudio e metrônomo. São cinco escalas (Maior, Menor natural, Pentatônica
+maior, Pentatônica maior + b3 e Pentablues); o catálogo completo de 46
+escalas, com a ficha de cada uma, está em **Biblioteca de Escalas**.
+
+Na escala **maior**, o primeiro exercício é o desenho **1-2-3-5-7-8** (a
+maior sem o 4º e o 6º graus — em C: C D E G B | C D E G B | C e a volta).
+Nas outras escalas, é a escala corrida.
+
+A **análise de harmonia** (progressão → escalas, arpejos, notas-alvo e
+fraseados) continua inteira: virou o item **🎹 Análise de Harmonia**, logo
+abaixo do Início no menu.
+
 ## Como abrir
 
 Não precisa instalar nada. Duas opções:
@@ -172,6 +189,7 @@ node tests/etapa5.aulas.smoke.js
 node tests/fraseados.smoke.js
 node tests/biblioteca.smoke.js
 node tests/celular.smoke.js
+node tests/inicio.smoke.js
 ```
 
 `tests/celular.smoke.js` percorre o site em três tamanhos de telefone

@@ -18,6 +18,9 @@ const path = require('path');
   });
   await page.goto('file://' + path.resolve(__dirname, '../index.html'), { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(300);
+  // A análise de harmonia saiu do Início e virou item do menu (07/10/2026).
+  await page.click('.nav-item[data-nav="harmonia"]');
+  await page.waitForTimeout(250);
   await page.evaluate(() => { try { localStorage.removeItem('il_transport'); } catch (e) {} });
   await page.click('#btn-analisar');
   await page.waitForTimeout(300);
@@ -52,6 +55,8 @@ const path = require('path');
   await page.click('#btn-tocar-linha');
   await page.reload();
   await page.waitForTimeout(300);
+  await page.click('.nav-item[data-nav="harmonia"]');   // recarregou: volta para a análise
+  await page.waitForTimeout(250);
   console.log('Depois de recarregar, guarda as escolhas — bpm prog:', await page.$eval(bar + ' .tr-bpm-input', (e) => e.value), '| linha:', await page.$eval(lb + ' .tr-bpm-input', (e) => e.value));
   await page.click('#btn-analisar');
   await page.waitForTimeout(200);

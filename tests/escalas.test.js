@@ -90,20 +90,58 @@ test('os padrões de sequência saem exatamente como o método pede', function (
     assert.ok(ex, k + ': falta o exercício ' + id);
     return ex.events.filter(function (e) { return !e.rest; }).map(function (e) { return e.name; }).join(' ');
   }
-  // Em C jônio dá para conferir grau a grau.
-  assert.strictEqual(nomes('seq3', 'C', 'jonio'),
-    'C D E D E F E F G F G A G A B A B C B C D C');
-  assert.strictEqual(nomes('seq1232', 'C', 'jonio'),
-    'C D E D D E F E E F G F F G A G G A B A A B C B B C D C C');
-  assert.strictEqual(nomes('digital', 'C', 'jonio').slice(0, 15), 'C D E G D E F A');
+  // Os exercícios passaram a percorrer DUAS oitavas. A primeira oitava
+  // continua idêntica ao que era quando tinham uma só (as sequências abaixo
+  // foram conferidas grau a grau na época), e a segunda repete o desenho
+  // uma oitava acima — por isso aqui se confere o começo.
+  function comeca(id, tom, k, esperado) {
+    var got = nomes(id, tom, k);
+    assert.strictEqual(got.slice(0, esperado.length), esperado, id + ' em ' + tom + ' ' + k + ': ' + got);
+  }
+  comeca('seq3', 'C', 'jonio', 'C D E D E F E F G F G A G A B A B C B C D C');
+  comeca('seq1232', 'C', 'jonio', 'C D E D D E F E E F G F F G A G G A B A A B C B B C D C C');
+  comeca('digital', 'C', 'jonio', 'C D E G D E F A');
   assert.strictEqual(nomes('digital_desce', 'C', 'jonio').slice(-15), 'A F E D G E D C');
-  assert.strictEqual(nomes('quatro_desloca', 'C', 'jonio'),
-    'C D E G D E G A E G A C G A C D');
-  assert.strictEqual(nomes('escala_arpejo', 'C', 'jonio'),
-    'C D E F G E C C D E G B G E C');
+  comeca('quatro_desloca', 'C', 'jonio', 'C D E G D E G A E G A C G A C D');
+  comeca('escala_arpejo', 'C', 'jonio', 'C D E F G E C C D E G B G E C');
   // E continuam corretos em outro tom e em escala menor.
-  assert.strictEqual(nomes('escala_arpejo', 'A', 'dorico'), 'A B C D E C A A B C E G E C A');
-  assert.strictEqual(nomes('quatro_desloca', 'A', 'eolio'), 'A B C E B C E F C E F A E F A B');
+  comeca('escala_arpejo', 'A', 'dorico', 'A B C D E C A A B C E G E C A');
+  comeca('quatro_desloca', 'A', 'eolio', 'A B C E B C E F C E F A E F A B');
+});
+
+test('todo exercício sobe e desce duas oitavas', function () {
+  ['C', 'G', 'Eb', 'F#'].forEach(function (tom) {
+    ['jonio', 'eolio', 'dorico', 'pentatonica_maior', 'blues_maior', 'blues_menor'].forEach(function (k) {
+      SC.exercisesFor(tom, k).forEach(function (ex) {
+        var ns = ex.events.filter(function (e) { return !e.rest; });
+        var lo = Math.min.apply(null, ns.map(function (e) { return e.midi; }));
+        var hi = Math.max.apply(null, ns.map(function (e) { return e.midi; }));
+        // duas oitavas = 24 semitons; alguns desenhos fecham um pouco antes
+        // (o arpejo de um acorde de 3 notas, por exemplo), daí a folga.
+        assert.ok(hi - lo >= 21, k + ' em ' + tom + '/' + ex.id + ': só ' + (hi - lo) + ' semitons de âmbito');
+        assert.ok(hi - lo <= 36, k + ' em ' + tom + '/' + ex.id + ': âmbito exagerado (' + (hi - lo) + ')');
+      });
+    });
+  });
+});
+
+test('na escala maior o primeiro exercício é o desenho 1-2-3-5-7-8', function () {
+  var ex = SC.exercisesFor('C', 'jonio')[0];
+  assert.ok(/1-2-3-5-7-8/.test(ex.title), 'título inesperado: ' + ex.title);
+  var ns = ex.events.filter(function (e) { return !e.rest; });
+  assert.strictEqual(ns.map(function (e) { return e.name; }).join(' '),
+    'C D E G B C D E G B C B G E D C B G E D C');
+  assert.strictEqual(ns.map(function (e) { return e.midi; }).join(' '),
+    '60 62 64 67 71 72 74 76 79 83 84 83 79 76 74 72 71 67 64 62 60');
+  // em outro tom, o mesmo desenho
+  assert.strictEqual(SC.exercisesFor('G', 'jonio')[0].events.filter(function (e) { return !e.rest; })
+    .map(function (e) { return e.name; }).join(' '),
+    'G A B D F# G A B D F# G F# D B A G F# D B A G');
+  // as outras escalas seguem com a escala corrida
+  ['eolio', 'dorico', 'pentatonica_maior', 'blues_menor'].forEach(function (k) {
+    assert.ok(/A escala subindo e descendo/.test(SC.exercisesFor('C', k)[0].title),
+      k + ': primeiro exercício virou ' + SC.exercisesFor('C', k)[0].title);
+  });
 });
 
 test('todo exercício tem grupo e id únicos', function () {
@@ -135,9 +173,12 @@ test('as células de cromatismo saem como o método pede', function () {
     return ex.events.filter(function (e) { return !e.rest; }).map(function (e) { return e.name; }).join(' ');
   }
   // Cerco em C maior, alvo por alvo: 2-b2-7-1 / 4-b3-2-3 / 6-b6-4-5 / 1-b7-6-7
-  assert.strictEqual(nomes('cerco', 'C', 'jonio'), 'D Db B C F Eb D E A Ab F G C Bb A B');
+  // (e de novo na oitava de cima, porque os exercícios têm duas oitavas)
+  assert.strictEqual(nomes('cerco', 'C', 'jonio'),
+    'D Db B C F Eb D E A Ab F G C Bb A B D Db B C F Eb D E A Ab F G C Bb A B');
   // Aproximação cromática: dois semitons abaixo de cada nota do acorde
-  assert.strictEqual(nomes('cromatico', 'C', 'jonio'), 'Bb B C D Eb E F Gb G A Bb B');
+  assert.strictEqual(nomes('cromatico', 'C', 'jonio'),
+    'Bb B C D Eb E F Gb G A Bb B Bb B C D Eb E F Gb G A Bb B');
   // e continua certo com bemóis
   assert.ok(/^Ab A Bb /.test(nomes('cromatico', 'Bb', 'jonio')), 'em Bb: ' + nomes('cromatico', 'Bb', 'jonio'));
   // nenhuma grafia estranha em nenhum tom

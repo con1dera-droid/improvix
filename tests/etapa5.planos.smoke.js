@@ -123,6 +123,9 @@ async function login(page, email) {
 
   await page.goto('file://' + path.resolve(__dirname, '../index.html'), { waitUntil: 'domcontentloaded', timeout: 15000 });
   await page.waitForTimeout(300);
+  // A análise de harmonia saiu do Início e virou item do menu (07/10/2026).
+  await page.click('.nav-item[data-nav="harmonia"]');
+  await page.waitForTimeout(250);
 
   // 1) Visitante (sem login): Avançado bloqueado
   const optTextVisitante = await page.$eval('#opt-nivel-avancado', (o) => o.textContent);
@@ -153,7 +156,7 @@ async function login(page, email) {
   await page.click('#btn-sair-config');
   await page.waitForTimeout(200);
   await login(page, 'teste+pro@exemplo.com');
-  await page.click('.nav-item[data-nav="inicio"]');
+  await page.click('.nav-item[data-nav="harmonia"]');
   await page.waitForTimeout(100);
 
   // 3) Pro: Avançado liberado
@@ -164,7 +167,7 @@ async function login(page, email) {
   await page.selectOption('#input-nivel', 'avancado');
   await page.waitForTimeout(80);
   const nivelProSelecionado = await page.$eval('#input-nivel', (s) => s.value);
-  await page.click('.nav-item[data-nav="inicio"]');
+  await page.click('.nav-item[data-nav="harmonia"]');
   await page.click('#btn-analisar');
   await page.waitForTimeout(150);
   const nivelAindaAvancado = await page.$eval('#input-nivel', (s) => s.value);
@@ -190,7 +193,7 @@ async function login(page, email) {
   await page.waitForTimeout(80);
   await page.click('#btn-sair-config');
   await page.waitForTimeout(200);
-  await page.click('.nav-item[data-nav="inicio"]');
+  await page.click('.nav-item[data-nav="harmonia"]');
   await page.waitForTimeout(80);
   const nivelAposLogout = await page.$eval('#input-nivel', (s) => s.value);
   const optTextAposLogout = await page.$eval('#opt-nivel-avancado', (o) => o.textContent);

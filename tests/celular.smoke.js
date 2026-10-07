@@ -91,7 +91,7 @@ async function irPara(p, nav) {
     });
     ok(aberto.dentro, 'MENU: o ☰ abre a gaveta');
     ok(aberto.overlay, 'MENU: o fundo escurece enquanto a gaveta está aberta');
-    ok(aberto.itens === 8, 'MENU: os 8 itens continuam lá (' + aberto.itens + ')');
+    ok(aberto.itens === 9, 'MENU: os 9 itens continuam lá (' + aberto.itens + ')');
 
     // a gaveta cobre 80% da largura: o toque "fora" é na faixa que sobra
     await p.mouse.click(t.w - 8, Math.round(t.h / 2));
@@ -100,7 +100,7 @@ async function irPara(p, nav) {
       'MENU: tocar fora fecha a gaveta');
 
     // --- todas as telas cabem ---
-    const NAVS = ['inicio', 'biblioteca-escalas', 'biblioteca-fraseados', 'padroes',
+    const NAVS = ['inicio', 'harmonia', 'biblioteca-escalas', 'biblioteca-fraseados', 'padroes',
       'transcricao', 'laboratorio', 'meus-exercicios', 'config'];
     for (const nav of NAVS) {
       await irPara(p, nav);
@@ -110,16 +110,23 @@ async function irPara(p, nav) {
         nav + ': escolher no menu fecha a gaveta');
     }
 
-    // --- INÍCIO: a análise inteira, aba por aba ---
+    // --- INÍCIO: o treino de escalas ---
     await irPara(p, 'inicio');
+    await p.waitForTimeout(500);
+    const exTreino = await p.$$eval('#tre-conteudo .esc-ex', e => e.length);
+    ok(exTreino === 21, 'INÍCIO: os 21 exercícios cabem na tela (' + exTreino + ')');
+    ok(await estouro(p, t.w) === 0, 'INÍCIO: o treino de escalas cabe' + (await estouro(p, t.w) ? ' — ' + await culpados(p, t.w) : ''));
+
+    // --- HARMONIA: a análise inteira, aba por aba ---
+    await irPara(p, 'harmonia');
     await p.fill('#input-progressao', 'Dm7 | G7 | C7M');
     await p.click('#btn-analisar');
     await p.waitForTimeout(1400);
-    ok(await estouro(p, t.w) === 0, 'INÍCIO: a análise cabe' + (await estouro(p, t.w) ? ' — ' + await culpados(p, t.w) : ''));
+    ok(await estouro(p, t.w) === 0, 'HARMONIA: a análise cabe' + (await estouro(p, t.w) ? ' — ' + await culpados(p, t.w) : ''));
     ok(await p.$eval('.dica-rolar', e => getComputedStyle(e).display !== 'none'),
-      'INÍCIO: avisa que a tabela rola para o lado');
+      'HARMONIA: avisa que a tabela rola para o lado');
     const tabRola = await p.$eval('#tabela-visao-geral', e => e.scrollWidth > e.clientWidth + 1 && getComputedStyle(e).overflowX !== 'visible');
-    ok(tabRola, 'INÍCIO: a tabela de 5 colunas rola dentro da própria caixa');
+    ok(tabRola, 'HARMONIA: a tabela de 5 colunas rola dentro da própria caixa');
 
     const nomesAbas = await p.$$eval('.content.view:not([hidden]) .tabs .tab:not(.is-soon)',
       ns => ns.map(n => n.getAttribute('data-tab')).filter(Boolean));
@@ -131,7 +138,7 @@ async function irPara(p, nav) {
       await aba.click();
       await p.waitForTimeout(600);
       const e = await estouro(p, t.w);
-      ok(e === 0, 'INÍCIO › ' + nome + ': cabe' + (e ? ' — estoura ' + e + 'px: ' + await culpados(p, t.w) : ''));
+      ok(e === 0, 'HARMONIA › ' + nome + ': cabe' + (e ? ' — estoura ' + e + 'px: ' + await culpados(p, t.w) : ''));
     }
 
     // --- ESCALAS: ficha + exercícios (tablatura/partitura) ---
@@ -160,7 +167,7 @@ async function irPara(p, nav) {
     ok(await estouro(p, t.w) === 0, 'PADRÕES: as linhas dos 12 tons cabem' + (await estouro(p, t.w) ? ' — ' + await culpados(p, t.w) : ''));
 
     // --- modal de login ---
-    await irPara(p, 'inicio');
+    await irPara(p, 'harmonia');
     await p.click('#btn-entrar');
     await p.waitForTimeout(500);
     const modal = await p.evaluate((L) => {

@@ -34,7 +34,8 @@
     </div>
 
     <nav class="nav">
-      <a href="#" class="nav-item active" data-nav="inicio">🏠 Início</a>
+      <a href="#" class="nav-item active" data-nav="inicio">🏠 Início — treinar escalas</a>
+      <a href="#" class="nav-item" data-nav="harmonia">🎹 Análise de Harmonia</a>
       <a href="#" class="nav-item" data-nav="biblioteca-escalas">📚 Biblioteca de Escalas</a>
       <a href="#" class="nav-item" data-nav="biblioteca-fraseados">🎼 Biblioteca de Fraseados</a>
       <a href="#" class="nav-item" data-nav="padroes">📘 Exercícios de Padrões</a>
@@ -84,7 +85,37 @@
       </div>
     </header>
 
+    <!-- View: Início — treino de escalas (tonalidade + escala → os 21 exercícios) -->
     <div class="content view" data-view="inicio">
+      <section class="hero card">
+        <div class="hero-text">
+          <h1>Escolha o tom e a escala. Treine.</h1>
+          <p>Os 21 exercícios do método, subindo e descendo duas oitavas, com partitura ou tablatura e áudio para tocar junto.</p>
+        </div>
+        <div class="lib-controls">
+          <div class="field"><label for="tre-tom">Tonalidade</label><select id="tre-tom"></select></div>
+          <div class="field field-wide"><label for="tre-escala">Escala</label><select id="tre-escala"></select></div>
+          <div class="field"><label for="tre-instrumento">Instrumento</label>
+            <select id="tre-instrumento">
+              <option value="guitarra">Guitarra</option>
+              <option value="violao">Violão</option>
+              <option value="baixo">Baixo</option>
+              <option value="teclado" selected>Teclado / Piano</option>
+              <option value="sax">Sax</option>
+              <option value="trompete">Trompete</option>
+              <option value="violino">Violino</option>
+              <option value="flauta">Flauta</option>
+            </select>
+          </div>
+        </div>
+      </section>
+      <div class="card">
+        <div id="tre-conteudo"></div>
+      </div>
+    </div>
+
+    <!-- View: Análise de Harmonia (era a tela de Início até 07/10/2026) -->
+    <div class="content view" data-view="harmonia" hidden>
 
       <!-- Hero + formulário -->
       <section class="hero card">
@@ -717,6 +748,7 @@
 <script src="js/library-ui.js"></script>
 <script src="js/patterns-ui.js"></script>
 <script src="js/scales-ui.js"></script>
+<script src="js/treino-ui.js"></script>
 <script src="js/transcribe.js"></script>
 <script src="js/transcribe-ui.js"></script>
 

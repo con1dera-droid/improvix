@@ -85,6 +85,16 @@
     };
   }
 
+  /**
+   * É a escala maior (jônio)? Compara os semitons, e não o nome: assim vale
+   * tanto para a chave `jonio` quanto para qualquer apelido que ela venha a
+   * ter. Só ela recebe o desenho 1-2-3-5-7-8 como primeiro exercício.
+   */
+  function ehMaiorKey(scaleKey) {
+    var sc = DATA.SCALES[scaleKey];
+    return !!sc && sc.semitones.join(',') === MAJOR.join(',');
+  }
+
   /** Acorde que a escala desenha (1-3-5-7 dentro dela), com a cifra. */
   function chordOf(tonic, scaleKey) {
     var info = notesFor(tonic, scaleKey);
@@ -152,7 +162,13 @@
   // Exercícios de treino (calculados a partir da escala)
   // ---------------------------------------------------------------------
 
-  var LOW = 55, HIGH = 84;
+  // Todo exercício sobe e desce DUAS oitavas. Por isso o ponto de partida
+  // tem de ficar baixo o bastante para a segunda oitava caber: a tônica é
+  // ancorada entre F3 (53) e E4 (64), de modo que o topo fique entre F5 e
+  // E6. Cada instrumento depois reposiciona a linha inteira na oitava
+  // confortável dele (notation.prepareForInstrument).
+  var OITAVAS = 2;
+  var LOW = 53, ALTO_INICIO = 64;
 
   function ladderOf(names) {
     var out = [];
@@ -173,6 +189,18 @@
       if (d < bd) { bd = d; best = i; }
     });
     return best;
+  }
+
+  /**
+   * Põe o começo do exercício na oitava certa para caber duas oitavas:
+   * a tônica entre F3 e E4. Vale para a escala, para o arpejo e para
+   * qualquer "escada" de notas.
+   */
+  function ancorar(ladder, passo, tonicPc) {
+    var i = startIndex(ladder, tonicPc);
+    while (ladder[i] && ladder[i].midi < LOW && ladder[i + passo]) i += passo;
+    while (ladder[i] && ladder[i].midi > ALTO_INICIO && i - passo >= 0) i -= passo;
+    return Math.max(0, i);
   }
 
   /** Completa o último compasso com pausa, para a partitura fechar certo. */
@@ -244,10 +272,10 @@
     var names = info.notes.map(function (n) { return n.name; });
     var n = names.length;
     var ladder = ladderOf(names);
-    var s0 = startIndex(ladder, pcOf(info.tonic));
-    // desloca para o âmbito confortável
-    while (ladder[s0].midi < LOW && s0 + n < ladder.length) s0 += n;
-    while (ladder[s0 + n] && ladder[s0 + n].midi > HIGH) s0 -= n;
+    var s0 = ancorar(ladder, n, pcOf(info.tonic));
+    // Duas oitavas: os desenhos que andam grau a grau percorrem N graus,
+    // não n. (n = notas da escala; N = duas oitavas dela.)
+    var N = n * OITAVAS;
 
     var out = [];
     var seq, i, j;
@@ -258,20 +286,40 @@
     var G3 = 'Arpejo e notas-alvo';
     var G4 = 'Cromatismo — a linguagem do jazz';
 
-    // 1) a escala subindo e descendo
-    seq = [];
-    for (i = 0; i <= n; i++) seq.push(s0 + i);
-    for (i = n - 1; i >= 0; i--) seq.push(s0 + i);
-    out.push({
-      id: 'escala', grupo: G1, title: 'A escala subindo e descendo',
-      dica: 'Toque devagar, com o metrônomo, dizendo o nome (ou o grau) de cada nota.',
-      events: toEvents(seq, ladder, 0.5, true)
-    });
+    // 1) a escala subindo e descendo, duas oitavas.
+    //
+    // Na escala MAIOR, este primeiro exercício é o desenho clássico
+    // 1-2-3-5-7-8: a escala sem o 4º nem o 6º grau, que são as duas notas
+    // que "puxam" para outro acorde. O que sobra são as notas do acorde
+    // (1-3-5-7) mais a 2ª e a oitava — a escala já ouvida como harmonia.
+    if (ehMaiorKey(scaleKey)) {
+      // 1-2-3-5-7 em cada oitava; o "8" é a tônica da oitava seguinte, que
+      // já abre o grupo de cima — por isso ela não é repetida.
+      var MOLDE = [0, 1, 2, 4, 6];        // 1 2 3 5 7  (o 8 vem do grupo seguinte)
+      var subida = [];
+      for (i = 0; i < OITAVAS; i++) MOLDE.forEach(function (g) { subida.push(s0 + i * n + g); });
+      subida.push(s0 + N);                // o 8 lá no alto, fechando a subida
+      seq = subida.concat(subida.slice(0, -1).reverse());
+      out.push({
+        id: 'escala', grupo: G1, title: 'Desenho 1-2-3-5-7-8 subindo e descendo (duas oitavas)',
+        dica: 'A maior sem o 4º e o 6º graus — as duas notas que puxam para outro acorde. Sobram o acorde (1-3-5-7) mais a 2ª e a oitava: é a escala já ouvida como harmonia. Devagar, com o metrônomo, dizendo o grau de cada nota.',
+        events: toEvents(seq, ladder, 0.5, true)
+      });
+    } else {
+      seq = [];
+      for (i = 0; i <= N; i++) seq.push(s0 + i);
+      for (i = N - 1; i >= 0; i--) seq.push(s0 + i);
+      out.push({
+        id: 'escala', grupo: G1, title: 'A escala subindo e descendo (duas oitavas)',
+        dica: 'Toque devagar, com o metrônomo, dizendo o nome (ou o grau) de cada nota. Duas oitavas obrigam a sair da posição: é aí que a escala vira braço inteiro.',
+        events: toEvents(seq, ladder, 0.5, true)
+      });
+    }
 
     // 2) terças (pares) — 1-3-2-4-3-5… e a volta 7-5-6-4-5-3…
     seq = [];
-    for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 2); }
-    for (i = n - 1; i >= 0; i--) { seq.push(s0 + i + 2); seq.push(s0 + i); }
+    for (i = 0; i < N; i++) { seq.push(s0 + i); seq.push(s0 + i + 2); }
+    for (i = N - 1; i >= 0; i--) { seq.push(s0 + i + 2); seq.push(s0 + i); }
     out.push({
       id: 'tercas', grupo: G1, title: 'Em terças (1-3-2-4-3-5… e a volta)',
       dica: 'Cada par salta dois graus da escala: é o exercício que mais ajuda a ouvir o modo, e desenvolve a visão intervalar.',
@@ -280,8 +328,8 @@
 
     // 3) sequência de 3 notas: 1-2-3, 2-3-4, 3-4-5… (tercinas)
     seq = [];
-    for (i = 0; i < n; i++) for (j = 0; j < 3; j++) seq.push(s0 + i + j);
-    seq.push(s0 + n);
+    for (i = 0; i < N; i++) for (j = 0; j < 3; j++) seq.push(s0 + i + j);
+    seq.push(s0 + N);
     out.push({
       id: 'seq3', grupo: G1, title: 'Sequência de 3 notas (1-2-3, 2-3-4, 3-4-5…)',
       dica: 'Em tercinas: comece em cada grau e toque as três notas seguidas da escala, até fechar a oitava.',
@@ -290,8 +338,8 @@
 
     // 4) sequência com bordadura: 1-2-3-2, 2-3-4-3, 3-4-5-4…
     seq = [];
-    for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 1); seq.push(s0 + i + 2); seq.push(s0 + i + 1); }
-    seq.push(s0 + n);
+    for (i = 0; i < N; i++) { seq.push(s0 + i); seq.push(s0 + i + 1); seq.push(s0 + i + 2); seq.push(s0 + i + 1); }
+    seq.push(s0 + N);
     out.push({
       id: 'seq1232', grupo: G1, title: 'Sequência 1-2-3-2 (2-3-4-3, 3-4-5-4…)',
       dica: 'Sobe três graus e volta um: a nota que volta é a bordadura, e é ela que dá o balanço da frase.',
@@ -300,7 +348,7 @@
 
     // 5) quatro notas por grau
     seq = [];
-    for (i = 0; i < n; i++) for (j = 0; j < 4; j++) seq.push(s0 + i + j);
+    for (i = 0; i < N; i++) for (j = 0; j < 4; j++) seq.push(s0 + i + j);
     out.push({
       id: 'quatro', grupo: G1, title: 'Quatro notas por grau (1-2-3-4, 2-3-4-5…)',
       dica: 'Semicolcheias: comece em cada grau e toque as quatro notas seguintes da escala.',
@@ -309,7 +357,7 @@
 
     // 5b) grupos de 5 notas
     seq = [];
-    for (i = 0; i < n; i++) for (j = 0; j < 5; j++) seq.push(s0 + i + j);
+    for (i = 0; i < N; i++) for (j = 0; j < 5; j++) seq.push(s0 + i + j);
     out.push({
       id: 'grupos5', grupo: G1, title: 'Grupos de 5 (1-2-3-4-5, 2-3-4-5-6…)',
       dica: 'Cinco notas por grau. Como 5 não cabe redondo no compasso, o começo do grupo vai andando dentro do tempo — e é justamente isso que tira o sotaque de exercício.',
@@ -319,8 +367,8 @@
     // ---- Sequências com salto ----
     // 1-2-5, 2-3-6, 3-4-7…
     seq = [];
-    for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 1); seq.push(s0 + i + 4); }
-    seq.push(s0 + n);
+    for (i = 0; i < N; i++) { seq.push(s0 + i); seq.push(s0 + i + 1); seq.push(s0 + i + 4); }
+    seq.push(s0 + N);
     out.push({
       id: 'seq125', grupo: G1b, title: 'Sequência 1-2-5 (2-3-6, 3-4-7…)',
       dica: 'Dois graus seguidos e um salto de quinta. O salto é o que faz a frase deixar de parecer escala.',
@@ -329,7 +377,7 @@
 
     // 1-2-4-3 em cada grau
     seq = [];
-    for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 1); seq.push(s0 + i + 3); seq.push(s0 + i + 2); }
+    for (i = 0; i < N; i++) { seq.push(s0 + i); seq.push(s0 + i + 1); seq.push(s0 + i + 3); seq.push(s0 + i + 2); }
     out.push({
       id: 'seq1243', grupo: G1b, title: 'Padrão 1-2-4-3 em cada grau',
       dica: 'Sobe dois graus, pula o terceiro e volta nele. Esse "pula e volta" é uma das células mais usadas no bebop.',
@@ -338,7 +386,7 @@
 
     // 1-3-2-4 em cada grau
     seq = [];
-    for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 2); seq.push(s0 + i + 1); seq.push(s0 + i + 3); }
+    for (i = 0; i < N; i++) { seq.push(s0 + i); seq.push(s0 + i + 2); seq.push(s0 + i + 1); seq.push(s0 + i + 3); }
     out.push({
       id: 'seq1324', grupo: G1b, title: 'Padrão 1-3-2-4 (2-4-3-5, 3-5-4-6…)',
       dica: 'Terça, volta um grau, terça de novo: dá um zigue-zague que soa muito melhor do que a escala reta.',
@@ -347,7 +395,7 @@
 
     // 1-3-5-2 em cada grau
     seq = [];
-    for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 2); seq.push(s0 + i + 4); seq.push(s0 + i + 1); }
+    for (i = 0; i < N; i++) { seq.push(s0 + i); seq.push(s0 + i + 2); seq.push(s0 + i + 4); seq.push(s0 + i + 1); }
     out.push({
       id: 'seq1352', grupo: G1b, title: 'Padrão 1-3-5-2 (2-4-6-3, 3-5-7-4…)',
       dica: 'Sobe pela tríade e cai no 2º grau. Célula excelente: soa como arpejo, mas termina numa nota de tensão.',
@@ -356,8 +404,8 @@
 
     // ---- Intervalos ----
     seq = [];
-    for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 3); }
-    for (i = n - 1; i >= 0; i--) { seq.push(s0 + i + 3); seq.push(s0 + i); }
+    for (i = 0; i < N; i++) { seq.push(s0 + i); seq.push(s0 + i + 3); }
+    for (i = N - 1; i >= 0; i--) { seq.push(s0 + i + 3); seq.push(s0 + i); }
     out.push({
       id: 'quartas', grupo: G1c, title: 'Em quartas (1-4-2-5-3-6…) e a volta',
       dica: 'Quartas dão aquele som aberto, moderno — a marca do jazz dos anos 60 em diante.',
@@ -365,8 +413,8 @@
     });
 
     seq = [];
-    for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 4); }
-    for (i = n - 1; i >= 0; i--) { seq.push(s0 + i + 4); seq.push(s0 + i); }
+    for (i = 0; i < N; i++) { seq.push(s0 + i); seq.push(s0 + i + 4); }
+    for (i = N - 1; i >= 0; i--) { seq.push(s0 + i + 4); seq.push(s0 + i); }
     out.push({
       id: 'quintas', grupo: G1c, title: 'Em quintas (1-5-2-6-3-7…) e a volta',
       dica: 'Salto maior ainda: obriga a mão a atravessar o braço e o ouvido a segurar o desenho da escala.',
@@ -376,7 +424,7 @@
     // 6) padrão 1-2-3-5 por grau
     if (n >= 5) {
       seq = [];
-      for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 1); seq.push(s0 + i + 2); seq.push(s0 + i + 4); }
+      for (i = 0; i < N; i++) { seq.push(s0 + i); seq.push(s0 + i + 1); seq.push(s0 + i + 2); seq.push(s0 + i + 4); }
       out.push({
         id: 'digital', grupo: G2, title: 'Padrão 1-2-3-5 em cada grau',
         dica: 'O "padrão digital" clássico do jazz: quatro notas por grau, sempre 1-2-3-5 dentro da escala.',
@@ -385,7 +433,7 @@
 
       // 7) o mesmo padrão descendo: 5-3-2-1
       seq = [];
-      for (i = n - 1; i >= 0; i--) { seq.push(s0 + i + 4); seq.push(s0 + i + 2); seq.push(s0 + i + 1); seq.push(s0 + i); }
+      for (i = N - 1; i >= 0; i--) { seq.push(s0 + i + 4); seq.push(s0 + i + 2); seq.push(s0 + i + 1); seq.push(s0 + i); }
       out.push({
         id: 'digital_desce', grupo: G2, title: 'O mesmo padrão descendo (5-3-2-1)',
         dica: 'Todo padrão tem que ser estudado nos dois sentidos — descendo é sempre mais difícil, e é o que falta na maioria dos solos.',
@@ -398,12 +446,10 @@
       var sub = n >= 6 ? [0, 1, 2, 4, 5] : [0, 1, 2, 3, 4];
       var subNames = sub.map(function (k) { return names[k % n]; });
       var subLadder = ladderOf(subNames);
-      var b0 = startIndex(subLadder, pcOf(info.tonic));
-      while (subLadder[b0].midi < LOW && b0 + 5 < subLadder.length) b0 += 5;
-      while (subLadder[b0 + 7] && subLadder[b0 + 7].midi > HIGH) b0 -= 5;
-      if (b0 >= 0 && subLadder[b0 + 7]) {
+      var b0 = ancorar(subLadder, 5, pcOf(info.tonic));
+      if (b0 >= 0 && subLadder[b0 + 12]) {
         seq = [];
-        for (i = 0; i < 4; i++) for (j = 0; j < 4; j++) seq.push(b0 + i + j);
+        for (i = 0; i < 9; i++) for (j = 0; j < 4; j++) seq.push(b0 + i + j);
         out.push({
           id: 'quatro_desloca', grupo: G2, title: 'Padrão de 4 notas deslocando o início (1-2-3-5, 2-3-5-6, 3-5-6-1…)',
           dica: 'Mesmo desenho, começando cada vez uma nota adiante. Só com esse deslocamento saem dezenas de frases diferentes.',
@@ -415,11 +461,11 @@
     // 9) arpejo do acorde da escala
     var ch = chordOf(tonic, scaleKey);
     var arp = ladderOf(ch.tones);
-    var a0 = startIndex(arp, pcOf(ch.root));
-    while (arp[a0].midi < LOW && a0 + ch.tones.length < arp.length) a0 += ch.tones.length;
+    var a0 = ancorar(arp, ch.tones.length, pcOf(ch.root));
+    var AN = ch.tones.length * OITAVAS;
     seq = [];
-    for (i = 0; i <= ch.tones.length; i++) seq.push(a0 + i);
-    for (i = ch.tones.length - 1; i >= 0; i--) seq.push(a0 + i);
+    for (i = 0; i <= AN; i++) seq.push(a0 + i);
+    for (i = AN - 1; i >= 0; i--) seq.push(a0 + i);
     out.push({
       id: 'arpejo', grupo: G3, title: 'Arpejo do acorde da escala (' + ch.symbol + ')',
       dica: 'As notas do acorde são os "pontos de descanso": termine suas frases nelas.',
@@ -429,7 +475,7 @@
     // 9b) arpejos de 7ª em cada grau: 1-3-5-7, 2-4-6-1, 3-5-7-2…
     if (n >= 7) {
       seq = [];
-      for (i = 0; i < n; i++) { seq.push(s0 + i); seq.push(s0 + i + 2); seq.push(s0 + i + 4); seq.push(s0 + i + 6); }
+      for (i = 0; i < N; i++) { seq.push(s0 + i); seq.push(s0 + i + 2); seq.push(s0 + i + 4); seq.push(s0 + i + 6); }
       out.push({
         id: 'arpejos7', grupo: G3, title: 'Arpejos de 7ª em cada grau (1-3-5-7, 2-4-6-1…)',
         dica: 'Um arpejo de quatro notas nascendo em cada grau da escala. É o exercício que mais aproxima a escala da harmonia: cada grupo é um acorde do campo harmônico.',
@@ -439,31 +485,27 @@
 
     // 10) escala + arpejo na mesma frase: 1-2-3-4-5-3-1 e 1-2-3-5-7-5-3-1
     if (n >= 7) {
-      seq = [0, 1, 2, 3, 4, 2, 0, 0, 1, 2, 4, 6, 4, 2, 0].map(function (k) { return s0 + k; });
+      var desenho = [0, 1, 2, 3, 4, 2, 0, 0, 1, 2, 4, 6, 4, 2, 0];
+      seq = desenho.map(function (k) { return s0 + k; })
+        .concat(desenho.map(function (k) { return s0 + n + k; }));   // a 2ª oitava
       out.push({
-        id: 'escala_arpejo', grupo: G3, title: 'Escala + arpejo (1-2-3-4-5-3-1 → 1-2-3-5-7-5-3-1)',
+        id: 'escala_arpejo', grupo: G3, title: 'Escala + arpejo (1-2-3-4-5-3-1 → 1-2-3-5-7-5-3-1), duas oitavas',
         dica: 'A primeira metade é escala, a segunda é arpejo: misturar os dois na mesma frase é o que faz o solo soar "falado" em vez de exercício.',
         events: toEvents(seq, ladder, 0.5, true)
       });
     }
 
     // ---- Cromatismo: aproximar e cercar as notas do acorde ----
-    // As notas do acorde na oitava confortável, para servirem de alvo.
+    // As notas do acorde nas DUAS oitavas do exercício, em ordem, para
+    // servirem de alvo do cromatismo.
     var alvos = [];
     ch.tones.forEach(function (nome) {
       var pc = pcOf(nome);
-      for (var k = 0; k < ladder.length; k++) {
-        if (ladder[k].midi % 12 === pc && ladder[k].midi >= ladder[s0].midi && ladder[k].midi <= ladder[s0].midi + 14) {
-          alvos.push({ name: nome, midi: ladder[k].midi }); break;
-        }
-      }
-      // a nota do acorde pode não estar na escala (raro): calcula pela tônica
-      if (!alvos.length || alvos[alvos.length - 1].name !== nome) {
-        var base = ladder[s0].midi;
-        var m = base + (((pc - base % 12) % 12) + 12) % 12;
-        alvos.push({ name: nome, midi: m });
-      }
+      var base = ladder[s0].midi;
+      var primeira = base + ((((pc - base) % 12) + 12) % 12);   // a 1ª acima da tônica
+      for (var oi = 0; oi < OITAVAS; oi++) alvos.push({ name: nome, midi: primeira + 12 * oi });
     });
+    alvos.sort(function (a, b) { return a.midi - b.midi; });
 
     if (alvos.length >= 3 && scaleKey !== 'cromatica') {
       // aproximação cromática de baixo: dois semitons antes de cada nota-alvo
@@ -503,11 +545,12 @@
     // 11) notas-alvo: tônica → 3ª → 5ª → 7ª em notas longas
     var alvo = [];
     [0, 2, 4, 6].forEach(function (k) { if (k < n) alvo.push(s0 + k); });
+    [0, 2, 4, 6].forEach(function (k) { if (k < n) alvo.push(s0 + n + k); });   // 2ª oitava
     if (alvo.length >= 3) {
       out.push({
-        id: 'alvo', grupo: G3, title: 'Notas-alvo em notas longas',
+        id: 'alvo', grupo: G3, title: 'Notas-alvo em notas longas (duas oitavas)',
         dica: 'Segure cada nota do acorde por um compasso e ouça como ela soa dentro da escala.',
-        events: toEvents(alvo.concat([s0 + n]), ladder, 2, false)
+        events: toEvents(alvo.concat([s0 + N]), ladder, 2, false)
       });
     }
 

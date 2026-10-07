@@ -22,32 +22,32 @@ const path = require('path');
   console.log('View:', await page.$eval('.content.view:not([hidden])', (v) => v.getAttribute('data-view')));
   console.log('Escalas no seletor:', await page.$$eval('#esc-escala option', (o) => o.length),
     '| famílias:', await page.$$eval('#esc-escala optgroup', (o) => o.map((x) => x.label)));
-  console.log('Título:', await page.$eval('.esc-title', (e) => e.textContent.trim()));
+  console.log('Título:', await page.$eval('.content.view:not([hidden]) .esc-title', (e) => e.textContent.trim()));
   console.log('Acorde:', await page.$eval('.lib-badge-chord', (e) => e.textContent.trim()));
-  console.log('Chips (grau/int/nota):', await page.$$eval('.si-chips .si-chip', (c) => c.map((x) => x.textContent).join(' | ')));
+  console.log('Chips (grau/int/nota):', await page.$$eval('.content.view:not([hidden]) .si-chips .si-chip', (c) => c.map((x) => x.textContent).join(' | ')));
   console.log('Linhas da ficha:', await page.$$eval('.si-rows > div', (d) => d.map((x) => x.textContent.trim())));
   console.log('Cards de explicação:', await page.$$eval('.esc-card-title', (t) => t.map((x) => x.textContent)));
-  console.log('Diagrama SVG:', await page.$$eval('.esc-diagrama svg', (s) => s.length));
-  console.log('Grupos de exercícios:', await page.$$eval('.esc-grupo', (t) => t.map((x) => x.textContent)));
-  console.log('Exercícios:', await page.$$eval('.esc-ex .lib-card-title', (t) => t.map((x) => x.textContent)));
-  console.log('Tabs dos exercícios:', await page.$$eval('.esc-ex .tab-block', (t) => t.length));
-  console.log('Linhas de notas:', await page.$$eval('.esc-ex .esc-notas', (n) => n.length),
-    '| exercício 1:', await page.$eval('.esc-ex .esc-notas', (p) => p.textContent.trim()));
-  console.log('Notas sem nome:', await page.$$eval('.esc-ex .esc-nota', (n) => n.filter((x) => !x.textContent.trim()).length));
+  console.log('Diagrama SVG:', await page.$$eval('.content.view:not([hidden]) .esc-diagrama svg', (s) => s.length));
+  console.log('Grupos de exercícios:', await page.$$eval('.content.view:not([hidden]) .esc-grupo', (t) => t.map((x) => x.textContent)));
+  console.log('Exercícios:', await page.$$eval('.content.view:not([hidden]) .esc-ex .lib-card-title', (t) => t.map((x) => x.textContent)));
+  console.log('Tabs dos exercícios:', await page.$$eval('.content.view:not([hidden]) .esc-ex .tab-block', (t) => t.length));
+  console.log('Linhas de notas:', await page.$$eval('.content.view:not([hidden]) .esc-ex .esc-notas', (n) => n.length),
+    '| exercício 1:', await page.$eval('.content.view:not([hidden]) .esc-ex .esc-notas', (p) => p.textContent.trim()));
+  console.log('Notas sem nome:', await page.$$eval('.content.view:not([hidden]) .esc-ex .esc-nota', (n) => n.filter((x) => !x.textContent.trim()).length));
   console.log('Transporte presente:', await page.$$eval('.transport[data-transport="escala"] .tr-btn', (b) => b.length));
 
   // Busca
   await page.fill('#esc-busca', 'bebop');
   await page.waitForTimeout(300);
   console.log('\nBusca "bebop":', await page.$$eval('#esc-escala option', (o) => o.map((x) => x.textContent)));
-  console.log('Título:', await page.$eval('.esc-title', (e) => e.textContent.trim()));
+  console.log('Título:', await page.$eval('.content.view:not([hidden]) .esc-title', (e) => e.textContent.trim()));
 
   // Troca de escala complexa + tom
   await page.fill('#esc-busca', 'hungara');
   await page.waitForTimeout(250);
   await page.selectOption('#esc-tom', 'Eb');
   await page.waitForTimeout(300);
-  console.log('\nHúngara menor em Eb —', await page.$eval('.esc-title', (e) => e.textContent.trim()));
+  console.log('\nHúngara menor em Eb —', await page.$eval('.content.view:not([hidden]) .esc-title', (e) => e.textContent.trim()));
   console.log('Notas:', await page.$eval('.si-rows > div:last-child', (e) => e.textContent.trim()));
   console.log('Evitar:', await page.$$eval('.esc-card', (cs) => {
     const c = cs.find((x) => /evitar/i.test(x.querySelector('.esc-card-title').textContent));
@@ -57,7 +57,7 @@ const path = require('path');
   // Toggles do diagrama
   await page.click('.esc-toggle .view-btn[data-act="rot"][data-v="notas"]');
   await page.waitForTimeout(200);
-  console.log('Rótulos em notas:', await page.$$eval('.esc-diagrama text', (t) => t.slice(0, 8).map((x) => x.textContent)));
+  console.log('Rótulos em notas:', await page.$$eval('.content.view:not([hidden]) .esc-diagrama text', (t) => t.slice(0, 8).map((x) => x.textContent)));
   await page.click('.esc-toggle .view-btn[data-act="casa"][data-v="5"]');
   await page.waitForTimeout(200);
   console.log('Casa 5 ativa:', await page.$eval('.view-btn[data-act="casa"][data-v="5"]', (b) => b.className));
@@ -65,8 +65,8 @@ const path = require('path');
   // Teclado
   await page.selectOption('#esc-instrumento', 'teclado');
   await page.waitForTimeout(300);
-  console.log('\nTeclado — diagrama:', await page.$$eval('.esc-diagrama svg', (s) => s.length),
-    '| partituras nos exercícios:', await page.$$eval('.esc-ex svg', (s) => s.length));
+  console.log('\nTeclado — diagrama:', await page.$$eval('.content.view:not([hidden]) .esc-diagrama svg', (s) => s.length),
+    '| partituras nos exercícios:', await page.$$eval('.content.view:not([hidden]) .esc-ex svg', (s) => s.length));
 
   // Transporte: bpm e metrônomo funcionam na barra injetada
   await page.click('.transport[data-transport="escala"] [data-act="mais"]');

@@ -21,6 +21,9 @@ const path = require('path');
 
   await page.goto('file://' + path.resolve(__dirname, '../index.html'), { waitUntil: 'domcontentloaded', timeout: 15000 });
   await page.waitForTimeout(300);
+  // A análise de harmonia saiu do Início e virou item do menu (07/10/2026).
+  await page.click('.nav-item[data-nav="harmonia"]');
+  await page.waitForTimeout(250);
 
   // 1) Novos instrumentos no select
   const options = await page.$$eval('#input-instrumento option', (opts) => opts.map((o) => o.value));

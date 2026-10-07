@@ -1030,6 +1030,55 @@ Testes: `tests/fraseados.smoke.js` passou a ter verificações de verdade
 sozinha e sempre bate com a que está marcada na lista, só um compasso
 marcado de cada vez, e o botão volta ao normal ao escolher outra frase.
 
+## Início virou treino de escalas, e os exercícios ganharam duas oitavas — ✅ (2026-10-07)
+
+A pedido do dono do projeto, a primeira tela do site deixou de ser a
+análise de harmonia e passou a ser o treino diário:
+
+- **Novo Início** (`js/treino-ui.js`): tonalidade + escala + instrumento e,
+  na hora, os 21 exercícios do método, com partitura ou tablatura, as notas
+  escritas e áudio, mais a barra de metrônomo/andamento/repetir. São cinco
+  escalas de propósito — **Maior, Menor (natural), Pentatônica maior,
+  Pentatônica maior + b3 (blues maior) e Pentablues (pentatônica menor +
+  b5)** —, as que se usa quase sempre; o catálogo inteiro (46 escalas, com
+  a ficha de cada uma) continua na Biblioteca de Escalas, a um clique.
+  Os cartões de exercício são os mesmos da Biblioteca (`exercicioCardHTML`
+  passou a ser compartilhado): não existem duas versões do mesmo desenho.
+- **Análise de Harmonia** ganhou o próprio item no menu, logo abaixo do
+  Início, com tudo igual — progressão, abas, fraseados, áudio. Nada saiu.
+  Quem chegava nela por um caminho antigo (`nova-analise`, histórico,
+  favoritos, Laboratório, Aulas) continua caindo lá, agora via
+  `window.IL.ui.abrirHarmonia()`, que troca a tela **e** marca o item no
+  menu (só trocar a tela deixava o menu mostrando a tela errada).
+
+**Os 21 exercícios passaram a subir e descer duas oitavas** (`js/scales.js`).
+Não é só dobrar o laço: o ponto de partida foi ancorado entre F3 e E4 para
+a segunda oitava caber, os desenhos cromáticos passaram a cercar as notas
+do acorde nas duas oitavas e o arpejo, o "escala + arpejo" e as notas-alvo
+ganharam tratamento próprio. Na guitarra isso é o que tira o estudo da
+posição fixa e espalha a escala pelo braço.
+
+**Na escala maior, o primeiro exercício virou o desenho 1-2-3-5-7-8** — a
+maior sem o 4º e o 6º graus, as duas notas que puxam para outro acorde.
+Em C: `C D E G B | C D E G B | C` e a volta. As outras escalas seguem com
+a escala corrida. A troca é por fórmula (compara os semitons com os da
+maior), não pelo nome da escala.
+
+Um defeito apareceu no teste e foi corrigido: a barra de transporte da tela
+nova não existia na tabela de barras, e `transportOpts` quebrava ao tocar
+(`Cannot read properties of undefined`). Além de registrar a barra nova,
+a função passou a cair num padrão em vez de estourar.
+
+Testes: `tests/escalas.test.js` foi a **12** (duas oitavas em 4 tons × 6
+escalas, o desenho 1-2-3-5-7-8 nota a nota e midi a midi, e as sequências
+antigas conferidas como início da linha de duas oitavas) e entrou
+`tests/inicio.smoke.js` (18 checagens: a tela abre sozinha com os 21
+exercícios, as 5 escalas na ordem, trocar escala/tom/instrumento redesenha,
+áudio toca e para, e os dois atalhos levam para a Biblioteca e para a
+Análise). `tests/site.smoke.js` e `tests/celular.smoke.js` cobrem as duas
+telas, e os 12 testes que abriam a análise pelo Início passaram a abri-la
+pelo item do menu.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

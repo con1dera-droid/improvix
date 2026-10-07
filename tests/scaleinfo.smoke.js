@@ -18,7 +18,7 @@ const path = require('path');
   const read = () => page.$eval('#lib-escala-info', (e) => ({
     open: e.open, title: e.querySelector('summary').textContent,
     formula: [...e.querySelectorAll('.si-rows code')].map((c) => c.textContent),
-    hl: [...e.querySelectorAll('.si-chip.si-hl .si-deg')].map((c) => c.textContent)
+    hl: [...e.querySelectorAll('.content.view:not([hidden]) .si-chip.si-hl .si-deg')].map((c) => c.textContent)
   }));
   console.log('Padrão:', JSON.stringify(await read()));
   await page.selectOption('#lib-escala', 'dorico');
