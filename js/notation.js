@@ -626,6 +626,175 @@
     return '<svg viewBox="0 0 ' + width + ' ' + height + '" xmlns="http://www.w3.org/2000/svg" width="100%" style="max-width:' + width + 'px" height="' + height + '">' + out + '</svg>';
   }
 
+  /**
+   * Diagrama de acorde: o braço em pé, como se vê num songbook.
+   *
+   * opts: {
+   *   instrument, casas: [por corda: null (abafada) | 0 (solta) | nº da casa],
+   *   dedos: [por corda: null | 1..4], pestana: bool, casaBase: nº,
+   *   notas: [{corda, casa, name, grau}], mostrarNotas: bool
+   * }
+   */
+  function chordDiagramSVG(opts) {
+    opts = opts || {};
+    var casas = opts.casas || [];
+    var dedos = opts.dedos || [];
+    var nC = casas.length || 6;
+    var JANELA = 5;                                   // 5 casas por diagrama
+
+    var presas = casas.filter(function (f) { return f !== null && f > 0; });
+    var min = presas.length ? Math.min.apply(null, presas) : 1;
+    var max = presas.length ? Math.max.apply(null, presas) : 1;
+    var temSolta = casas.some(function (f) { return f === 0; });
+    // O desenho começa na pestana do instrumento sempre que houver corda
+    // solta (senão o ○ em cima não quer dizer nada) ou quando a forma cabe
+    // nas primeiras casas. Fora isso, começa na casa da forma, com o número.
+    var primeira = (temSolta || max <= JANELA) ? 1 : min;
+    var pestanaAberta = primeira === 1;
+
+    var esq = 30, topo = 34, ce = 26, ca = 30;        // corda-espaço, casa-altura
+    var larg = esq + (nC - 1) * ce + 34;
+    var alt = topo + JANELA * ca + (opts.mostrarNotas === false ? 14 : 36);
+    var out = '';
+
+    // casas (linhas horizontais) e a pestana do instrumento (linha grossa)
+    for (var f = 0; f <= JANELA; f++) {
+      var y = topo + f * ca;
+      var grossa = (f === 0 && pestanaAberta);
+      out += '<line x1="' + esq + '" y1="' + y + '" x2="' + (esq + (nC - 1) * ce) + '" y2="' + y +
+        '" stroke="' + (grossa ? '#cbd5f5' : '#44557f') + '" stroke-width="' + (grossa ? 5 : 1.6) + '" stroke-linecap="round"/>';
+    }
+    // cordas (linhas verticais)
+    for (var c = 0; c < nC; c++) {
+      var x = esq + c * ce;
+      out += '<line x1="' + x + '" y1="' + topo + '" x2="' + x + '" y2="' + (topo + JANELA * ca) +
+        '" stroke="#44557f" stroke-width="1.6"/>';
+    }
+    // número da casa, quando o desenho não começa na pestana
+    if (!pestanaAberta) {
+      out += '<text x="' + (esq - 10) + '" y="' + (topo + ca * 0.72) + '" font-size="14" font-weight="700" ' +
+        'text-anchor="end" fill="#94a3c4">' + primeira + 'ª</text>';
+    }
+
+    // pestana: um retângulo arredondado ligando as cordas
+    if (opts.pestana) {
+      var naMin = [];
+      casas.forEach(function (ff, i) { if (ff === min) naMin.push(i); });
+      if (naMin.length >= 2) {
+        var x1 = esq + naMin[0] * ce, x2 = esq + naMin[naMin.length - 1] * ce;
+        var yb = topo + (min - primeira + 0.5) * ca;
+        out += '<rect x="' + (x1 - 9) + '" y="' + (yb - 9) + '" width="' + (x2 - x1 + 18) + '" height="18" rx="9" fill="var(--accent, #3b82f6)"/>';
+      }
+    }
+
+    // bolinhas, X e O
+    casas.forEach(function (ff, i) {
+      var cx = esq + i * ce;
+      if (ff === null) {
+        out += '<text x="' + cx + '" y="' + (topo - 10) + '" font-size="15" font-weight="700" text-anchor="middle" fill="#64748b">✕</text>';
+        return;
+      }
+      if (ff === 0) {
+        out += '<circle cx="' + cx + '" cy="' + (topo - 15) + '" r="6" fill="none" stroke="#94a3c4" stroke-width="2"/>';
+        return;
+      }
+      var cy = topo + (ff - primeira + 0.5) * ca;
+      out += '<circle cx="' + cx + '" cy="' + cy + '" r="9.5" fill="var(--accent, #3b82f6)"/>';
+      if (dedos[i]) {
+        out += '<text x="' + cx + '" y="' + (cy + 4.5) + '" font-size="12" font-weight="700" text-anchor="middle" fill="#fff">' + dedos[i] + '</text>';
+      }
+    });
+
+    // o nome da nota de cada corda, embaixo
+    if (opts.mostrarNotas !== false) {
+      var porCorda = {};
+      (opts.notas || []).forEach(function (n) { porCorda[n.corda] = n; });
+      casas.forEach(function (ff, i) {
+        var n = porCorda[i];
+        var cx = esq + i * ce;
+        var yy = topo + JANELA * ca + 20;
+        if (!n) {
+          out += '<text x="' + cx + '" y="' + yy + '" font-size="11" text-anchor="middle" fill="#475569">–</text>';
+          return;
+        }
+        var raiz = n.grau === '1';
+        out += '<text x="' + cx + '" y="' + yy + '" font-size="11.5" font-weight="700" text-anchor="middle" fill="' +
+          (raiz ? 'var(--accent-2, #22c55e)' : '#cbd5f5') + '">' + n.name + '</text>';
+        out += '<text x="' + cx + '" y="' + (yy + 12) + '" font-size="9.5" text-anchor="middle" fill="#64748b">' + (n.grau || '') + '</text>';
+      });
+    }
+
+    return '<svg viewBox="0 0 ' + larg + ' ' + alt + '" xmlns="http://www.w3.org/2000/svg" width="' + larg + '" height="' + alt + '">' + out + '</svg>';
+  }
+
+  /**
+   * Teclado marcando as TECLAS exatas de um voicing (e não só as notas da
+   * escala, como o keyboardSVG). Mão esquerda e direita saem em cores
+   * diferentes, que é como o professor mostra.
+   *
+   * opts: { teclas: [{midi, label, mao: 'e'|'d', raiz}], de: midi inicial, oitavas }
+   */
+  function keyboardVoicingSVG(opts) {
+    opts = opts || {};
+    var teclas = opts.teclas || [];
+    var oitavas = opts.oitavas || 3;
+    var de = opts.de;
+    if (de === undefined) {
+      var ms = teclas.map(function (t) { return t.midi; });
+      de = ms.length ? Math.min.apply(null, ms) : 48;
+      de = Math.floor(de / 12) * 12;                 // começa num dó
+    }
+    if (!opts.oitavas && teclas.length) {
+      // o teclado tem o tamanho do voicing: um teclado de três oitavas com
+      // quatro notas no canto não ajuda ninguém
+      var topo2 = Math.max.apply(null, teclas.map(function (t) { return t.midi; }));
+      oitavas = Math.max(2, Math.ceil((topo2 - de + 1) / 12));
+    }
+    var marc = {};
+    teclas.forEach(function (t) { marc[t.midi] = t; });
+
+    var BRANCAS = [0, 2, 4, 5, 7, 9, 11];
+    var PRETAS = { 1: 0, 3: 1, 6: 3, 8: 4, 10: 5 };
+    var ww = 26, wh = 104, bw = 16, bh = 64, topo = 22;
+    var nB = 7 * oitavas;
+    var larg = nB * ww + 2, alt = topo + wh + 20;
+    var out = '';
+    var COR = { e: 'var(--subdominante, #7c3aed)', d: 'var(--accent, #3b82f6)' };
+
+    function pinta(midi, x, y, r, tamanho) {
+      var t = marc[midi];
+      if (!t) return '';
+      var cor = t.raiz ? 'var(--accent-2, #22c55e)' : (COR[t.mao] || COR.d);
+      return '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="' + cor + '"/>' +
+        '<text x="' + x + '" y="' + (y + 3.4) + '" font-size="' + tamanho + '" font-weight="700" text-anchor="middle" fill="#fff">' + (t.label || '') + '</text>';
+    }
+
+    for (var o = 0; o < oitavas; o++) {
+      for (var i = 0; i < 7; i++) {
+        var x = (o * 7 + i) * ww + 1;
+        var midi = de + o * 12 + BRANCAS[i];
+        var usada = !!marc[midi];
+        out += '<rect x="' + x + '" y="' + topo + '" width="' + (ww - 1) + '" height="' + wh + '" rx="3" fill="' +
+          (usada ? '#ffffff' : '#e8ecf6') + '" stroke="#2b3a5e"/>';
+        out += pinta(midi, x + ww / 2 - 0.5, topo + wh - 18, 9.5, 9);
+      }
+    }
+    for (o = 0; o < oitavas; o++) {
+      /* eslint-disable no-loop-func */
+      (function (oo) {
+        Object.keys(PRETAS).forEach(function (pcStr) {
+          var pcb = Number(pcStr);
+          var bx = (oo * 7 + PRETAS[pcb]) * ww + ww - bw / 2 + 1;
+          var m = de + oo * 12 + pcb;
+          out += '<rect x="' + bx + '" y="' + topo + '" width="' + bw + '" height="' + bh + '" rx="2.5" fill="' +
+            (marc[m] ? '#1e293b' : '#0f172a') + '" stroke="#2b3a5e"/>';
+          out += pinta(m, bx + bw / 2, topo + bh - 13, 8, 8);
+        });
+      })(o);
+    }
+    return '<svg viewBox="0 0 ' + larg + ' ' + alt + '" xmlns="http://www.w3.org/2000/svg" width="' + larg + '" height="' + alt + '">' + out + '</svg>';
+  }
+
   var TAB_LEGEND = 'h hammer-on · p pull-off · / \\ slide · b bend · r release · ~ vibrato · ( ) nota fantasma · D/U palhetada para baixo/cima';
 
   /** Desloca a frase inteira em oitavas para ler bem na clave de sol (centro em B4). */
@@ -640,6 +809,8 @@
   return {
     toTabEvents: toTabEvents,
     fretboardSVG: fretboardSVG,
+    chordDiagramSVG: chordDiagramSVG,
+    keyboardVoicingSVG: keyboardVoicingSVG,
     keyboardSVG: keyboardSVG,
     prepareForInstrument: prepareForInstrument,
     renderTabText: renderTabText,

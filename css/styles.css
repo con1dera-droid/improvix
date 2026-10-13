@@ -791,6 +791,51 @@ select, input[type="text"] {
 .adm-acoes .view-btn.adm-perigo:hover { background: #dc2626; border-color: #dc2626; color: #fff; }
 .adm-acoes .muted-note { white-space: normal; max-width: 240px; font-size: 0.75rem; }
 
+/* ---------- Biblioteca de Acordes ---------- */
+.acd-sugestoes { display: flex; flex-direction: column; gap: 0.35rem; margin: 0.2rem 0 0.9rem; }
+.acd-sug-grupo { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; }
+.acd-sug-rot { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); font-weight: 700; min-width: 9.5rem; }
+.acd-chip {
+  background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text);
+  border-radius: 999px; padding: 0.3rem 0.7rem; font-size: 0.8rem; font-weight: 600;
+}
+.acd-chip:hover { border-color: var(--accent); color: #fff; background: var(--accent); }
+.acd-chip-mini { padding: 0.12rem 0.5rem; font-size: 0.75rem; }
+
+.acd-notas { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.6rem 0 0.4rem; }
+.acd-nota {
+  display: flex; flex-direction: column; align-items: center; min-width: 3.2rem;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--bg-elevated); padding: 0.35rem 0.5rem;
+}
+.acd-nota-raiz { border-color: var(--accent-2); background: rgba(34, 197, 94, 0.12); }
+.acd-nota-nome { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+.acd-nota-grau { font-size: 0.72rem; color: var(--text-muted); }
+
+.acd-bloco { margin-top: 1.4rem; }
+.acd-bloco-principal { border-left: 3px solid var(--accent); padding-left: 0.9rem; margin-left: -0.2rem; }
+.acd-seu { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 0.05rem 0.45rem; vertical-align: middle; }
+
+.acd-grade, .acd-teclados { display: flex; flex-wrap: wrap; gap: 0.8rem; margin: 0.5rem 0 0.3rem; align-items: flex-start; }
+.acd-forma, .acd-teclado {
+  border: 1px solid var(--border); border-radius: 12px; background: var(--bg-elevated);
+  padding: 0.7rem 0.85rem; max-width: 100%; overflow-x: auto;
+}
+.acd-teclado { flex: 1 1 100%; }
+.acd-forma-larga { flex: 1 1 280px; }
+.acd-forma-topo { display: flex; justify-content: space-between; align-items: baseline; gap: 0.6rem; margin-bottom: 0.45rem; font-size: 0.85rem; }
+.acd-forma-topo span { color: var(--text-dim); font-size: 0.78rem; }
+.acd-forma-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin-top: 0.5rem; }
+.acd-forma-tab { font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.78rem; color: var(--text-dim); margin: 0.4rem 0 0; }
+.acd-tabela { font-size: 0.8rem; }
+.acd-maos { font-size: 0.72rem; color: var(--text-dim); display: inline-flex; align-items: center; gap: 0.3rem; }
+.acd-mao-e, .acd-mao-d { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.acd-mao-e { background: var(--subdominante); }
+.acd-mao-d { background: var(--accent); }
+.acd-fim { margin-top: 1.4rem; }
+.acd-detalhe { margin-top: 0.6rem; }
+.acd-detalhe summary { cursor: pointer; font-size: 0.82rem; color: var(--text-muted); }
+.acd-detalhe summary:hover { color: var(--text); }
+
 /* ============================================================
    CELULAR
    O site nasceu com a proporção de computador: menu fixo de 250px à
@@ -902,6 +947,10 @@ select, input[type="text"] {
   .pad-nav { gap: 0.4rem; }
   .pad-nav .btn-secondary, .pad-nav .btn-primary { height: 40px; }
   .pad-view-toggle { margin-left: 0; }
+  .acd-sug-rot { min-width: 0; flex-basis: 100%; }
+  .acd-grade, .acd-teclados { gap: 0.6rem; }
+  .acd-forma, .acd-teclado { flex: 1 1 100%; }
+  .acd-bloco-principal { padding-left: 0.6rem; }
   .adm-barra { flex-wrap: wrap; }
   .adm-barra input[type="search"] { max-width: none; }
   .fraseado-actions .btn-chip-action { flex: 1 1 auto; }

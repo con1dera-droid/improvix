@@ -14,7 +14,7 @@ const ESPERADO = [
   ['biblioteca-fraseados', '🎼 Biblioteca de Fraseados'],
   ['padroes', '📘 Exercícios de Padrões'],
   ['transcricao', '🎤 Transcrição / Treino'],
-  ['laboratorio', '🧪 Laboratório'],
+  ['acordes', '🎹 Biblioteca de Acordes'],
   ['meus-exercicios', '📋 Meus Exercícios'],
   ['config', '⚙ Configurações']
 ];
@@ -54,7 +54,7 @@ const ESPERADO = [
   const VIEW = {
     inicio: 'inicio', harmonia: 'harmonia', 'biblioteca-escalas': 'biblioteca-escalas',
     'biblioteca-fraseados': 'biblioteca-fraseados', padroes: 'padroes',
-    transcricao: 'transcricao', laboratorio: 'laboratorio',
+    transcricao: 'transcricao', acordes: 'acordes',
     'meus-exercicios': 'exercicios', config: 'config'
   };
   for (const [nav, view] of Object.entries(VIEW)) {

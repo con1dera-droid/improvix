@@ -72,6 +72,24 @@ quem guarda os dados é o Supabase (gratuito), acessado direto do navegador.
 Veja `docs/etapa4-supabase.md` para o passo a passo (é o único passo manual,
 porque exige criar uma conta em outro serviço).
 
+## Biblioteca de Acordes
+
+Digite uma cifra (`C7M`, `Am7(b5)`, `G7(b9)`, `D7/F#`…) e veja como se toca
+**no violão, na guitarra, no teclado e no baixo**: três posições no braço
+com os dedos e a pestana desenhados, três voicings de teclado (fundamental,
+inversão e o de 3ª e 7ª, o do jazz) e, no baixo, as notas do acorde no braço
+mais a linha fundamental–5ª–oitava. Cada nota vem com o nome e o grau dela
+no acorde, e tudo toca.
+
+As posições são **calculadas**, não copiadas de uma tabela: o programa varre
+o braço, monta o que soa o acorde e descarta o que a mão não alcança (quatro
+casas, quatro dedos, pestana só na casa mais baixa e sem corda solta no meio
+dela). O motor é `js/chords.js` e a tela, `js/chords-ui.js`.
+
+> A aba **Laboratório** (gerador de progressões) deu lugar a esta. O motor
+> dele continua no projeto: é ele que sugere a progressão quando se troca a
+> tonalidade na Análise de Harmonia.
+
 ## A tela de Início: treinar escalas
 
 O site abre direto no treino: escolha a **tonalidade**, a **escala** e o
@@ -190,6 +208,8 @@ node tests/fraseados.smoke.js
 node tests/biblioteca.smoke.js
 node tests/celular.smoke.js
 node tests/inicio.smoke.js
+node tests/acordes.test.js
+node tests/acordes.smoke.js
 ```
 
 `tests/celular.smoke.js` percorre o site em três tamanhos de telefone

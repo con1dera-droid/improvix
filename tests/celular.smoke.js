@@ -101,7 +101,7 @@ async function irPara(p, nav) {
 
     // --- todas as telas cabem ---
     const NAVS = ['inicio', 'harmonia', 'biblioteca-escalas', 'biblioteca-fraseados', 'padroes',
-      'transcricao', 'laboratorio', 'meus-exercicios', 'config'];
+      'transcricao', 'acordes', 'meus-exercicios', 'config'];
     for (const nav of NAVS) {
       await irPara(p, nav);
       const e = await estouro(p, t.w);

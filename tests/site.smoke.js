@@ -33,7 +33,7 @@ function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!c
   ok(itens.length === 9, 'o menu tem os 9 itens');
 
   const VIEWS = { 'inicio':'inicio', 'harmonia':'harmonia', 'biblioteca-escalas':'biblioteca-escalas', 'biblioteca-fraseados':'biblioteca-fraseados',
-    'padroes':'padroes', 'transcricao':'transcricao', 'laboratorio':'laboratorio', 'meus-exercicios':'exercicios', 'config':'config' };
+    'padroes':'padroes', 'transcricao':'transcricao', 'acordes':'acordes', 'meus-exercicios':'exercicios', 'config':'config' };
   for (const nav of Object.keys(VIEWS)) {
     const el = await p.$('.nav-item[data-nav="' + nav + '"]');
     if (!el) { console.log('(sem item de menu para ' + nav + ')'); continue; }
@@ -142,10 +142,16 @@ function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!c
   const cats = await p.$$eval('#pad-categoria option, #pad-categoria optgroup', o => o.length).catch(()=>0);
   ok(cats > 0, 'PADRÕES: seletor de categoria com ' + cats + ' entradas');
 
-  // --- LABORATÓRIO e MEUS EXERCÍCIOS (travas de conta) ---
-  await p.click('.nav-item[data-nav="laboratorio"]'); await p.waitForTimeout(600);
-  const lab = (await p.$eval('.content.view:not([hidden])', e=>e.innerText.replace(/\s+/g,' '))).slice(0,90);
-  ok(lab.length > 10, 'LABORATÓRIO: mostra o aviso/convite certo [' + lab + '…]');
+  // --- BIBLIOTECA DE ACORDES ---
+  await p.click('.nav-item[data-nav="acordes"]'); await p.waitForTimeout(900);
+  const blocosAcd = await p.$$eval('#acd-conteudo .acd-bloco h3', h => h.map(x => x.textContent.replace(/\s+/g,' ').trim()));
+  ok(blocosAcd.length === 3, 'ACORDES: os três instrumentos (' + blocosAcd.join(' · ') + ')');
+  await p.fill('#acd-busca', 'Am7(b5)'); await p.click('#btn-acd-buscar'); await p.waitForTimeout(800);
+  const grausAcd = await p.$$eval('.acd-nota', n => n.map(x => x.textContent.trim()).join(' '));
+  ok(/b5/.test(grausAcd), 'ACORDES: nota e grau de cada nota (' + grausAcd + ')');
+  ok((await p.$$eval('#acd-conteudo .acd-forma svg', s => s.length)) > 0, 'ACORDES: desenha as posições no braço');
+
+  // --- MEUS EXERCÍCIOS (travas de conta) ---
   await p.click('.nav-item[data-nav="meus-exercicios"]'); await p.waitForTimeout(600);
   const tabs = await p.$$eval('.meus-tabs button, .meus-tabs .view-btn', t=>t.map(x=>x.textContent.trim()));
   ok(tabs.length === 3, 'MEUS EXERCÍCIOS: as 3 abas (' + tabs.join(' / ') + ')');

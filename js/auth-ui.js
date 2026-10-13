@@ -133,7 +133,7 @@
     'meus-exercicios': 'exercicios',
     favoritos: 'favoritos',
     historico: 'historico',
-    laboratorio: 'laboratorio',
+    acordes: 'acordes',
     aulas: 'aulas',
     'biblioteca-fraseados': 'biblioteca-fraseados',
     'biblioteca-fusion': 'biblioteca-fraseados',
@@ -178,7 +178,7 @@
         if (view === 'inicio' && window.IL.ui.renderTreinoView) { window.IL.ui.renderTreinoView(); return; }
         if (view === 'admin') renderAdminView();
         else if (view === 'config') renderConfigView();
-        else if (view === 'laboratorio') renderLaboratorioView();
+        else if (view === 'acordes' && window.IL.ui.renderAcordesView) window.IL.ui.renderAcordesView();
         else if (view === 'aulas' && window.IL.ui.renderAulasView) window.IL.ui.renderAulasView();
         else if (view === 'padroes' && window.IL.ui.renderPadroesView) window.IL.ui.renderPadroesView();
         else if (view === 'transcricao' && window.IL.ui.renderTranscricaoView) window.IL.ui.renderTranscricaoView();
@@ -341,7 +341,7 @@
       '<ul class="plan-features">' +
       '<li>Tudo do Gratuito, mais:</li>' +
       '<li>Fraseados nível <strong>Avançado</strong> (3ª escala recomendada por acorde e frases de tensão)</li>' +
-      '<li><strong>Laboratório</strong> — gerador de progressões para praticar (Jazz, Blues, Pop, Modal)</li>' +
+      '<li>Novidades do plano entram aqui conforme forem saindo</li>' +
       '</ul>' +
       '</div>' +
       '</div>' +
@@ -512,85 +512,10 @@
     $('btn-sair-config').addEventListener('click', handleSignOut);
   }
 
-  // ---------------- Laboratório (Etapa 5, parte 3) ----------------
-  // Exclusivo Pro. O primeiro experimento é um gerador de progressões
-  // prontas para praticar (js/lab.js cuida da teoria; aqui só a tela).
-
-  var lab = window.IL.lab;
-  var labLastResult = null;
-  var NOTE_ORDER_LAB = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-
-  function labToneOptionsHTML() {
-    return NOTE_ORDER_LAB.map(function (n) { return '<option value="' + n + '">' + n + '</option>'; }).join('');
-  }
-
-  function labCategoryOptionsHTML() {
-    var opts = '<option value="todas">Todos os estilos</option>';
-    opts += lab.CATEGORIES.map(function (c) { return '<option value="' + c.key + '">' + c.label + '</option>'; }).join('');
-    return opts;
-  }
-
-  function renderLabResultado(result) {
-    labLastResult = result;
-    var wrap = $('lab-resultado');
-    if (!result) { wrap.innerHTML = ''; return; }
-    wrap.innerHTML =
-      '<div class="lab-card">' +
-      '<div class="lab-card-title">' + result.template.label + '</div>' +
-      '<div class="lab-card-progressao">' + result.progressionText + '</div>' +
-      '<div class="lab-card-notas">' + result.chords.map(function (c) {
-        return '<span><strong>' + c.symbol + '</strong> (' + window.IL.theory.chordNotesText(c.symbol) + ')</span>';
-      }).join('') + '</div>' +
-      '<p class="lab-card-explicacao">' + result.template.explanation + '</p>' +
-      '<button class="btn-primary" id="btn-lab-analisar">Analisar esta progressão →</button>' +
-      '</div>';
-    $('btn-lab-analisar').addEventListener('click', function () {
-      if (!labLastResult) return;
-      $('input-tonalidade').value = labLastResult.tonic + '|' + labLastResult.mode;
-      $('input-progressao').value = labLastResult.progressionText;
-      window.IL.ui.abrirHarmonia();
-      window.IL.ui.switchTab('visao-geral');
-      window.IL.ui.runAnalysis();
-    });
-  }
-
-  function sortearProgressao() {
-    var tonica = $('lab-tonica').value;
-    var categoria = $('lab-categoria').value;
-    renderLabResultado(lab.generateRandom(tonica, categoria));
-  }
-
-  function renderLabTool() {
-    var wrap = $('lab-conteudo');
-    wrap.innerHTML =
-      '<p class="muted-note">Sorteie uma progressão pronta para praticar, num estilo à ' +
-      'escolha, e mande direto para a análise — fraseados, tab/partitura e áudio saem na hora.</p>' +
-      '<div class="lab-controls">' +
-      '<div class="field"><label>Tonalidade</label><select id="lab-tonica">' + labToneOptionsHTML() + '</select></div>' +
-      '<div class="field"><label>Estilo</label><select id="lab-categoria">' + labCategoryOptionsHTML() + '</select></div>' +
-      '<button class="btn-primary" id="btn-lab-sortear">🎲 Sortear progressão</button>' +
-      '</div>' +
-      '<div id="lab-resultado" class="lab-resultado"></div>';
-    $('btn-lab-sortear').addEventListener('click', sortearProgressao);
-  }
-
-  function renderLaboratorioView() {
-    var wrap = $('lab-conteudo');
-    if (!currentUser) {
-      wrap.innerHTML =
-        '<p class="muted-note">Entre na sua conta para acessar o Laboratório.</p>' +
-        planComparisonHTML();
-      return;
-    }
-    var isPro = currentProfile && currentProfile.plano === 'pro';
-    if (!isPro) {
-      wrap.innerHTML =
-        '<p class="muted-note">O Laboratório é exclusivo do plano Pro.</p>' +
-        planComparisonHTML();
-      return;
-    }
-    renderLabTool();
-  }
+  // O Laboratório (gerador de progressões, exclusivo Pro) saiu do menu em
+  // 13/10/2026 e deu lugar à Biblioteca de Acordes. O motor continua vivo em
+  // js/lab.js: é ele que sugere a progressão quando se troca a tonalidade na
+  // Análise de Harmonia.
 
   // ---------------- Salvar / favoritar / exercício ----------------
 

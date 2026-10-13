@@ -40,12 +40,12 @@ const path = require('path');
   console.log('Modal fechado após clicar no X:', modalHiddenAfterClose);
 
   // Navegação entre views
-  for (const nav of ['meus-exercicios', 'laboratorio', 'config', 'inicio']) {
+  for (const nav of ['meus-exercicios', 'acordes', 'config', 'harmonia']) {
     await page.click('.nav-item[data-nav="' + nav + '"]');
     await page.waitForTimeout(80);
   }
-  const inicioVisible = await page.$eval('.content.view[data-view="inicio"]', (v) => !v.hidden);
-  console.log('View "inicio" visível após navegar e voltar:', inicioVisible);
+  const harmoniaVisible = await page.$eval('.content.view[data-view="harmonia"]', (v) => !v.hidden);
+  console.log('View "harmonia" visível após navegar e voltar:', harmoniaVisible);
 
   await page.click('.nav-item[data-nav="meus-exercicios"]');
   await page.click('.meus-tabs .tab[data-meus="historico"]');

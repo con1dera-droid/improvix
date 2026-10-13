@@ -3,13 +3,13 @@
  *
  * Conteúdo educacional estruturado: lições curtas que explicam a teoria por
  * trás do que o motor de análise (js/theory.js), o gerador de fraseados
- * (js/phrases.js) e o Laboratório (js/lab.js) já mostram na tela. Módulo
+ * (js/phrases.js) já mostra na tela. Módulo
  * livre — não depende de login nem de plano, ao contrário de Fraseados
- * Avançado e Laboratório.
+ * Avançado.
  *
  * Cada lição pode trazer um `exemplo` (tonalidade/modo + progressão) para
  * "testar na prática" com um clique, reaproveitando o mesmo fluxo do
- * Laboratório (preenche o formulário e roda a análise).
+ * Análise de Harmonia (preenche o formulário e roda a análise).
  *
  * Dados apenas — funciona no navegador (window.IL.lessons) e no Node
  * (para o teste automatizado conferir a estrutura e o conteúdo).
@@ -138,7 +138,7 @@
       corpo: [
         'O blues tradicional de 12 compassos usa I7, IV7 e V7 — repare que até o I e o IV, que numa harmonia "comum" seriam maiores, aqui viram acordes dominantes (com 7ª menor). É essa sonoridade "impura" que dá a cara do blues.',
         'A forma mais clássica é: 4 compassos de I7, 2 de IV7, 2 de I7, e um "turnaround" fechando o ciclo — geralmente V7-IV7-I7-V7 nos últimos 4 compassos, preparando a repetição do início.',
-        'Você pode sortear um blues de 12 compassos pronto (em qualquer tonalidade) no Laboratório — é exclusivo do plano Pro — e mandar direto para a análise para ver a função de cada acorde e praticar em cima.'
+        'Digite o blues inteiro na Análise de Harmonia para ver a função de cada acorde, e abra cada um deles na Biblioteca de Acordes para aprender a posição no seu instrumento.'
       ],
       exemplo: { tonalidade: 'C', modo: 'maior', progressao: 'C7 | F7 | C7 | C7 | F7 | F7 | C7 | C7 | G7 | F7 | C7 | G7' }
     },
@@ -150,7 +150,7 @@
       corpo: [
         'O ii–V–I é a cadência mais comum do repertório de jazz: o ii7 (menor) puxa para o V7 (dominante), que resolve no Imaj7. Em Dó maior: Dm7 – G7 – Cmaj7.',
         'Um "giro" (turnaround) estende essa ideia para dar mais movimento a uma música: o mais clássico é I–vi–ii–V (Cmaj7 – Am7 – Dm7 – G7), que sai da tônica, passa pela tônica relativa e volta pro ii–V de sempre.',
-        'Uma variação mais sofisticada troca o vi por um dominante secundário (VI7, o V7/ii) — iii–VI7–ii–V —, criando um puxão cromático extra antes do ii–V. O Laboratório tem os três giros prontos para sortear e testar em qualquer tonalidade.'
+        'Uma variação mais sofisticada troca o vi por um dominante secundário (VI7, o V7/ii) — iii–VI7–ii–V —, criando um puxão cromático extra antes do ii–V. Digite os três giros na Análise de Harmonia para ouvir a diferença.'
       ],
       exemplo: { tonalidade: 'C', modo: 'maior', progressao: 'Cmaj7 | Am7 | Dm7 | G7' }
     }

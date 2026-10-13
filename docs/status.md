@@ -1079,6 +1079,80 @@ Análise). `tests/site.smoke.js` e `tests/celular.smoke.js` cobrem as duas
 telas, e os 12 testes que abriam a análise pelo Início passaram a abri-la
 pelo item do menu.
 
+## Biblioteca de Acordes no lugar do Laboratório — ✅ (2026-10-13)
+
+O dono do projeto pediu que a aba **Laboratório** desse lugar a uma
+**Biblioteca de Acordes**: digita a cifra (C7+, Am7(b5), G7(b9), D7/F#…) e
+ela mostra como se faz o acorde no violão, na guitarra, no teclado e no
+baixo, com cada nota.
+
+**O motor** (`js/chords.js`) não tem tabela de desenhos decorados: ele
+**calcula** as posições. Para cada janela de quatro casas do braço, monta
+todas as combinações de cordas que soam aquele acorde e descarta o que a
+mão não faz. As regras que importam:
+
+- a nota mais **grave** tem de ser o baixo do acorde (a fundamental, ou o
+  baixo da cifra em `D7/F#`);
+- toda nota que soa pertence ao acorde, e nenhuma essencial pode faltar
+  (fundamental, 3ª — ou 4ª, nos sus — e 7ª);
+- abertura máxima de quatro casas e quatro dedos;
+- **pestana só na casa mais baixa da forma**, e nenhuma corda solta entre a
+  primeira e a última corda da pestana — o indicador deitado prende todas.
+  Essa regra sozinha jogou fora dezenas de desenhos que existem no papel e
+  que mão nenhuma toca;
+- as três posições devolvidas ficam em regiões diferentes do braço, da mais
+  grave para a mais aguda.
+
+O resultado bate com o que se aprende: C sai `x32010`, A `x02220`, E
+`022100`, D `xx0232`, Am7 `x02010`, G7 `320001`, C7M `x32000` e F a
+pestana de verdade, `133211` — todos travados em teste.
+
+**No teclado** saem três voicings: posição fundamental, 1ª inversão e o
+**voicing de 3ª e 7ª** (mão esquerda na fundamental, direita só nas duas
+notas que dizem a qualidade do acorde) — o que se toca quando há baixista.
+**No baixo** não se empilha acorde: sai o braço com as notas do acorde
+marcadas pelo grau e a linha fundamental–5ª–oitava, com áudio.
+
+**Dois erros que o teste pegou** e valem registro:
+
+1. a nota mais grave de um desenho **não é a da corda mais grave** — uma
+   corda solta pode soar abaixo de uma corda mais grave presa numa casa
+   alta. O programa aceitava `x-6-0-0-4-6` como Eb7M, mas o ré solto soa
+   embaixo: era um Eb7M com ré no baixo;
+2. o grau de cada nota era contado **pela posição na lista**, o que
+   embaralhava tudo em acordes como o 7alt, onde a 5ª justa sai e quatro
+   tensões entram. Agora o grau sai do intervalo real de cada nota, e a
+   leitura 2/4/6 contra 9/11/13 segue a regra do músico (no Csus4 é "4", no
+   C7(11) a mesma nota é "11"; no C6 é "6", no C7(13) é "13").
+
+Também entrou uma peneira de cifra (`cifraBemEscrita`): o motor de análise é
+tolerante de propósito, para não travar uma progressão inteira por causa de
+um acorde — aqui, não. Quem digita "bobagem" ouve que não é uma cifra, em
+vez de ver um acorde de si maior aparecer do nada.
+
+**Desenhos novos** em `js/notation.js`: `chordDiagramSVG` (o braço em pé,
+com pestana, dedos, ✕/○, número da casa e o nome e o grau de cada corda) e
+`keyboardVoicingSVG` (teclado marcando as **teclas exatas**, com mão
+esquerda e direita em cores diferentes, e o tamanho do teclado ajustado ao
+voicing).
+
+**Decisões de tela**: violão e guitarra dividem um bloco só — a afinação é a
+mesma, e mostrar o mesmo desenho duas vezes só faria rolar à toa; o
+instrumento escolhido aparece primeiro e marcado; e há atalhos para analisar
+aquele acorde numa progressão e para ver as escalas que servem em cima dele.
+
+**O Laboratório saiu**, como pedido. O motor dele (`js/lab.js`) continua
+vivo: é ele que sugere a progressão quando se troca a tonalidade na Análise
+de Harmonia. O comparativo de planos deixou de citá-lo.
+
+Testes: `tests/acordes.test.js` (8 testes — varre 70 cifras × 2
+instrumentos conferindo nota a nota, baixo, abertura, dedos, pestana e
+buracos; os acordes abertos conhecidos travados um a um; teclado e baixo) e
+`tests/acordes.smoke.js` (20 checagens no navegador). `tests/menu.smoke.js`,
+`tests/site.smoke.js`, `tests/celular.smoke.js` e `tests/etapa4.smoke.js`
+passaram a falar da tela nova; `tests/etapa5.laboratorio.smoke.js` foi
+removido (não há mais tela para testar).
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

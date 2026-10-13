@@ -40,7 +40,7 @@
       <a href="#" class="nav-item" data-nav="biblioteca-fraseados">🎼 Biblioteca de Fraseados</a>
       <a href="#" class="nav-item" data-nav="padroes">📘 Exercícios de Padrões</a>
       <a href="#" class="nav-item" data-nav="transcricao">🎤 Transcrição / Treino</a>
-      <a href="#" class="nav-item" data-nav="laboratorio">🧪 Laboratório <span class="soon">Pro</span></a>
+      <a href="#" class="nav-item" data-nav="acordes">🎹 Biblioteca de Acordes</a>
       <a href="#" class="nav-item" data-nav="meus-exercicios">📋 Meus Exercícios</a>
       <!-- só aparece para quem é admin (js/auth-ui.js cuida disso) -->
       <a href="#" class="nav-item" data-nav="admin" id="nav-admin" hidden>👑 Administração</a>
@@ -438,15 +438,35 @@
       </div>
     </div>
 
-    <!-- View: Laboratório (Etapa 5, parte 3) -->
-    <div class="content view" data-view="laboratorio" hidden>
+    <!-- View: Biblioteca de Acordes (substituiu o Laboratório em 13/10/2026) -->
+    <div class="content view" data-view="acordes" hidden>
       <div class="card">
         <div class="card-head">
-          <span class="card-icon">🧪</span>
-          <div class="card-title">Laboratório</div>
-          <span class="plan-badge plan-badge-pro" style="margin-left:auto;">Pro</span>
+          <span class="card-icon">🎹</span>
+          <div>
+            <div class="card-title">Biblioteca de Acordes</div>
+            <div class="card-subtitle">Digite a cifra e veja como se faz no violão, na guitarra, no teclado e no baixo — com o desenho, os dedos, o nome de cada nota e o grau dela no acorde.</div>
+          </div>
         </div>
-        <div id="lab-conteudo"></div>
+        <form class="lib-controls" id="acd-form">
+          <div class="field field-wide">
+            <label for="acd-busca">Acorde</label>
+            <input id="acd-busca" type="text" value="C7M" placeholder="ex.: C7M, Am7, G7(b9), D7/F#" autocomplete="off" autocapitalize="off" spellcheck="false"/>
+          </div>
+          <div class="field">
+            <label for="acd-instrumento">Seu instrumento</label>
+            <select id="acd-instrumento">
+              <option value="violao">Violão</option>
+              <option value="guitarra">Guitarra</option>
+              <option value="teclado">Teclado / Piano</option>
+              <option value="baixo">Baixo</option>
+            </select>
+          </div>
+          <button class="btn-primary" type="submit" id="btn-acd-buscar">🔍 Ver o acorde</button>
+        </form>
+        <div id="acd-erro" class="form-error" hidden></div>
+        <div id="acd-sugestoes" class="acd-sugestoes"></div>
+        <div id="acd-conteudo"></div>
       </div>
     </div>
 
@@ -744,11 +764,13 @@
 <script src="js/scale-info.js"></script>
 <script src="js/patterns.js"></script>
 <script src="js/scales.js"></script>
+<script src="js/chords.js"></script>
 <script src="js/app.js"></script>
 <script src="js/library-ui.js"></script>
 <script src="js/patterns-ui.js"></script>
 <script src="js/scales-ui.js"></script>
 <script src="js/treino-ui.js"></script>
+<script src="js/chords-ui.js"></script>
 <script src="js/transcribe.js"></script>
 <script src="js/transcribe-ui.js"></script>
 
