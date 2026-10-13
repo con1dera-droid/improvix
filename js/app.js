@@ -31,7 +31,12 @@
   // Supabase indisponível), tratamos como "não Pro" — é só uma trava de
   // interface (o gerador de fraseados roda 100% no navegador, então não
   // existe uma barreira de servidor aqui; ver docs/etapa5-planos.md).
-  var PLAN_GATED_LEVELS = { avancado: true };
+  // Em 13/10/2026 os planos acabaram: o IMPROVIX virou um sistema fechado
+  // (só entra quem o administrador libera), e quem entra tem tudo — inclusive
+  // o nível Avançado. A trava fica aqui, vazia, porque a mecânica de rebaixar
+  // o nível continua útil se um dia algum nível voltar a ser restrito.
+  // Vazio de propósito: nenhum nível depende de permissão (ver syncNivelGate).
+  var PLAN_GATED_LEVELS = {};
   function isProUser() {
     var acc = window.IL.account;
     return !!(acc && typeof acc.isPro === 'function' && acc.isPro());
@@ -271,18 +276,17 @@
     box.textContent = message;
   }
 
-  // Sincroniza a UI do seletor de Nível com o plano da conta: atualiza o
-  // rótulo da opção "Avançado", mostra/esconde o aviso de plano Pro e, se a
-  // seleção atual não é mais permitida (ex.: usuário saiu da conta), rebaixa
-  // para Intermediário. Não decide sozinha se deve reanalisar — quem chama
-  // decide isso (ver updateNivelGateUI / runAnalysis).
+  // Os planos acabaram em 13/10/2026: PLAN_GATED_LEVELS está vazio e todos os
+  // níveis ficam liberados para quem entra. A função continua aqui, inerte, só
+  // para o dia em que algum nível voltar a depender de permissão — é um
+  // ponto único, em vez de espalhar "quem pode ver o quê" pela tela.
   function syncNivelGate() {
     var select = document.getElementById('input-nivel');
     var opt = document.getElementById('opt-nivel-avancado');
     var note = document.getElementById('nivel-gate-note');
     var pro = isProUser();
 
-    if (opt) opt.textContent = pro ? 'Avançado' : 'Avançado 🔒 (Pro)';
+    if (opt) opt.textContent = 'Avançado';
     if (note) note.hidden = pro;
 
     if (nivelIsGated(select.value)) {

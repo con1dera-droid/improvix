@@ -1,4 +1,4 @@
-# IMPROVIX — Etapas 1 a 5 (instrumentos + planos + Laboratório + Aulas)
+# IMPROVIX — Etapas 1 a 6 (análise, fraseados, áudio, contas, acordes e acesso)
 
 Sistema online de improvisação: transforma uma progressão de acordes em
 análise harmônica completa (campo harmônico, função de cada acorde, escalas,
@@ -23,11 +23,11 @@ Concluído até agora (ver `docs/PRD.md` e `docs/status.md`):
   cordas da guitarra (tablatura igual); sax/trompete/violino/flauta tocam uma
   nota por vez, então usam Partitura/Cifra em vez de Tab. Dá pra escolher o
   instrumento tanto no formulário quanto clicando direto no rodapé.
-- **Etapa 5 (parte 2 — planos Gratuito/Pro)**: o nível **Avançado** dos
-  fraseados (3ª escala recomendada por acorde + frases de tensão) agora é
-  exclusivo do plano Pro. Sem cobrança configurada ainda — virar Pro é
-  manual por enquanto (ver `docs/etapa5-planos.md`), sem nenhum botão de
-  pagamento na tela.
+- **Etapa 5 (parte 2 — planos Gratuito/Pro)**: *encerrada em 13/10/2026.* Os
+  planos saíram: **todo mundo que entra tem tudo liberado**, inclusive o
+  nível Avançado dos fraseados. Quem controla o que cada pessoa vê é o
+  administrador, tela por tela (ver abaixo). O histórico está em
+  `docs/etapa5-planos.md`.
 - **Etapa 5 (parte 3 — Laboratório)**: novo item no menu, exclusivo Pro —
   gerador de progressões prontas para praticar, por estilo (Jazz, Blues,
   Pop/Rock, Modal). Sorteia uma progressão, explica o porquê dela funcionar,
@@ -38,6 +38,12 @@ Concluído até agora (ver `docs/PRD.md` e `docs/status.md`):
   frase, blues/turnarounds e ii–V–I. Cada lição pode trazer um exemplo
   prático com um botão "Testar este exemplo" que manda direto para a
   análise.
+- **Etapa 6 — entrada por login e administrador**: o site passou a ser
+  **fechado**. Sem conta liberada não aparece nada além da tela de entrada; o
+  **primeiro cadastro vira o administrador**, que libera (ou bloqueia) as
+  contas, escolhe quem pode se cadastrar, convida pelo e-mail, decide quais
+  telas cada pessoa vê e manda o e-mail de senha nova — sem nunca ver a senha
+  de ninguém.
 
 Com isso, todo o escopo da Etapa 5 previsto em `docs/PRD.md` está entregue.
 
@@ -156,8 +162,10 @@ tests/etapa4.e2e.js    Teste completo de cadastro/login/salvar/favoritar/exercí
                        (com um cliente Supabase falso, em memória — não substitui testar com
                        um projeto Supabase real, mas cobre toda a lógica de UI)
 tests/etapa5.smoke.js  Smoke test dos novos instrumentos (select, rodapé, tab/partitura, áudio)
-tests/etapa5.planos.smoke.js Smoke test do gate Gratuito/Pro (nível Avançado, Configurações)
-tests/etapa5.laboratorio.smoke.js Smoke test do Laboratório (bloqueio, sorteio, enviar para análise)
+tests/acesso.smoke.js  Smoke test do portão: ninguém entra sem conta liberada (Etapa 6)
+tests/admin.smoke.js   Smoke test dos poderes do administrador sobre as contas
+tests/fake-supabase.js Supabase falso compartilhado pelos testes (reproduz as regras do banco)
+tests/rls.sql/rls.sh   Confere as 40 regras de acesso num PostgreSQL de verdade (bash tests/rls.sh)
 tests/etapa5.aulas.smoke.js Smoke test das Aulas (acesso livre, lista, exemplo -> análise)
 tests/lab.test.js      Testes automáticos do gerador de progressões (node tests/lab.test.js)
 tests/lessons.test.js  Testes automáticos do conteúdo das Aulas (node tests/lessons.test.js)
@@ -201,8 +209,8 @@ node tests/etapa4.smoke.js
 node tests/etapa4.smoke2.js
 node tests/etapa4.e2e.js
 node tests/etapa5.smoke.js
-node tests/etapa5.planos.smoke.js
-node tests/etapa5.laboratorio.smoke.js
+node tests/acesso.smoke.js
+node tests/admin.smoke.js
 node tests/etapa5.aulas.smoke.js
 node tests/fraseados.smoke.js
 node tests/biblioteca.smoke.js
@@ -231,13 +239,43 @@ o nome das notas continuar legível; onde isso acontece, aparece o aviso
 "↔ deslize para o lado". Os campos ficam com 16px de fonte de propósito:
 abaixo disso o iPhone dá zoom sozinho quando o dedo toca no campo.
 
-## Login e dados salvos (Etapa 4)
+## Entrar: login obrigatório e administrador (Etapa 6)
 
-Por padrão, `js/config.js` vem com valores de exemplo e o login fica
-desabilitado (com um aviso), mas o resto do site funciona normalmente. Para
-habilitar contas de usuário, histórico, favoritos e "Meus Exercícios", siga
-o passo a passo em **`docs/etapa4-supabase.md`** — leva uns 10 minutos e não
-tem custo.
+Com o Supabase configurado (`js/config.js`), o IMPROVIX é um **sistema
+fechado**: quem abre o endereço vê só a tela de entrada — nem menu, nem
+telas, nem o ✕ para fechar. Dentro, cada pessoa tem conta com e-mail e
+senha, e os dados dela são só dela.
+
+**O primeiro cadastro vira o administrador.** Faça o seu antes de divulgar o
+endereço: é esse primeiro e-mail que ganha a coroa. Daí em diante, na tela
+**👑 Administração**:
+
+- **Contas**: liberar ou suspender a liberação, tornar admin, escolher
+  **quais telas** aquela pessoa vê, mandar o **e-mail de senha nova** e
+  **bloquear** (com motivo — quem está bloqueado cai na hora que voltar para
+  a aba). Sua própria conta não tem botões: é o que garante que nunca se
+  fique sem administrador.
+- **Sistema**: quem pode entrar (**com aprovação**, **cadastro livre** ou
+  **fechado, só por convite**), o **recado da tela de entrada**, as telas
+  liberadas para todo mundo e os **convites por e-mail** (quem se cadastra
+  com um e-mail convidado entra já liberado).
+
+Administrador nenhum vê a senha de ninguém: a "senha nova" é um e-mail que o
+próprio Supabase manda, e a pessoa escolhe a senha no link.
+
+**Até onde o login protege.** Os **dados** ficam protegidos pelo banco, não
+pela tela: as políticas de RLS (`sql/schema.sql`) recusam quem não foi
+liberado mesmo que a pessoa chame a API por fora do site — é o que
+`tests/rls.sql` confere num PostgreSQL de verdade. Já os **arquivos** do
+site (HTML, CSS, JS, as frases que o programa gera) são públicos por
+natureza: o site é estático e qualquer pessoa com o endereço baixa esses
+arquivos. O login fecha o uso prático e os dados; esconder o código exigiria
+um servidor próprio, que este projeto de propósito não tem.
+
+Sem o Supabase configurado (valores de exemplo em `js/config.js`), o site
+funciona como nas Etapas 1–3: aberto, sem login e sem salvar nada entre
+visitas. O passo a passo da configuração está em
+**`docs/etapa4-supabase.md`** — leva uns 10 minutos e não tem custo.
 
 ## Instrumentos sem traste (sax, trompete, violino, flauta)
 
@@ -248,25 +286,22 @@ exatamente o que está escrito) — sax e trompete são instrumentos
 transpositores na partitura tradicional deles, mas essa "leitura transposta"
 fica para uma etapa futura, se fizer falta.
 
-## Planos Gratuito/Pro (Etapa 5)
+## Planos Gratuito/Pro — encerrados (13/10/2026)
 
-O nível Avançado dos fraseados é exclusivo do plano Pro. Não há cobrança
-configurada nesta instalação — virar Pro é manual (um `update` no SQL
-Editor do Supabase), documentado em `docs/etapa5-planos.md`, que também
-explica a trava de segurança que impede um usuário de se autopromover.
+Os planos saíram do IMPROVIX. **Quem entra tem tudo**, inclusive o nível
+Avançado dos fraseados. O que limita o acesso agora é só a liberação da
+conta e as telas que o administrador deixa abertas. O histórico de como
+funcionava está em `docs/etapa5-planos.md`.
 
-## Laboratório (Etapa 5)
+## Laboratório (Etapa 5) — virou Biblioteca de Acordes
 
-Exclusivo do plano Pro — item "🧪 Laboratório" no menu lateral. Por
-enquanto tem uma ferramenta: um gerador de progressões prontas para
-praticar (Jazz, Blues, Pop/Rock, Modal), com explicação de cada uma e um
-botão para mandar direto para a análise (fraseados, tab/partitura e áudio
-saem na hora). Os modelos ficam em `js/lab.js`.
+A aba saiu em 13/10/2026 e deu lugar à **Biblioteca de Acordes** (acima). O
+motor de progressões (`js/lab.js`) continua no projeto: é ele que sugere a
+progressão quando se troca a tonalidade na Análise de Harmonia.
 
 ## Aulas (Etapa 5)
 
-Item "🎓 Aulas" no menu lateral — **livre**, sem precisar de login nem de
-plano Pro. 8 lições curtas (campo harmônico, leitura de cifras, escalas e
+Item "🎓 Aulas" no menu lateral. 8 lições curtas (campo harmônico, leitura de cifras, escalas e
 modos, arpejos e notas-alvo, dominantes secundários, os 5 tipos de frase,
 blues/turnarounds, ii–V–I) com um botão "Testar este exemplo" em cada uma
 que manda a progressão de exemplo direto para a análise. Conteúdo em

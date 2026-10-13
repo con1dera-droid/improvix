@@ -836,6 +836,24 @@ select, input[type="text"] {
 .acd-detalhe summary { cursor: pointer; font-size: 0.82rem; color: var(--text-muted); }
 .acd-detalhe summary:hover { color: var(--text); }
 
+/* ---------- Tela de entrada / portão ---------- */
+.auth-marca { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 1.1rem; }
+.auth-marca-icone { font-size: 2rem; }
+.auth-marca-nome { font-weight: 700; font-size: 1.25rem; letter-spacing: 0.02em; }
+.auth-marca-sub { font-size: 0.74rem; color: var(--text-muted); }
+.auth-mensagem {
+  background: var(--bg-elevated); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+  border-radius: 8px; padding: 0.7rem 0.85rem; font-size: 0.86rem; line-height: 1.5;
+  color: var(--text-muted); margin: 0 0 1rem; white-space: pre-wrap;
+}
+.auth-esqueci { margin-top: 0.4rem; font-size: 0.78rem; }
+.auth-estado-txt { font-size: 0.9rem; line-height: 1.55; color: var(--text-muted); margin: 0 0 1rem; }
+/* Portão: o site inteiro fica atrás, e não dá para fechar a tela de entrada. */
+body.sistema-travado .app { display: none; }
+body.sistema-travado .modal-overlay { background: var(--bg); }
+body.sistema-travado .modal { max-width: 420px; }
+body.sistema-travado .modal-close { display: none; }
+
 /* ============================================================
    CELULAR
    O site nasceu com a proporção de computador: menu fixo de 250px à

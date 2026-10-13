@@ -102,49 +102,93 @@ isso é o item mais importante de segurança desta etapa.
 
 ## Passo 6 — Virar administrador da plataforma
 
-Este é o único passo que **tem** de ser feito aqui no painel, e é de
-propósito: se desse para virar admin pelo site, qualquer pessoa logada
-faria isso pelo Console do navegador.
+A partir de 13/10/2026 isso ficou **automático**: o **primeiro cadastro do
+sistema é o administrador**, carimbado pelo próprio banco (trigger
+`handle_new_user`). Não precisa de `update` nenhum no SQL Editor.
 
-1. Crie a sua conta normalmente pelo site (botão **Entrar** > **Criar
-   conta**), com o e-mail que você vai usar como administrador.
-2. No Supabase, vá em **SQL Editor** e rode, trocando pelo seu e-mail:
+1. Com a configuração pronta, abra o site e crie **a sua** conta antes de
+   divulgar o endereço para alguém: o primeiro e-mail que se cadastrar é o
+   que ganha a coroa. Ele entra direto, já liberado.
+2. Do segundo em diante, cada cadastro nasce **esperando liberação** (é a
+   pessoa que vê isso escrito na tela) até você liberar.
+3. No menu aparece **👑 Administração**, com duas abas:
 
-   ```sql
-   update public.profiles set papel = 'admin' where email = 'voce@exemplo.com';
-   ```
+**Aba Contas** — para cada pessoa (menos você):
 
-3. Volte ao site e recarregue. Vai aparecer o item **👑 Administração** no
-   menu lateral.
-
-Na tela de Administração você vê todas as contas e, em cada uma:
-
-* **↑ Tornar Pro / ↓ Voltar a Gratuito** — libera ou tira o nível Avançado
-  dos fraseados e o Laboratório.
-* **👑 Tornar admin / ↓ Tirar admin** — dá ou tira o acesso a essa própria
-  tela.
+* **✓ Liberar acesso / ↓ Suspender liberação** — é o que deixa a pessoa
+  entrar.
+* **👑 Tornar admin / ↓ Tirar admin** — dá ou tira o acesso a essa tela.
+* **🖥 Telas** — escolhe quais telas aquela pessoa vê. Início e
+  Configurações nunca somem, senão a pessoa ficaria dentro do sistema sem
+  lugar nenhum para ir.
+* **🔑 Senha nova** — manda para ela o e-mail de recuperação do Supabase. A
+  senha quem escolhe é ela, no link; você não vê nem escolhe senha de
+  ninguém.
 * **⛔ Bloquear / ✓ Desbloquear** — corta o acesso da conta. Ao bloquear,
   você pode registrar um motivo, que fica guardado e aparece para a pessoa.
+
+**Aba Sistema** — a configuração geral:
+
+* **Quem pode entrar**: *Com aprovação* (padrão), *Cadastro livre* (cria e
+  já usa) ou *Fechado* (não aparece botão de criar conta — só entra quem
+  você convidar).
+* **Recado na tela de entrada**: aparece para todo mundo antes de entrar
+  (ex.: "Aula na quinta, 19h. Quem ainda não tem acesso, me chame no
+  WhatsApp").
+* **Telas liberadas para todo mundo**: o padrão dos usuários comuns. Você,
+  como admin, continua vendo tudo.
+* **Convidar pelo e-mail**: quem se cadastrar com um e-mail convidado entra
+  **já liberado**, sem esperar. O convite guarda só o e-mail — a senha é a
+  própria pessoa que cria.
 
 **O que o bloqueio faz, na prática**: os dados da pessoa ficam inacessíveis
 na hora — não é a tela que esconde, é o banco que recusa, então nem
 chamando a API direto ela consegue ler ou gravar qualquer coisa. E, se ela
 estiver com o site aberto, é desconectada assim que abrir ou voltar para a
-aba, com o aviso do motivo. O conteúdo de estudo do site continua aberto
-(ele é público para qualquer visitante); o que ela perde é a conta.
+aba, com o aviso do motivo.
 
 **A sua própria conta não tem botões** na lista. É proposital: evita o
-clássico "me tirei de admin sem querer e agora ninguém administra nada".
-Se precisar mesmo mudar, rode o `update` do passo 2 no SQL Editor.
+clássico "me tirei de admin sem querer e agora ninguém administra nada". Se
+precisar mesmo mudar, dá para rodar no SQL Editor:
 
-**Um detalhe de privacidade**: o admin vê a lista de contas (e-mail, plano,
-papel, situação) — e **não** vê o histórico, os favoritos nem os exercícios
-de ninguém. Isso não é escolha da tela: não existe regra no banco que dê
-esse acesso.
+```sql
+update public.profiles set papel = 'admin', aprovado = true where email = 'voce@exemplo.com';
+```
+
+**Um detalhe de privacidade**: o admin vê a lista de contas (e-mail, papel,
+situação) — e **não** vê o histórico, os favoritos nem os exercícios de
+ninguém. Isso não é escolha da tela: não existe regra no banco que dê esse
+acesso.
+
+## Passo 7 — O endereço público (Site URL)
+
+Se o site está publicado (ex.: `https://improvix.vercel.app`), avise o
+Supabase: **Authentication > URL Configuration**, campo **Site URL**. É o
+endereço para onde o link do e-mail de confirmação e o de senha nova levam
+a pessoa de volta. Com o campo errado, os e-mails mandam para
+`localhost:3000` e a pessoa trava.
+
+## Atualizando um projeto que já existia
+
+O `sql/schema.sql` é **idempotente**: dá para rodar de novo no SQL Editor
+sem perder nada — ele cria o que falta (`aprovado`, `modulos`,
+`config_sistema`, `convites`, a função `pode_usar`) e atualiza as políticas.
+
+Um detalhe importante nessa atualização: as contas que **já existiam**
+continuam liberadas (`aprovado` entra como `true` para quem já estava lá), e
+só os cadastros **novos** passam a nascer esperando. Se você quer rever
+quem tem acesso, a aba Contas tem o botão de suspender a liberação de cada
+um.
 
 ## O que continua funcionando sem essa configuração
 
-Análise harmônica, fraseados, tablatura, partitura, cifra e áudio (Etapas
-1–3) funcionam normalmente mesmo sem Supabase configurado — apenas os
-recursos que dependem de conta (histórico, favoritos, exercícios salvos,
-planos e administração) ficam bloqueados até você seguir este guia.
+Sem Supabase configurado (os valores de exemplo em `js/config.js`), o site
+fica **aberto, como nas Etapas 1–3**: análise harmônica, fraseados,
+tablatura, partitura, cifra, escalas, acordes e áudio funcionam
+normalmente, e o portão de entrada nem sobe — só os recursos que dependem
+de conta (histórico, favoritos, exercícios salvos e administração) ficam
+indisponíveis.
+
+É assim de propósito: quem baixa o projeto consegue usar tudo sem criar
+conta em serviço nenhum. O login só existe quando você configura o
+Supabase — e, aí, ele passa a valer para todo mundo.

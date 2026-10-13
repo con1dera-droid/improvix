@@ -34,6 +34,16 @@ alter table public.profiles add column if not exists bloqueado_em timestamptz;
 alter table public.profiles add column if not exists bloqueado_por uuid references auth.users(id);
 alter table public.profiles add column if not exists motivo_bloqueio text;
 
+-- Sistema fechado (13/10/2026): ninguém usa o IMPROVIX sem conta, e a conta
+-- só vale depois de aprovada. `aprovado` entra como `true` para que quem já
+-- tinha conta continue entrando; o padrão passa a ser `false` logo abaixo,
+-- e quem decide o valor de cada cadastro novo é o trigger handle_new_user,
+-- conforme o modo escolhido pelo admin em config_sistema.
+alter table public.profiles add column if not exists aprovado boolean not null default true;
+alter table public.profiles alter column aprovado set default false;
+-- Telas liberadas só para esta pessoa (nulo = vale a configuração geral).
+alter table public.profiles add column if not exists modulos jsonb;
+
 do $$
 begin
   if not exists (select 1 from pg_constraint where conname = 'profiles_papel_check') then
@@ -57,7 +67,8 @@ create or replace function public.eh_admin(uid uuid default auth.uid())
 returns boolean
 language sql stable security definer set search_path = public
 as $$
-  select coalesce((select papel = 'admin' and not bloqueado from public.profiles where id = uid), false);
+  select coalesce((select papel = 'admin' and not bloqueado and aprovado
+                     from public.profiles where id = uid), false);
 $$;
 
 create or replace function public.esta_bloqueado(uid uuid default auth.uid())
@@ -66,6 +77,73 @@ language sql stable security definer set search_path = public
 as $$
   select coalesce((select bloqueado from public.profiles where id = uid), false);
 $$;
+
+-- Quem pode usar o sistema: tem conta, foi aprovado e não está bloqueado.
+-- É esta função que as políticas das tabelas de dados consultam — com ela,
+-- "esperando aprovação" e "bloqueado" não leem nem gravam absolutamente
+-- nada, mesmo chamando a API direto.
+create or replace function public.pode_usar(uid uuid default auth.uid())
+returns boolean
+language sql stable security definer set search_path = public
+as $$
+  select coalesce((select aprovado and not bloqueado from public.profiles where id = uid), false);
+$$;
+
+-- ============================================================
+-- 1b) config_sistema — a configuração que o administrador controla
+--
+-- Uma linha só (id = 1). Qualquer pessoa pode LER, inclusive quem ainda não
+-- entrou: a tela de entrada precisa saber se o cadastro está aberto e qual
+-- mensagem mostrar. Só administrador pode ESCREVER.
+-- ============================================================
+create table if not exists public.config_sistema (
+  id int primary key default 1 check (id = 1),
+  cadastro text not null default 'aprovacao' check (cadastro in ('livre', 'aprovacao', 'fechado')),
+  mensagem_login text,
+  modulos jsonb not null default '{}'::jsonb,
+  atualizado_em timestamptz not null default now(),
+  atualizado_por uuid references auth.users(id)
+);
+insert into public.config_sistema (id) values (1) on conflict (id) do nothing;
+alter table public.config_sistema enable row level security;
+
+drop policy if exists "todos leem a configuracao" on public.config_sistema;
+create policy "todos leem a configuracao"
+  on public.config_sistema for select
+  using (true);
+
+drop policy if exists "so admin muda a configuracao" on public.config_sistema;
+create policy "so admin muda a configuracao"
+  on public.config_sistema for update
+  using (public.eh_admin()) with check (public.eh_admin());
+
+-- ============================================================
+-- 1c) convites — e-mails que o administrador libera de antemão
+--
+-- Serve aos modos "aprovacao" e "fechado": quem se cadastra com um e-mail
+-- convidado já entra aprovado, sem esperar. Quem não foi convidado fica
+-- aguardando (ou nem consegue se cadastrar, no modo fechado).
+--
+-- De propósito o convite guarda só o e-mail: a senha é a pessoa que cria,
+-- no próprio cadastro. Em sistema nenhum o administrador deve saber a senha
+-- de alguém.
+-- ============================================================
+create table if not exists public.convites (
+  email text primary key,
+  criado_por uuid references auth.users(id),
+  criado_em timestamptz not null default now(),
+  usado boolean not null default false,
+  usado_em timestamptz
+);
+alter table public.convites enable row level security;
+
+drop policy if exists "so admin ve convites" on public.convites;
+create policy "so admin ve convites" on public.convites for select using (public.eh_admin());
+drop policy if exists "so admin cria convites" on public.convites;
+create policy "so admin cria convites" on public.convites for insert with check (public.eh_admin());
+drop policy if exists "so admin apaga convites" on public.convites;
+create policy "so admin apaga convites" on public.convites for delete using (public.eh_admin());
+
 
 drop policy if exists "usuario ve o proprio perfil" on public.profiles;
 create policy "usuario ve o proprio perfil"
@@ -83,9 +161,35 @@ returns trigger
 language plpgsql
 security definer set search_path = public
 as $$
+declare
+  modo text;
+  convidado boolean;
+  primeiro boolean;
 begin
-  insert into public.profiles (id, email)
-  values (new.id, new.email);
+  select cadastro into modo from public.config_sistema where id = 1;
+  select exists (select 1 from public.convites where lower(email) = lower(new.email) and not usado)
+    into convidado;
+  select not exists (select 1 from public.profiles) into primeiro;
+
+  -- O PRIMEIRO cadastro do sistema vira o administrador, aprovado. Assim
+  -- ninguém precisa abrir o SQL Editor para começar — e, como só funciona
+  -- enquanto a tabela está vazia, não há como alguém "virar admin" depois
+  -- por esse caminho.
+  insert into public.profiles (id, email, papel, aprovado)
+  values (
+    new.id,
+    new.email,
+    case when primeiro then 'admin' else 'usuario' end,
+    case when primeiro then true
+         when convidado then true
+         when coalesce(modo, 'aprovacao') = 'livre' then true
+         else false end
+  );
+
+  if convidado then
+    update public.convites set usado = true, usado_em = now()
+     where lower(email) = lower(new.email);
+  end if;
   return new;
 end;
 $$;
@@ -138,6 +242,8 @@ begin
     new.bloqueado_em := old.bloqueado_em;
     new.bloqueado_por := old.bloqueado_por;
     new.motivo_bloqueio := old.motivo_bloqueio;
+    new.aprovado := old.aprovado;              -- ninguém se aprova sozinho
+    new.modulos := old.modulos;                -- nem libera telas para si
     return new;
   end if;
 
@@ -181,17 +287,17 @@ alter table public.analises enable row level security;
 drop policy if exists "usuario ve as proprias analises" on public.analises;
 create policy "usuario ve as proprias analises"
   on public.analises for select
-  using (auth.uid() = user_id and not public.esta_bloqueado());
+  using (auth.uid() = user_id and public.pode_usar());
 
 drop policy if exists "usuario insere as proprias analises" on public.analises;
 create policy "usuario insere as proprias analises"
   on public.analises for insert
-  with check (auth.uid() = user_id and not public.esta_bloqueado());
+  with check (auth.uid() = user_id and public.pode_usar());
 
 drop policy if exists "usuario apaga as proprias analises" on public.analises;
 create policy "usuario apaga as proprias analises"
   on public.analises for delete
-  using (auth.uid() = user_id and not public.esta_bloqueado());
+  using (auth.uid() = user_id and public.pode_usar());
 
 create index if not exists analises_user_id_idx on public.analises(user_id, criado_em desc);
 
@@ -218,17 +324,17 @@ alter table public.favoritos enable row level security;
 drop policy if exists "usuario ve os proprios favoritos" on public.favoritos;
 create policy "usuario ve os proprios favoritos"
   on public.favoritos for select
-  using (auth.uid() = user_id and not public.esta_bloqueado());
+  using (auth.uid() = user_id and public.pode_usar());
 
 drop policy if exists "usuario insere os proprios favoritos" on public.favoritos;
 create policy "usuario insere os proprios favoritos"
   on public.favoritos for insert
-  with check (auth.uid() = user_id and not public.esta_bloqueado());
+  with check (auth.uid() = user_id and public.pode_usar());
 
 drop policy if exists "usuario apaga os proprios favoritos" on public.favoritos;
 create policy "usuario apaga os proprios favoritos"
   on public.favoritos for delete
-  using (auth.uid() = user_id and not public.esta_bloqueado());
+  using (auth.uid() = user_id and public.pode_usar());
 
 create index if not exists favoritos_user_id_idx on public.favoritos(user_id, criado_em desc);
 
@@ -254,22 +360,22 @@ alter table public.exercicios enable row level security;
 drop policy if exists "usuario ve os proprios exercicios" on public.exercicios;
 create policy "usuario ve os proprios exercicios"
   on public.exercicios for select
-  using (auth.uid() = user_id and not public.esta_bloqueado());
+  using (auth.uid() = user_id and public.pode_usar());
 
 drop policy if exists "usuario insere os proprios exercicios" on public.exercicios;
 create policy "usuario insere os proprios exercicios"
   on public.exercicios for insert
-  with check (auth.uid() = user_id and not public.esta_bloqueado());
+  with check (auth.uid() = user_id and public.pode_usar());
 
 drop policy if exists "usuario atualiza os proprios exercicios" on public.exercicios;
 create policy "usuario atualiza os proprios exercicios"
   on public.exercicios for update
-  using (auth.uid() = user_id and not public.esta_bloqueado());
+  using (auth.uid() = user_id and public.pode_usar());
 
 drop policy if exists "usuario apaga os proprios exercicios" on public.exercicios;
 create policy "usuario apaga os proprios exercicios"
   on public.exercicios for delete
-  using (auth.uid() = user_id and not public.esta_bloqueado());
+  using (auth.uid() = user_id and public.pode_usar());
 
 create index if not exists exercicios_user_id_idx on public.exercicios(user_id, criado_em desc);
 
@@ -286,36 +392,45 @@ create index if not exists exercicios_user_id_idx on public.exercicios(user_id, 
 -- ============================================================
 
 -- ============================================================
--- O PRIMEIRO ADMIN — o único passo que tem de ser feito aqui no SQL Editor
+-- O PRIMEIRO ADMIN
 --
--- De propósito não existe "virar admin" pelo site: o trigger acima recusa
--- qualquer mudança de papel vinda da API. Então o primeiro admin nasce
--- daqui. Crie a sua conta normalmente pelo site (botão "Entrar" > "Criar
--- conta"), e depois rode UMA VEZ, trocando pelo seu e-mail:
+-- Não precisa fazer nada: a PRIMEIRA conta criada no site vira o
+-- administrador, já aprovada (é o trigger handle_new_user acima que faz
+-- isso, e só enquanto a tabela de perfis está vazia).
 --
---   update public.profiles set papel = 'admin' where email = 'voce@exemplo.com';
+-- Se um dia precisar de outro admin pela marra — perdeu o acesso, apagou a
+-- conta —, rode aqui no SQL Editor, trocando pelo e-mail:
 --
--- Confira:
+--   update public.profiles set papel = 'admin', aprovado = true, bloqueado = false
+--    where email = 'voce@exemplo.com';
 --
---   select email, papel, plano, bloqueado from public.profiles order by criado_em;
+-- Confira quem é quem:
 --
--- Daí em diante, esse admin cria os outros pela tela "Administração" do
--- próprio site — inclusive promover a Pro e bloquear/desbloquear gente.
+--   select email, papel, aprovado, bloqueado from public.profiles order by criado_em;
 --
--- Se um dia perder o acesso de admin (por exemplo, apagou a conta), é só
--- rodar o mesmo update de novo: o SQL Editor não passa pelo trigger.
+-- O SQL Editor passa por cima do trigger de proteção de propósito: é a
+-- porta dos fundos de quem é dono do banco.
 -- ============================================================
 
 -- ============================================================
--- Plano Pro
+-- A CONFIGURAÇÃO DO SISTEMA
 --
--- Pelo site: tela "Administração", botão "Tornar Pro" em cada usuário.
--- Pelo SQL Editor, se preferir:
+-- Tudo pela tela "Administração" do site, aba "Sistema". Pelo SQL Editor,
+-- se preferir:
 --
---   update public.profiles set plano = 'pro' where email = 'alguem@exemplo.com';
---   update public.profiles set plano = 'gratuito' where email = 'alguem@exemplo.com';
+--   update public.config_sistema set cadastro = 'livre'      where id = 1;  -- qualquer um entra
+--   update public.config_sistema set cadastro = 'aprovacao'  where id = 1;  -- padrão
+--   update public.config_sistema set cadastro = 'fechado'    where id = 1;  -- só convidados
+--   update public.config_sistema set mensagem_login = 'Aula na quinta, 19h.' where id = 1;
 --
--- Ver docs/etapa5-planos.md.
+-- Convidar alguém (no modo fechado é o único jeito de entrar; nos outros,
+-- o convite faz a pessoa já entrar aprovada):
+--
+--   insert into public.convites (email) values ('aluno@exemplo.com');
+--
+-- Aprovar quem está esperando:
+--
+--   update public.profiles set aprovado = true where email = 'aluno@exemplo.com';
 -- ============================================================
 
 -- ============================================================

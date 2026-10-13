@@ -13,6 +13,7 @@
  */
 const { chromium } = require('playwright');
 const path = require('path');
+const { prepararSemLogin } = require('./fake-supabase.js');
 
 const URL = process.env.IL_URL || ('file://' + path.resolve(__dirname, '../index.html'));
 const TELAS = [
@@ -71,6 +72,7 @@ async function irPara(p, nav) {
     const p = await b.newPage({ viewport: { width: t.w, height: t.h }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
     p.on('pageerror', (e) => erros.push(t.nome + ' pageerror: ' + e.message));
     p.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource|net::ERR/.test(m.text())) erros.push(t.nome + ' console: ' + m.text()); });
+    await prepararSemLogin(p);
     await p.goto(URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await p.waitForTimeout(900);
 
@@ -210,6 +212,7 @@ async function irPara(p, nav) {
   // --- e o computador continua como era ---
   console.log('\n=== computador (1440x900) ===');
   const d = await b.newPage({ viewport: { width: 1440, height: 900 } });
+  await prepararSemLogin(d);
   await d.goto(URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
   await d.waitForTimeout(800);
   const pc = await d.evaluate(() => {

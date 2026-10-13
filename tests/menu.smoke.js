@@ -6,6 +6,7 @@
  */
 const { chromium } = require('playwright');
 const path = require('path');
+const { prepararSemLogin } = require('./fake-supabase.js');
 
 const ESPERADO = [
   ['inicio', '🏠 Início'],
@@ -29,6 +30,7 @@ const ESPERADO = [
 
   function check(ok, msg) { if (!ok) { failed = true; console.log('FALHA ' + msg); } else console.log('ok    ' + msg); }
 
+  await prepararSemLogin(page);
   await page.goto('file://' + path.resolve(__dirname, '../index.html'), { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(500);
 

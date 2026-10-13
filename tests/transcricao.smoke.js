@@ -5,6 +5,7 @@
  */
 const { chromium } = require('playwright');
 const path = require('path');
+const { prepararSemLogin } = require('./fake-supabase.js');
 
 // Sem áudio na linha de comando, usa o solo sintético do teste — que é
 // recriado na hora se ainda não existir (o .wav não fica no repositório).
@@ -22,6 +23,7 @@ const AUDIO = process.argv[2] || require('./fixtures/gera-solo.js').garantir();
   page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource|net::ERR/.test(m.text())) erros.push(m.text()); });
   function check(ok, msg) { if (!ok) { failed = true; console.log('FALHA ' + msg); } else console.log('ok    ' + msg); }
 
+  await prepararSemLogin(page);
   await page.goto(process.env.IL_URL || ('file://' + path.resolve(__dirname, '../index.html')), { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(600);
 

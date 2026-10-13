@@ -1,3 +1,14 @@
+> ## ⚠️ Histórico: os planos foram encerrados em 13/10/2026
+>
+> A pedido do dono do projeto, o IMPROVIX virou um **sistema fechado com
+> administrador**: quem entra tem **tudo liberado**, inclusive o nível
+> Avançado dos fraseados. Não existe mais Gratuito/Pro. O que controla o
+> acesso agora é a liberação da conta e as telas que o administrador deixa
+> abertas — ver `docs/matriz-rbac.md` e `docs/etapa4-supabase.md`.
+>
+> O texto abaixo fica como registro de como funcionava (a coluna `plano`
+> continua em `profiles`, sem efeito nenhum na tela).
+
 # Etapa 5 — Planos (Gratuito / Pro)
 
 O IMPROVIX agora distingue dois planos:

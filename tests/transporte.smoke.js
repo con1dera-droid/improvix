@@ -4,6 +4,7 @@
  */
 const { chromium } = require('playwright');
 const path = require('path');
+const { prepararSemLogin } = require('./fake-supabase.js');
 
 (async () => {
   const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
@@ -16,6 +17,7 @@ const path = require('path');
     const orig = OscillatorNode.prototype.start;
     OscillatorNode.prototype.start = function (...a) { if (this.type === 'square') window.__clicks++; return orig.apply(this, a); };
   });
+  await prepararSemLogin(page);
   await page.goto('file://' + path.resolve(__dirname, '../index.html'), { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(300);
   // A análise de harmonia saiu do Início e virou item do menu (07/10/2026).

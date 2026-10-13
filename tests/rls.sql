@@ -23,9 +23,13 @@ create temp table resultado (ok boolean, msg text);
 grant all on resultado to authenticated;
 
 -- ---------------------------------------------------------------- cenário
-insert into auth.users (email) values ('admin@teste'), ('comum@teste'), ('alvo@teste');
--- o primeiro admin nasce do SQL Editor, como manda o schema
-update public.profiles set papel = 'admin' where email = 'admin@teste';
+-- O PRIMEIRO cadastro vira o administrador sozinho (é o trigger do schema).
+insert into auth.users (email) values ('admin@teste');
+-- Os seguintes entram pelo modo padrão ('aprovacao'): nascem esperando.
+insert into auth.users (email) values ('comum@teste'), ('alvo@teste');
+-- Um convidado: o admin libera o e-mail ANTES de a pessoa se cadastrar.
+insert into public.convites (email) values ('convidado@teste');
+insert into auth.users (email) values ('convidado@teste');
 
 select id as admin_id from public.profiles where email = 'admin@teste' \gset
 select id as comum_id from public.profiles where email = 'comum@teste' \gset
@@ -44,8 +48,79 @@ begin
   select id into comum_id from public.profiles where email = 'comum@teste';
   select id into alvo_id  from public.profiles where email = 'alvo@teste';
 
-  -- ======================= como usuário comum =======================
+  -- ================= o sistema fechado: quem entra ==================
+  select papel = 'admin' and aprovado into b from public.profiles where email = 'admin@teste';
+  insert into resultado values (b, 'o PRIMEIRO cadastro vira administrador, aprovado');
+
+  select aprovado into b from public.profiles where email = 'comum@teste';
+  insert into resultado values (b = false, 'cadastro comum nasce esperando aprovação');
+
+  select aprovado into b from public.profiles where email = 'convidado@teste';
+  insert into resultado values (b, 'quem foi convidado já nasce aprovado');
+
+  select usado into b from public.convites where email = 'convidado@teste';
+  insert into resultado values (b, 'o convite é marcado como usado');
+
+  -- ============== quem está esperando não lê NADA ==============
   set local role authenticated;
+  perform set_config('request.jwt.claim.sub', comum_id::text, true);
+
+  select count(*) into n from public.analises;
+  insert into resultado values (n = 0, 'quem espera aprovação NÃO lê os próprios dados (viu ' || n || ')');
+
+  begin
+    insert into public.analises (user_id, tonalidade, modo, progressao, instrumento, nivel)
+    values (comum_id, 'C', 'maior', 'C', 'teclado', 'intermediario');
+    insert into resultado values (false, 'quem espera aprovação NÃO grava nada');
+  exception when others then
+    insert into resultado values (true, 'quem espera aprovação NÃO grava nada');
+  end;
+
+  update public.profiles set aprovado = true where id = comum_id;
+  select aprovado into b from public.profiles where id = comum_id;
+  insert into resultado values (b = false, 'ninguém se aprova sozinho pela API');
+
+  select count(*) into n from public.profiles;
+  insert into resultado values (n = 1, 'quem espera ainda vê o próprio perfil, para o site avisá-lo');
+
+  -- ================= a configuração do sistema =================
+  select count(*) into n from public.config_sistema;
+  insert into resultado values (n = 1, 'qualquer um lê a configuração (a tela de entrada precisa dela)');
+
+  update public.config_sistema set cadastro = 'livre' where id = 1;
+  set local role postgres;
+  select cadastro into txt from public.config_sistema where id = 1;
+  set local role authenticated;
+  insert into resultado values (txt = 'aprovacao', 'usuário comum NÃO muda a configuração (ficou ' || txt || ')');
+
+  begin
+    insert into public.convites (email) values ('invasor@teste');
+    insert into resultado values (false, 'usuário comum NÃO cria convite');
+  exception when others then
+    insert into resultado values (true, 'usuário comum NÃO cria convite');
+  end;
+
+  select count(*) into n from public.convites;
+  insert into resultado values (n = 0, 'usuário comum NÃO enxerga a lista de convidados (viu ' || n || ')');
+
+  -- o admin aprova os dois, e o teste segue como antes
+  perform set_config('request.jwt.claim.sub', admin_id::text, true);
+  update public.profiles set aprovado = true where id in (comum_id, alvo_id);
+  set local role postgres;
+  select count(*) into n from public.profiles where aprovado;
+  set local role authenticated;
+  insert into resultado values (n = 4, 'admin aprova quem está esperando (' || n || ' aprovados)');
+
+  update public.config_sistema set cadastro = 'livre', mensagem_login = 'Aula quinta, 19h' where id = 1;
+  select cadastro into txt from public.config_sistema where id = 1;
+  insert into resultado values (txt = 'livre', 'admin muda a configuração do sistema');
+  update public.config_sistema set cadastro = 'aprovacao' where id = 1;
+
+  insert into public.convites (email) values ('novo@teste');
+  select count(*) into n from public.convites;
+  insert into resultado values (n = 2, 'admin convida alguém pelo e-mail (' || n || ' convites)');
+
+  -- ======================= como usuário comum =======================
   perform set_config('request.jwt.claim.sub', comum_id::text, true);
 
   select count(*) into n from public.profiles;
@@ -80,7 +155,7 @@ begin
   perform set_config('request.jwt.claim.sub', admin_id::text, true);
 
   select count(*) into n from public.profiles;
-  insert into resultado values (n = 3, 'admin enxerga todos os perfis (viu ' || n || ' de 3)');
+  insert into resultado values (n = 4, 'admin enxerga todos os perfis (viu ' || n || ' de 4)');
 
   update public.profiles set plano = 'pro' where id = comum_id;
   select plano into txt from public.profiles where id = comum_id;
@@ -152,6 +227,10 @@ begin
   insert into resultado values (n = 0, 'sem sessão não se enxerga perfil nenhum (viu ' || n || ')');
   select count(*) into n from public.analises;
   insert into resultado values (n = 0, 'sem sessão não se enxerga dado nenhum (viu ' || n || ')');
+  select count(*) into n from public.convites;
+  insert into resultado values (n = 0, 'sem sessão não se enxerga a lista de convidados (viu ' || n || ')');
+  select count(*) into n from public.config_sistema;
+  insert into resultado values (n = 1, 'sem sessão se lê a configuração — e só ela (a tela de entrada)');
 
   set local role postgres;
 end

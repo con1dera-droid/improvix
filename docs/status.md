@@ -1153,6 +1153,115 @@ buracos; os acordes abertos conhecidos travados um a um; teclado e baixo) e
 passaram a falar da tela nova; `tests/etapa5.laboratorio.smoke.js` foi
 removido (não há mais tela para testar).
 
+## Sistema fechado: login obrigatório e administrador — ✅ (2026-10-13)
+
+Pedido do dono: *"quero que tenha um usuário administrador e que seja
+necessário qualquer pessoa pra poder acessar fazer um login, usuário e
+senha, o administrador terá acesso a tudo e controlará toda a
+configuração"*. Nas perguntas de escopo ele escolheu: **quem pode entrar**
+fica no controle dele (e pode mudar), o admin controla **as telas de cada
+pessoa**, **troca a senha de alguém** e o **recado da tela de entrada**, e
+os **planos acabam — todo mundo tem tudo**.
+
+### O portão
+
+Com o Supabase configurado, `body.sistema-travado` esconde o `.app` inteiro
+e a tela de entrada não fecha (o ✕ some, clicar fora não fecha). O portão
+sobe **antes** de saber se existe sessão, para o site não piscar aberto por
+um instante para quem não entrou. Estados da mesma tela: *Entrar / Criar
+conta*, *Quase lá* (conta criada, esperando liberação — com o botão de
+sair), *acesso suspenso* (com o motivo) e *Senha nova* (quem chegou pelo
+link do e-mail, via evento `PASSWORD_RECOVERY`).
+
+O portão só engata quando **há Supabase configurado e a biblioteca
+carregou**. Sem isso o site segue aberto como nas Etapas 1–3 — é o que
+permite baixar o projeto e usar tudo sem criar conta em serviço nenhum.
+
+### O banco (é ele que decide)
+
+Em `profiles`: `aprovado` (nasce `false`) e `modulos` (jsonb, as telas
+daquela pessoa). Tabelas novas: `config_sistema` (uma linha: modo de
+cadastro, recado, telas do sistema) e `convites` (e-mail, usado).
+
+Função nova `public.pode_usar()` — "essa pessoa foi aprovada e não está
+bloqueada?" — entrou em **todas** as políticas das tabelas de dados. O
+trigger `handle_new_user` foi reescrito e agora decide o nascimento da
+conta: **primeiro cadastro → admin aprovado**; e-mail **convidado** →
+aprovado (e o convite é marcado como usado); modo **livre** → aprovado;
+resto → esperando. O `protege_campos_privilegiados` passou a reverter
+também `aprovado` e `modulos` — ninguém se libera nem se dá telas pela API.
+
+Duas armadilhas que apareceram escrevendo o SQL:
+
+1. o bloco das tabelas novas tinha de vir **depois** das funções auxiliares,
+   porque as políticas chamam `eh_admin()`;
+2. `aprovado` entra como `true` para as contas que **já existiam** (o
+   `default` só passa a ser `false` depois), senão rodar o schema num
+   projeto em uso trancaria todo mundo de uma vez.
+
+### A tela de Administração
+
+Duas abas. **Contas**: resumo (contas / esperando / admins / bloqueados),
+busca por e-mail e, por pessoa, *liberar*, *papel*, *telas*, *senha nova* e
+*bloquear*. **Sistema**: quem pode entrar (aprovação / livre / fechado),
+recado da tela de entrada, telas liberadas para todo mundo e convites por
+e-mail.
+
+**Senha nova sem a chave secreta**: o admin dispara o
+`resetPasswordForEmail` do próprio Supabase e **a pessoa** escolhe a senha
+no link. Nenhuma chave `service_role` entra no site — ela nunca sai do
+painel do Supabase.
+
+**Os planos saíram**: `window.IL.account.isPro` passou a ser o mesmo
+`pode_usar` (quem entrou, pode), o aviso de plano no nível Avançado foi
+removido e `docs/etapa5-planos.md` virou registro histórico.
+
+### Quatro erros que os testes pegaram
+
+1. **o portão escondia a própria tela de entrada** — o `#auth-modal` estava
+   dentro do `.app`, que o portão esconde. Foi movido para fora, antes do
+   `</body>`;
+2. **quem saía caía em "Criar conta"** — o modo do formulário ficava do
+   jeito que estava antes do logout; agora quem sai (ou chega sem sessão)
+   vê *Entrar*;
+3. **a Administração mostrava uma lista velha** — só recarregava quando
+   estava vazia, então um cadastro novo não aparecia. Agora abrir a tela
+   relê as contas (mantendo a tabela na tela enquanto carrega) e volta para
+   a aba Contas;
+4. **o cliente falso dos testes não tinha `.catch`** — o `supabase-js`
+   devolve um *thenable* que nem sempre tem `.catch`, e um erro ali
+   derrubava a tela de entrada inteira. Agora tudo passa por
+   `Promise.resolve(...)`.
+
+### Testes
+
+`tests/rls.sql` subiu de 23 para **40 checagens** num PostgreSQL de verdade
+(`bash tests/rls.sh`): o primeiro cadastro vira admin, quem espera não lê
+nem grava nada, ninguém se aprova, só admin muda a configuração, qualquer um
+lê a configuração (até sem sessão — a tela de entrada precisa), usuário
+comum não vê convites.
+
+Novo `tests/acesso.smoke.js` (24 checagens no navegador) e
+`tests/fake-supabase.js`, um Supabase falso **compartilhado** que reproduz
+as regras do banco — assim a tela nunca promete o que o banco recusa.
+`tests/admin.smoke.js` (19) e `tests/etapa4.e2e.js` foram reescritos nele, e
+`tests/etapa5.planos.smoke.js` foi removido (não há mais plano para testar).
+
+Os outros 21 testes de navegador agora abrem o site com
+`prepararSemLogin(page)`: eles conferem **telas**, não o portão, e o portão
+tem testes próprios. De quebra ficaram independentes da internet da máquina
+que roda os testes (o CDN do `supabase-js` virou stub).
+
+Bateria completa deste trabalho: 11 arquivos de teste unitário, 23 smokes de
+navegador e as 40 regras de RLS — tudo passando.
+
+### O limite, dito na cara
+
+O login protege os **dados** (é o banco que recusa, não a tela) e o uso
+prático do site. Os **arquivos** do site continuam públicos: é um site
+estático, e quem tem o endereço baixa HTML, CSS e JS. Esconder o código
+exigiria um servidor próprio, que este projeto de propósito não tem.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

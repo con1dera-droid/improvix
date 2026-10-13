@@ -16,7 +16,12 @@ const path = require('path');
   page.on('pageerror', (err) => errors.push('pageerror: ' + err.message));
 
   // Injeta um "supabase" falso antes de qualquer script rodar, simulando o
-  // CDN carregado (mas sem projeto real configurado em js/config.js).
+  // CDN carregado, e troca o js/config.js pelos valores de exemplo — é essa
+  // combinação (biblioteca ok, projeto não configurado) que o teste confere.
+  await page.route('**/js/config.js', (r) => r.fulfill({
+    contentType: 'application/javascript',
+    body: "window.IL_CONFIG = { supabaseUrl: 'https://SEU-PROJETO.supabase.co', supabaseAnonKey: 'SUA-ANON-KEY' };"
+  }));
   await page.addInitScript(() => {
     window.supabase = { createClient: () => ({}) };
   });

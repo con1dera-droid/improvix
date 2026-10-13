@@ -152,11 +152,6 @@
           </div>
         </div>
 
-        <p class="plan-gate-note" id="nivel-gate-note" hidden>
-          🔒 O nível <strong>Avançado</strong> (3ª escala recomendada por acorde
-          e fraseados de tensão) é exclusivo do plano <strong>Pro</strong>.
-          <a href="#" data-nav="config">Ver planos</a>
-        </p>
 
         <div class="field field-progressao">
           <label>Progressão de acordes</label>
@@ -420,7 +415,7 @@
           <span class="card-icon">👑</span>
           <div>
             <div class="card-title">Administração</div>
-            <div class="card-subtitle">Quem usa a plataforma, quem tem plano Pro e quem está bloqueado.</div>
+            <div class="card-subtitle">Quem usa a plataforma, quem está esperando liberação e quem está bloqueado — e a configuração do sistema.</div>
           </div>
         </div>
         <div id="admin-conteudo"><p class="muted-note">Carregando…</p></div>
@@ -705,7 +700,7 @@
           <span class="card-icon">🎓</span>
           <div class="card-title">Aulas</div>
         </div>
-        <p class="muted-note">Conteúdo livre — não precisa de login nem de plano Pro.</p>
+        <p class="muted-note">Oito lições curtas, do campo harmônico ao ii–V–I.</p>
         <div class="aulas-grid">
           <div class="aulas-list" id="lista-aulas"></div>
           <div class="aulas-detalhe" id="aula-detalhe"></div>
@@ -714,25 +709,6 @@
     </div>
 
     <!-- Modal de login/cadastro (Etapa 4) -->
-    <div class="modal-overlay" id="auth-modal" hidden>
-      <div class="modal">
-        <button class="modal-close" id="auth-modal-close">✕</button>
-        <h2 id="auth-modal-title">Entrar</h2>
-        <div id="auth-modal-msg" class="auth-modal-msg" hidden></div>
-        <form id="auth-form">
-          <div class="field">
-            <label>E-mail</label>
-            <input type="email" id="auth-email" required />
-          </div>
-          <div class="field">
-            <label>Senha</label>
-            <input type="password" id="auth-password" required minlength="6" />
-          </div>
-          <button type="submit" class="btn-primary" id="auth-submit-btn">Entrar</button>
-        </form>
-        <p class="auth-toggle"><span id="auth-toggle-text">Não tem conta?</span> <a href="#" id="auth-toggle-link">Criar conta</a></p>
-      </div>
-    </div>
 
     <!-- Rodapé com instrumentos -->
     <footer class="instrument-bar">
@@ -749,6 +725,53 @@
       </div>
     </footer>
 
+  </div>
+</div>
+
+<!-- Tela de entrada. Quando o sistema está configurado, ela vira o
+     "portão": ninguém usa o IMPROVIX sem conta aprovada. Sem Supabase
+     configurado, continua sendo o modal de login de sempre. -->
+<div class="modal-overlay" id="auth-modal" hidden>
+  <div class="modal">
+    <button class="modal-close" id="auth-modal-close">✕</button>
+    <div class="auth-marca" id="auth-marca" hidden>
+      <span class="auth-marca-icone">🎵</span>
+      <div>
+        <div class="auth-marca-nome">IMPROVIX</div>
+        <div class="auth-marca-sub">Teoria • Harmonia • Prática</div>
+      </div>
+    </div>
+    <h2 id="auth-modal-title">Entrar</h2>
+    <p class="auth-mensagem" id="auth-mensagem" hidden></p>
+    <div id="auth-modal-msg" class="auth-modal-msg" hidden></div>
+    <form id="auth-form">
+      <div class="field">
+        <label for="auth-email">E-mail</label>
+        <input type="email" id="auth-email" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="auth-password">Senha</label>
+        <input type="password" id="auth-password" required minlength="6" autocomplete="current-password" />
+      </div>
+      <button type="submit" class="btn-primary" id="auth-submit-btn">Entrar</button>
+    </form>
+    <p class="auth-toggle"><span id="auth-toggle-text">Não tem conta?</span> <a href="#" id="auth-toggle-link">Criar conta</a></p>
+    <p class="auth-toggle auth-esqueci" id="auth-esqueci-linha"><a href="#" id="auth-esqueci">Esqueci minha senha</a></p>
+
+<!-- Senha nova (quem chega pelo link do e-mail cai aqui) -->
+    <form id="auth-nova-senha" hidden>
+      <div class="field">
+        <label for="auth-nova">Escolha uma senha nova</label>
+        <input type="password" id="auth-nova" required minlength="6" autocomplete="new-password" />
+      </div>
+      <button type="submit" class="btn-primary" id="auth-nova-btn">Salvar a senha nova</button>
+    </form>
+
+<!-- Esperando aprovação / acesso suspenso -->
+    <div id="auth-estado" hidden>
+      <p class="auth-estado-txt" id="auth-estado-txt"></p>
+      <button class="btn-secondary" id="auth-estado-sair">Sair</button>
+    </div>
   </div>
 </div>
 

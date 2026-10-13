@@ -90,3 +90,72 @@ nunca prometer o que o banco recusa.
 favoritos nem os exercícios de ninguém — só a lista de contas (e-mail,
 plano, papel, situação). Isso é regra de banco, não de tela: não existe
 política de RLS que dê a um admin acesso aos dados de estudo dos outros.
+
+## Implementado (2026-10-13) — sistema fechado: ninguém entra sem liberação
+
+O dono do projeto pediu que o acesso deixasse de ser livre: **login
+obrigatório**, com um administrador controlando tudo. Duas mudanças grandes
+na matriz acima:
+
+1. **os planos acabaram.** Não existe mais Gratuito/Pro — quem entra tem
+   tudo, inclusive o nível Avançado dos fraseados. O que limita agora é a
+   liberação da conta e as **telas** que o administrador deixa abertas;
+2. **não existe mais Visitante.** Quem não tem conta liberada não vê o site:
+   vê a tela de entrada e nada mais.
+
+Campos novos em `profiles`: `aprovado` (nasce `false`, salvo nas exceções
+abaixo) e `modulos` (jsonb — as telas daquela pessoa; `null` = as do
+sistema). Tabelas novas: `config_sistema` (uma linha só: modo de cadastro,
+recado da tela de entrada, telas do sistema) e `convites` (e-mail, usado).
+
+| Ação | Sem conta | Esperando liberação | Liberado | Admin | Bloqueado |
+|---|---|---|---|---|---|
+| Ver o site (menu, telas, áudio) | ❌ | ❌ | ✅ | ✅ | ❌ |
+| Ler o recado da tela de entrada | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Criar conta | ✅¹ | — | — | — | ❌ |
+| Salvar/ler histórico, favoritos, exercícios | ❌ | ❌ | ✅ | ✅ | ❌ |
+| Ler dados salvos de outra pessoa | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Listar todas as contas | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Liberar/suspender liberação de alguém | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Promover/rebaixar admin · bloquear/desbloquear | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Escolher as telas de alguém | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Mudar a configuração do sistema | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Convidar por e-mail / ver convites | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Mandar e-mail de senha nova para alguém | ❌ | ❌ | ❌ | ✅² | ❌ |
+| Mudar o próprio papel/liberação/bloqueio/telas | ❌ | ❌ | ❌ | ❌ | ❌ |
+
+¹ Depende do modo em `config_sistema.cadastro`: **aprovacao** (padrão — cria
+e espera), **livre** (cria e entra) ou **fechado** (não aparece botão de
+criar conta; só entra quem foi convidado pelo e-mail).
+
+² "Senha nova" é o e-mail de recuperação do próprio Supabase
+(`resetPasswordForEmail`): o administrador dispara, e **a pessoa** escolhe a
+senha no link. Administrador nenhum vê, escolhe ou descobre a senha de
+ninguém — e nenhuma chave `service_role` entra no site para isso.
+
+**Quem é o primeiro admin**: o **primeiro cadastro** do sistema, carimbado
+pelo trigger `handle_new_user` (`papel='admin'`, `aprovado=true`). Não
+precisa mais de `update` no SQL Editor. Os seguintes nascem esperando
+liberação, e é o admin que decide.
+
+**Onde isso é aplicado**: no banco, de novo. Toda política de RLS das
+tabelas de dados passou a exigir `public.pode_usar()` — uma função
+`security definer` que responde "essa pessoa foi aprovada e não está
+bloqueada?". `config_sistema` é lida por qualquer um (inclusive sem sessão,
+porque a tela de entrada mostra o recado) e escrita só por admin;
+`convites` só existe para admin. O trigger
+`protege_campos_privilegiados` passou a reverter também `aprovado` e
+`modulos`, então ninguém se libera nem se dá telas pela API.
+
+**Conferido, não presumido**: `tests/rls.sql` subiu de 23 para **40
+checagens** num PostgreSQL de verdade — entre elas "o primeiro cadastro vira
+admin", "quem está esperando não lê nem grava nada", "ninguém se aprova",
+"só admin muda a configuração", "qualquer um lê a configuração, até sem
+sessão" e "usuário comum não vê a lista de convites". Na tela,
+`tests/acesso.smoke.js` (24 checagens) e `tests/admin.smoke.js` (19) usam o
+mesmo Supabase falso, que reproduz essas regras.
+
+**Até onde isso protege**: os **dados** ficam protegidos pelo banco, mesmo
+contra quem chame a API por fora do site. Os **arquivos** do site (HTML,
+CSS, JS) continuam públicos — é um site estático; o login fecha o uso
+prático e os dados, não o download do código.

@@ -8,6 +8,7 @@
  */
 const { chromium } = require('playwright');
 const path = require('path');
+const { prepararSemLogin } = require('./fake-supabase.js');
 const URL = process.env.IL_URL || ('file://' + path.resolve(__dirname, '../index.html'));
 let falhas = 0;
 const erros = [];
@@ -22,6 +23,7 @@ function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!c
   p.on('requestfailed', r => erros.push('404/falha: ' + r.url().replace(URL, '') + ' (' + (r.failure()||{}).errorText + ')'));
   const t0 = Date.now();
   p.on('response', r => { if (r.status() >= 400) erros.push('HTTP ' + r.status() + ': ' + r.url()); });
+  await prepararSemLogin(p);
   const resp = await p.goto(URL, { waitUntil: 'load', timeout: 60000 });
   ok(!resp || resp.status() < 400, 'o site abre em ' + URL + ' (' + (Date.now()-t0) + ' ms)');
   await p.waitForTimeout(800);

@@ -14,6 +14,28 @@
   var currentUser = null;
   var currentProfile = null;
   var authMode = 'login';
+  var configSistema = null;      // config_sistema (modo de cadastro, mensagem, módulos)
+  var recuperandoSenha = false;  // chegou pelo link de "senha nova"
+
+  /**
+   * O IMPROVIX é um sistema fechado: sem conta aprovada, ninguém usa.
+   *
+   * Isso só vale quando há banco configurado — sem Supabase (instalação
+   * local de quem está programando, ou biblioteca que não carregou) o site
+   * abre, porque aí não existe conta nenhuma para conferir e trancar tudo
+   * só deixaria a pessoa de fora do próprio computador dela.
+   *
+   * Vale dizer com todas as letras: isto tranca o USO do sistema e, o que
+   * mais importa, os DADOS (o banco recusa quem não foi aprovado — ver
+   * sql/schema.sql). Os arquivos do site em si são públicos, como em
+   * qualquer site estático; esconder o código exigiria um servidor.
+   */
+  function sistemaFechado() { return db.isConfigured() && db.sdkLoaded(); }
+
+  function podeUsar() {
+    if (!sistemaFechado()) return true;
+    return !!(currentUser && currentProfile && currentProfile.aprovado && !currentProfile.bloqueado);
+  }
 
   // Publicado logo na carga do script (não só dentro do DOMContentLoaded)
   // para que js/app.js (Etapa 5 — Planos) já encontre window.IL.account
@@ -23,9 +45,21 @@
   window.IL = window.IL || {};
   window.IL.account = {
     isLoggedIn: function () { return !!currentUser; },
-    isPro: function () { return !!(currentProfile && currentProfile.plano === 'pro'); },
-    isAdmin: function () { return !!(currentProfile && currentProfile.papel === 'admin' && !currentProfile.bloqueado); },
-    isBlocked: function () { return !!(currentProfile && currentProfile.bloqueado); }
+    // Os planos acabaram em 13/10/2026: o sistema virou fechado, e quem foi
+    // aprovado tem tudo. A função continua existindo porque outras telas a
+    // consultam — agora ela responde "sim" para todo usuário aprovado.
+    isPro: function () { return podeUsar(); },
+    isAdmin: function () { return !!(currentProfile && currentProfile.papel === 'admin' && !currentProfile.bloqueado && currentProfile.aprovado); },
+    isBlocked: function () { return !!(currentProfile && currentProfile.bloqueado); },
+    isApproved: function () { return !!(currentProfile && currentProfile.aprovado); },
+    canUse: podeUsar,
+    modulos: function () {
+      // telas liberadas: o que o admin marcou para esta pessoa; se nada,
+      // o que ele marcou para todo mundo
+      var p = currentProfile && currentProfile.modulos;
+      var g = configSistema && configSistema.modulos;
+      return (p && Object.keys(p).length ? p : g) || {};
+    }
   };
 
   function $(id) { return document.getElementById(id); }
@@ -51,12 +85,12 @@
     var area = $('user-area');
     if (!area) return;
     if (currentUser) {
-      var plano = currentProfile && currentProfile.plano === 'pro' ? 'Pro' : 'Gratuito';
+      var papel = window.IL.account.isAdmin() ? '👑 Administrador' : 'Conta liberada';
       area.innerHTML =
         '<div class="avatar">' + currentUser.email.charAt(0).toUpperCase() + '</div>' +
         '<div class="user-info">' +
         '<div class="user-name">' + currentUser.email + '</div>' +
-        '<div class="user-plan">Plano ' + plano + '</div>' +
+        '<div class="user-plan">' + papel + '</div>' +
         '</div>' +
         '<button class="btn-logout" id="btn-sair" title="Sair">⏻</button>';
       $('btn-sair').addEventListener('click', handleSignOut);
@@ -83,6 +117,67 @@
     box.className = 'auth-modal-msg' + (isError ? ' is-error' : '');
   }
 
+  // ---------------- O portão ----------------
+
+  /**
+   * Mostra ou esconde a tela de entrada conforme a situação da conta.
+   * Estados: entrar/criar conta · esperando aprovação · acesso suspenso ·
+   * senha nova (quem chegou pelo link do e-mail).
+   */
+  function atualizarPortao() {
+    var fechado = sistemaFechado();
+    var liberado = podeUsar();
+    document.body.classList.toggle('sistema-travado', fechado && !liberado);
+    $('auth-marca').hidden = !fechado;
+
+    var mensagem = $('auth-mensagem');
+    var txt = configSistema && configSistema.mensagem_login;
+    mensagem.hidden = !(fechado && txt && !liberado);
+    mensagem.textContent = txt || '';
+
+    // o cadastro só aparece quando o administrador o mantém aberto
+    var modo = (configSistema && configSistema.cadastro) || 'aprovacao';
+    var podeCadastrar = !fechado || modo !== 'fechado';
+    $('auth-toggle-link').parentNode.hidden = !podeCadastrar;
+    $('auth-esqueci-linha').hidden = !fechado;
+
+    var esperando = fechado && currentUser && currentProfile && !currentProfile.aprovado && !currentProfile.bloqueado;
+    var form = $('auth-form');
+    var estado = $('auth-estado');
+    var novaSenha = $('auth-nova-senha');
+
+    novaSenha.hidden = !recuperandoSenha;
+    form.hidden = !!esperando || recuperandoSenha;
+    $('auth-toggle-link').parentNode.hidden = !podeCadastrar || !!esperando || recuperandoSenha;
+    $('auth-esqueci-linha').hidden = !fechado || !!esperando || recuperandoSenha;
+    estado.hidden = !esperando;
+
+    if (esperando) {
+      $('auth-modal-title').textContent = 'Quase lá';
+      $('auth-estado-txt').textContent =
+        'Sua conta (' + currentUser.email + ') foi criada e está esperando a liberação de quem ' +
+        'administra o IMPROVIX. Assim que for liberada, é só entrar de novo com o mesmo e-mail e senha.';
+    } else if (recuperandoSenha) {
+      $('auth-modal-title').textContent = 'Senha nova';
+    } else {
+      renderAuthModalMode();
+    }
+
+    if (fechado && !liberado) $('auth-modal').hidden = false;
+    else if (fechado && liberado) { $('auth-modal').hidden = true; $('auth-form').reset(); }
+  }
+
+  function carregarConfig() {
+    if (!db.getConfig || !sistemaFechado()) return Promise.resolve(null);
+    // Promise.resolve envolve o retorno: o supabase-js devolve um "thenable"
+    // que nem sempre tem .catch, e um erro aqui não pode derrubar a tela de
+    // entrada inteira.
+    return Promise.resolve(db.getConfig()).then(function (res) {
+      configSistema = res && res.data ? res.data : null;
+      return configSistema;
+    }).catch(function () { return null; });
+  }
+
   function openAuthModal() {
     authMode = 'login';
     renderAuthModalMode();
@@ -96,6 +191,8 @@
   }
 
   function closeAuthModal() {
+    // No sistema fechado, a tela de entrada não fecha: ela é o portão.
+    if (sistemaFechado() && !podeUsar()) { atualizarPortao(); return; }
     $('auth-modal').hidden = true;
     $('auth-form').reset();
   }
@@ -112,6 +209,12 @@
         setAuthMsg('Conta criada! Confirme seu e-mail (verifique a caixa de entrada) e depois entre.', false);
         return;
       }
+      if (authMode === 'signup' && sistemaFechado()) {
+        var modo = (configSistema && configSistema.cadastro) || 'aprovacao';
+        if (modo !== 'livre') {
+          setAuthMsg('Conta criada! Agora é esperar a liberação de quem administra o IMPROVIX.', false);
+        }
+      }
       closeAuthModal();
     }).catch(function (err) {
       setAuthMsg((err && err.message) || 'Erro inesperado.', true);
@@ -120,6 +223,44 @@
 
   function handleSignOut() {
     db.signOut(); // onAuthStateChange atualiza a tela
+  }
+
+  // ---------------- Telas liberadas pelo administrador ----------------
+  // O admin pode desligar módulos para todo mundo (configuração geral) ou
+  // para uma pessoa só. Início e Configurações nunca somem — senão alguém
+  // ficaria dentro do sistema sem lugar nenhum para ir.
+  var MODULOS = [
+    { nav: 'inicio', label: 'Início — treinar escalas', fixo: true },
+    { nav: 'harmonia', label: 'Análise de Harmonia' },
+    { nav: 'acordes', label: 'Biblioteca de Acordes' },
+    { nav: 'biblioteca-escalas', label: 'Biblioteca de Escalas' },
+    { nav: 'biblioteca-fraseados', label: 'Biblioteca de Fraseados' },
+    { nav: 'padroes', label: 'Exercícios de Padrões' },
+    { nav: 'transcricao', label: 'Transcrição / Treino' },
+    { nav: 'meus-exercicios', label: 'Meus Exercícios' },
+    { nav: 'config', label: 'Configurações', fixo: true }
+  ];
+
+  function moduloLiberado(nav) {
+    var m = MODULOS.filter(function (x) { return x.nav === nav; })[0];
+    if (m && m.fixo) return true;
+    if (window.IL.account.isAdmin()) return true;      // o admin vê tudo
+    var mapa = window.IL.account.modulos();
+    return mapa[nav] !== false;                        // só sai se foi desligado
+  }
+
+  function aplicarModulos() {
+    MODULOS.forEach(function (m) {
+      var item = document.querySelector('.nav-item[data-nav="' + m.nav + '"]');
+      if (!item || m.nav === 'admin') return;
+      var liberado = moduloLiberado(m.nav);
+      item.hidden = !liberado;
+      // se a pessoa estava justo na tela que foi desligada, volta para o Início
+      if (!liberado && item.classList.contains('active')) {
+        var inicio = document.querySelector('.nav-item[data-nav="inicio"]');
+        if (inicio) inicio.click();
+      }
+    });
   }
 
   // ---------------- Navegação entre telas ----------------
@@ -319,36 +460,27 @@
     });
   }
 
-  // Etapa 5 (Planos): comparativo Gratuito x Pro, reaproveitado com ou sem
-  // sessão ativa. Sem cobrança configurada ainda nesta instalação — não há
-  // botão de "assinar" porque isso não processaria pagamento nenhum; virar
-  // Pro é liberado manualmente (ver docs/etapa5-planos.md) até uma etapa
-  // futura conectar um meio de pagamento de verdade.
+  // Os planos acabaram em 13/10/2026 (o sistema virou fechado: quem entra,
+  // entra inteiro). O que sobrou é a lista do que a pessoa tem — útil na
+  // tela de Configurações e na de entrada.
   function planComparisonHTML() {
     return (
       '<div class="plan-compare">' +
-      '<div class="plan-card">' +
-      '<div class="plan-card-title">Gratuito</div>' +
+      '<div class="plan-card plan-card-pro">' +
+      '<div class="plan-card-title">O que você tem aqui dentro</div>' +
       '<ul class="plan-features">' +
-      '<li>Análise harmônica completa (todos os instrumentos)</li>' +
-      '<li>Fraseados nível Iniciante e Intermediário</li>' +
-      '<li>Áudio da progressão e dos fraseados</li>' +
+      '<li>Treino de escalas: 21 exercícios em duas oitavas</li>' +
+      '<li>Análise de harmonia completa, nos oito instrumentos</li>' +
+      '<li>Biblioteca de Acordes: violão, guitarra, teclado e baixo</li>' +
+      '<li>Bibliotecas de Escalas e de Fraseados, nível até Avançado</li>' +
+      '<li>Exercícios de Padrões nos 12 tons</li>' +
+      '<li>Transcrição de solos por áudio, no seu navegador</li>' +
       '<li>Histórico, Favoritos e Meus Exercícios</li>' +
       '</ul>' +
       '</div>' +
-      '<div class="plan-card plan-card-pro">' +
-      '<div class="plan-card-title">Pro</div>' +
-      '<ul class="plan-features">' +
-      '<li>Tudo do Gratuito, mais:</li>' +
-      '<li>Fraseados nível <strong>Avançado</strong> (3ª escala recomendada por acorde e frases de tensão)</li>' +
-      '<li>Novidades do plano entram aqui conforme forem saindo</li>' +
-      '</ul>' +
       '</div>' +
-      '</div>' +
-      '<p class="muted-note">Ainda não há cobrança configurada nesta instalação — ' +
-      'o plano Pro é liberado manualmente por quem administra o site enquanto ' +
-      'isso (veja <code>docs/etapa5-planos.md</code>). Nenhum botão aqui pede ' +
-      'pagamento.</p>'
+      '<p class="muted-note">Não há cobrança nenhuma: o acesso é liberado por ' +
+      'quem administra o IMPROVIX.</p>'
     );
   }
 
@@ -358,7 +490,9 @@
   // na marra pelo Console, a lista virá com o próprio perfil e só, e os
   // botões não terão efeito nenhum. A tela é conveniência para quem PODE.
 
-  var adminState = { lista: [], busca: '', carregando: false, aviso: '' };
+  var adminState = {
+    aba: 'contas', lista: [], convites: [], busca: '', carregando: false, aviso: '', editandoTelas: null
+  };
 
   function escHtml(t) {
     return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
@@ -375,115 +509,300 @@
       box.innerHTML = '<p class="muted-note">Esta tela é só para administradores.</p>';
       return;
     }
-    if (!adminState.lista.length && !adminState.carregando) { carregarAdmin(); return; }
+    // Abrir a tela SEMPRE relê as contas: alguém pode ter se cadastrado desde
+    // a última vez que o admin olhou — uma lista velha aqui esconde justo quem
+    // está esperando liberação.
+    adminState.aba = 'contas';
+    adminState.aviso = '';
+    adminState.editandoTelas = null;
+    if (!adminState.carregando) { carregarAdmin(); return; }
     desenharAdmin();
   }
 
   function carregarAdmin() {
     adminState.carregando = true;
-    $('admin-conteudo').innerHTML = '<p class="muted-note">Carregando a lista de usuários…</p>';
-    db.listProfiles().then(function (res) {
+    if (adminState.lista.length) desenharAdmin();        // mantém a tabela na tela
+    else $('admin-conteudo').innerHTML = '<p class="muted-note">Carregando…</p>';
+    Promise.all([db.listProfiles(), db.listConvites(), db.getConfig()].map(function (x) {
+      return Promise.resolve(x).catch(function (e) { return { error: e }; });
+    })).then(function (res) {
       adminState.carregando = false;
-      if (res.error) {
-        $('admin-conteudo').innerHTML = '<div class="tra-erro">⚠️ ' + escHtml(res.error.message) + '</div>';
+      if (res[0].error) {
+        $('admin-conteudo').innerHTML = '<div class="tra-erro">⚠️ ' + escHtml(res[0].error.message) + '</div>';
         return;
       }
-      adminState.lista = res.data || [];
+      adminState.lista = res[0].data || [];
+      adminState.convites = (res[1] && res[1].data) || [];
+      if (res[2] && res[2].data) configSistema = res[2].data;
       desenharAdmin();
     });
   }
 
-  function desenharAdmin() {
+  /** As abas da Administração: as contas e a configuração do sistema. */
+  function abasHTML() {
+    return '<div class="tabs meus-tabs adm-abas">' +
+      [['contas', '👥 Contas'], ['sistema', '⚙ Sistema']].map(function (a) {
+        return '<button class="tab' + (adminState.aba === a[0] ? ' active' : '') +
+          '" data-adm="aba" data-v="' + a[0] + '">' + a[1] + '</button>';
+      }).join('') + '</div>';
+  }
+
+  function situacaoHTML(p) {
+    if (p.bloqueado) {
+      return '<span class="adm-status-bloq">bloqueado</span>' +
+        (p.motivo_bloqueio ? '<br/><small>' + escHtml(p.motivo_bloqueio) + '</small>' : '');
+    }
+    if (!p.aprovado) return '<span class="adm-status-espera">esperando</span>';
+    return '<span class="adm-status-ok">ativo</span>';
+  }
+
+  /** As telas liberadas para uma pessoa (ou a configuração geral). */
+  function telasHTML(mapa, prefixo) {
+    return '<div class="adm-telas">' + MODULOS.filter(function (m) { return !m.fixo; }).map(function (m) {
+      var ligado = mapa[m.nav] !== false;
+      return '<label class="adm-tela"><input type="checkbox" data-tela="' + m.nav + '" data-prefixo="' + prefixo + '"' +
+        (ligado ? ' checked' : '') + '/> ' + escHtml(m.label) + '</label>';
+    }).join('') + '</div>';
+  }
+
+  function desenharContas() {
     var termo = adminState.busca.trim().toLowerCase();
     var lista = adminState.lista.filter(function (p) {
       return !termo || String(p.email || '').toLowerCase().indexOf(termo) >= 0;
     });
     var total = adminState.lista.length;
+    var esperando = adminState.lista.filter(function (p) { return !p.aprovado && !p.bloqueado; }).length;
     var admins = adminState.lista.filter(function (p) { return p.papel === 'admin'; }).length;
-    var pros = adminState.lista.filter(function (p) { return p.plano === 'pro'; }).length;
     var bloqueados = adminState.lista.filter(function (p) { return p.bloqueado; }).length;
 
     var resumo = '<div class="tra-resumo">' +
-      '<div class="n"><span>usuários</span><b>' + total + '</b></div>' +
+      '<div class="n"><span>contas</span><b>' + total + '</b></div>' +
+      '<div class="n"><span>esperando liberação</span><b>' + esperando + '</b></div>' +
       '<div class="n"><span>administradores</span><b>' + admins + '</b></div>' +
-      '<div class="n"><span>plano Pro</span><b>' + pros + '</b></div>' +
       '<div class="n"><span>bloqueados</span><b>' + bloqueados + '</b></div>' +
       '</div>';
 
     var linhas = lista.map(function (p) {
       var eu = p.id === currentUser.id;
       var ehAdmin = p.papel === 'admin';
-      return '<tr data-uid="' + escHtml(p.id) + '" class="' + (p.bloqueado ? 'adm-bloqueado' : '') + '">' +
+      var editando = adminState.editandoTelas === p.id;
+      var acoes = eu
+        ? '<small class="muted-note">Sua própria conta não pode ser alterada aqui — é o que garante que sempre sobre um admin.</small>'
+        : '<button class="view-btn' + (p.aprovado ? '' : ' adm-destaque') + '" data-adm="aprovar" data-id="' + p.id + '">' +
+          (p.aprovado ? '↓ Suspender liberação' : '✓ Liberar acesso') + '</button>' +
+          '<button class="view-btn" data-adm="papel" data-id="' + p.id + '">' +
+          (ehAdmin ? '↓ Tirar admin' : '👑 Tornar admin') + '</button>' +
+          '<button class="view-btn" data-adm="telas" data-id="' + p.id + '">🖥 Telas</button>' +
+          '<button class="view-btn" data-adm="senha" data-id="' + p.id + '">🔑 Senha nova</button>' +
+          '<button class="view-btn ' + (p.bloqueado ? '' : 'adm-perigo') + '" data-adm="bloqueio" data-id="' + p.id + '">' +
+          (p.bloqueado ? '✓ Desbloquear' : '⛔ Bloquear') + '</button>';
+
+      var linha = '<tr data-uid="' + escHtml(p.id) + '" class="' + (p.bloqueado ? 'adm-bloqueado' : '') + '">' +
         '<td><div class="adm-email">' + escHtml(p.email || '(sem e-mail)') + (eu ? ' <span class="adm-eu">você</span>' : '') + '</div>' +
         '<small class="adm-desde">desde ' + formatDate(p.criado_em) + '</small></td>' +
-        '<td><span class="plan-badge' + (p.plano === 'pro' ? ' plan-badge-pro' : '') + '">' +
-        (p.plano === 'pro' ? 'Pro' : 'Gratuito') + '</span></td>' +
+        '<td>' + situacaoHTML(p) + '</td>' +
         '<td>' + (ehAdmin ? '<span class="adm-papel">👑 admin</span>' : '<span class="muted-note">usuário</span>') + '</td>' +
-        '<td>' + (p.bloqueado
-          ? '<span class="adm-status-bloq">bloqueado</span>' +
-            (p.motivo_bloqueio ? '<br/><small>' + escHtml(p.motivo_bloqueio) + '</small>' : '')
-          : '<span class="adm-status-ok">ativo</span>') + '</td>' +
-        '<td class="adm-acoes">' + (eu
-          ? '<small class="muted-note">Sua própria conta não pode ser alterada aqui — é o que garante que sempre sobre um admin.</small>'
-          : '<button class="view-btn" data-adm="plano" data-id="' + p.id + '">' +
-            (p.plano === 'pro' ? '↓ Voltar a Gratuito' : '↑ Tornar Pro') + '</button>' +
-            '<button class="view-btn" data-adm="papel" data-id="' + p.id + '">' +
-            (ehAdmin ? '↓ Tirar admin' : '👑 Tornar admin') + '</button>' +
-            '<button class="view-btn ' + (p.bloqueado ? '' : 'adm-perigo') + '" data-adm="bloqueio" data-id="' + p.id + '">' +
-            (p.bloqueado ? '✓ Desbloquear' : '⛔ Bloquear') + '</button>') +
-        '</td></tr>';
+        '<td>' + (p.modulos && Object.keys(p.modulos).length
+          ? '<small>só as marcadas</small>' : '<small class="muted-note">as do sistema</small>') + '</td>' +
+        '<td class="adm-acoes">' + acoes + '</td></tr>';
+
+      if (editando) {
+        linha += '<tr class="adm-editor"><td colspan="5">' +
+          '<strong>Telas liberadas para ' + escHtml(p.email) + '</strong>' +
+          telasHTML(p.modulos || (configSistema && configSistema.modulos) || {}, 'u') +
+          '<div class="acd-forma-acoes">' +
+          '<button class="view-btn" data-adm="salvar-telas" data-id="' + p.id + '">Salvar</button>' +
+          '<button class="view-btn" data-adm="telas-padrao" data-id="' + p.id + '">Usar as do sistema</button>' +
+          '<button class="view-btn" data-adm="telas-fechar">Cancelar</button>' +
+          '</div><p class="si-legend">Início e Configurações nunca somem — senão a pessoa ficaria dentro do sistema sem lugar nenhum para ir.</p>' +
+          '</td></tr>';
+      }
+      return linha;
     }).join('');
 
-    $('admin-conteudo').innerHTML = resumo +
-      (adminState.aviso ? '<div class="tra-aviso tra-flash">' + escHtml(adminState.aviso) + '</div>' : '') +
+    return resumo +
       '<div class="adm-barra">' +
       '<input type="search" id="admin-busca" placeholder="Procurar por e-mail" value="' + escHtml(adminState.busca) + '" />' +
       '<button class="view-btn" data-adm="recarregar">↻ Atualizar</button>' +
       '</div>' +
       '<div class="adm-tabela-wrap"><table class="theory-table adm-tabela"><thead><tr>' +
-      '<th>Conta</th><th>Plano</th><th>Papel</th><th>Situação</th><th>Ações</th>' +
+      '<th>Conta</th><th>Situação</th><th>Papel</th><th>Telas</th><th>Ações</th>' +
       '</tr></thead><tbody>' +
       (linhas || '<tr><td colspan="5"><p class="muted-note">Ninguém encontrado com esse e-mail.</p></td></tr>') +
       '</tbody></table></div>' +
-      '<p class="si-legend">Bloquear tira o acesso na hora: a pessoa é desconectada assim que abrir ou voltar para a aba, ' +
-      'e os dados dela ficam inacessíveis mesmo por fora do site — quem recusa é o banco, não a tela.</p>';
+      '<p class="si-legend">Liberar e bloquear valem na hora: quem perde o acesso é desconectado assim que abrir ou voltar ' +
+      'para a aba, e os dados ficam inacessíveis mesmo por fora do site — quem recusa é o banco, não a tela.</p>';
+  }
+
+  function desenharSistema() {
+    var cfg = configSistema || {};
+    var modo = cfg.cadastro || 'aprovacao';
+    var MODOS = [
+      ['aprovacao', 'Com aprovação', 'A pessoa se cadastra e fica esperando você liberar. É o padrão.'],
+      ['livre', 'Cadastro livre', 'Qualquer um cria a conta e já usa. Você continua podendo bloquear depois.'],
+      ['fechado', 'Fechado', 'Não aparece botão de criar conta. Só entra quem você convidar pelo e-mail, aqui embaixo.']
+    ];
+
+    return '<div class="adm-sec">' +
+      '<h4 class="esc-grupo">Quem pode entrar</h4>' +
+      MODOS.map(function (m) {
+        return '<label class="adm-modo' + (modo === m[0] ? ' is-on' : '') + '">' +
+          '<input type="radio" name="adm-cadastro" value="' + m[0] + '"' + (modo === m[0] ? ' checked' : '') + '/>' +
+          '<span><strong>' + m[1] + '</strong><small>' + m[2] + '</small></span></label>';
+      }).join('') +
+      '</div>' +
+
+      '<div class="adm-sec">' +
+      '<h4 class="esc-grupo">Recado na tela de entrada</h4>' +
+      '<p class="si-legend">Aparece para todo mundo antes de entrar. Deixe em branco para não mostrar nada.</p>' +
+      '<textarea id="adm-mensagem" class="adm-textarea" rows="3" placeholder="Ex.: Aula na quinta, 19h. Quem ainda não tem acesso, me chame no WhatsApp.">' +
+      escHtml(cfg.mensagem_login || '') + '</textarea>' +
+      '</div>' +
+
+      '<div class="adm-sec">' +
+      '<h4 class="esc-grupo">Telas liberadas para todo mundo</h4>' +
+      '<p class="si-legend">Vale para os usuários comuns. Você, como administrador, continua vendo tudo. Dá para abrir ou fechar telas para uma pessoa só na aba Contas.</p>' +
+      telasHTML((cfg.modulos) || {}, 'g') +
+      '</div>' +
+
+      '<div class="acd-forma-acoes"><button class="btn-primary" data-adm="salvar-sistema">Salvar configuração</button></div>' +
+
+      '<div class="adm-sec">' +
+      '<h4 class="esc-grupo">Convidar pelo e-mail</h4>' +
+      '<p class="si-legend">Quem se cadastrar com um e-mail convidado já entra liberado, sem esperar. No modo fechado, é o único jeito de entrar. ' +
+      'O convite guarda só o e-mail: a senha é a própria pessoa que cria — administrador nenhum deve saber a senha de ninguém.</p>' +
+      '<div class="adm-barra">' +
+      '<input type="email" id="adm-convite" placeholder="aluno@exemplo.com" />' +
+      '<button class="view-btn" data-adm="convidar">+ Convidar</button>' +
+      '</div>' +
+      (adminState.convites.length
+        ? '<div class="adm-tabela-wrap"><table class="theory-table adm-tabela"><thead><tr><th>E-mail</th><th>Situação</th><th></th></tr></thead><tbody>' +
+          adminState.convites.map(function (c) {
+            return '<tr><td>' + escHtml(c.email) + '</td><td>' +
+              (c.usado ? '<span class="adm-status-ok">já usado</span>' : '<span class="adm-status-espera">esperando</span>') +
+              '</td><td class="adm-acoes"><button class="view-btn adm-perigo" data-adm="tirar-convite" data-email="' +
+              escHtml(c.email) + '">Remover</button></td></tr>';
+          }).join('') + '</tbody></table></div>'
+        : '<p class="muted-note">Nenhum convite ainda.</p>') +
+      '</div>';
+  }
+
+  function desenharAdmin() {
+    $('admin-conteudo').innerHTML = abasHTML() +
+      (adminState.aviso ? '<div class="tra-aviso tra-flash">' + escHtml(adminState.aviso) + '</div>' : '') +
+      (adminState.aba === 'sistema' ? desenharSistema() : desenharContas());
 
     var busca = $('admin-busca');
     if (busca) {
       busca.addEventListener('input', function () { adminState.busca = busca.value; desenharAdmin(); $('admin-busca').focus(); });
     }
     $('admin-conteudo').querySelectorAll('[data-adm]').forEach(function (b) {
-      b.addEventListener('click', function () { acaoAdmin(b.getAttribute('data-adm'), b.getAttribute('data-id')); });
+      b.addEventListener('click', function () {
+        acaoAdmin(b.getAttribute('data-adm'), b.getAttribute('data-id'), b);
+      });
     });
   }
 
-  function acaoAdmin(acao, id) {
+  /** Lê as caixinhas de telas marcadas (prefixo 'g' = geral, 'u' = usuário). */
+  function lerTelas(prefixo) {
+    var mapa = {};
+    $('admin-conteudo').querySelectorAll('[data-tela][data-prefixo="' + prefixo + '"]').forEach(function (c) {
+      mapa[c.getAttribute('data-tela')] = c.checked;
+    });
+    return mapa;
+  }
+
+  function acaoAdmin(acao, id, botao) {
+    if (acao === 'aba') { adminState.aba = botao.getAttribute('data-v'); adminState.aviso = ''; desenharAdmin(); return; }
     if (acao === 'recarregar') { adminState.lista = []; adminState.aviso = ''; renderAdminView(); return; }
+    if (acao === 'telas') { adminState.editandoTelas = id; desenharAdmin(); return; }
+    if (acao === 'telas-fechar') { adminState.editandoTelas = null; desenharAdmin(); return; }
+
+    if (acao === 'salvar-sistema') {
+      var escolhido = $('admin-conteudo').querySelector('input[name="adm-cadastro"]:checked');
+      var patch = {
+        cadastro: escolhido ? escolhido.value : 'aprovacao',
+        mensagem_login: $('adm-mensagem').value.trim() || null,
+        modulos: lerTelas('g')
+      };
+      db.updateConfig(patch).then(function (res) {
+        if (res.error) { adminState.aviso = 'Não deu certo: ' + res.error.message; desenharAdmin(); return; }
+        configSistema = res.data;
+        adminState.aviso = 'Configuração salva.';
+        aplicarModulos();
+        desenharAdmin();
+      });
+      return;
+    }
+
+    if (acao === 'convidar') {
+      var email = ($('adm-convite').value || '').trim().toLowerCase();
+      if (!email) return;
+      db.criarConvite(email).then(function (res) {
+        if (res.error) { adminState.aviso = 'Não deu certo: ' + res.error.message; desenharAdmin(); return; }
+        adminState.convites = [res.data].concat(adminState.convites);
+        adminState.aviso = email + ' foi convidado. Peça para a pessoa criar a conta com esse e-mail.';
+        desenharAdmin();
+      });
+      return;
+    }
+
+    if (acao === 'tirar-convite') {
+      var alvo = botao.getAttribute('data-email');
+      db.apagarConvite(alvo).then(function (res) {
+        if (res && res.error) { adminState.aviso = 'Não deu certo: ' + res.error.message; desenharAdmin(); return; }
+        adminState.convites = adminState.convites.filter(function (c) { return c.email !== alvo; });
+        adminState.aviso = 'Convite de ' + alvo + ' removido.';
+        desenharAdmin();
+      });
+      return;
+    }
+
     var p = adminState.lista.filter(function (x) { return x.id === id; })[0];
     if (!p) return;
-    var patch = null, texto = '';
-    if (acao === 'plano') {
-      patch = { plano: p.plano === 'pro' ? 'gratuito' : 'pro' };
-      texto = p.email + ' agora é ' + (patch.plano === 'pro' ? 'Pro' : 'Gratuito') + '.';
+
+    if (acao === 'senha') {
+      if (!confirm('Enviar para ' + p.email + ' um e-mail com o link para criar uma senha nova?')) return;
+      db.enviarSenhaNova(p.email).then(function (res) {
+        adminState.aviso = res.error
+          ? 'Não deu certo: ' + res.error.message
+          : 'E-mail enviado para ' + p.email + '. A pessoa clica no link e escolhe a senha — você não vê a senha dela.';
+        desenharAdmin();
+      });
+      return;
+    }
+
+    var patch2 = null, texto = '';
+    if (acao === 'aprovar') {
+      patch2 = { aprovado: !p.aprovado };
+      texto = p.email + (patch2.aprovado ? ' foi liberado e já pode usar o sistema.' : ' não tem mais acesso liberado.');
     } else if (acao === 'papel') {
-      patch = { papel: p.papel === 'admin' ? 'usuario' : 'admin' };
-      texto = p.email + (patch.papel === 'admin' ? ' agora é administrador.' : ' não é mais administrador.');
+      patch2 = { papel: p.papel === 'admin' ? 'usuario' : 'admin' };
+      texto = p.email + (patch2.papel === 'admin' ? ' agora é administrador.' : ' não é mais administrador.');
     } else if (acao === 'bloqueio') {
-      if (p.bloqueado) { patch = { bloqueado: false }; texto = p.email + ' foi desbloqueado.'; }
+      if (p.bloqueado) { patch2 = { bloqueado: false }; texto = p.email + ' foi desbloqueado.'; }
       else {
         var motivo = prompt('Bloquear ' + p.email + '.\n\nMotivo (opcional, fica registrado):', '');
         if (motivo === null) return;
-        patch = { bloqueado: true, motivo_bloqueio: motivo || null };
+        patch2 = { bloqueado: true, motivo_bloqueio: motivo || null };
         texto = p.email + ' foi bloqueado e perde o acesso agora.';
       }
+    } else if (acao === 'salvar-telas') {
+      patch2 = { modulos: lerTelas('u') };
+      texto = 'Telas de ' + p.email + ' atualizadas.';
+    } else if (acao === 'telas-padrao') {
+      patch2 = { modulos: null };
+      texto = p.email + ' volta a ver as telas do sistema.';
     }
-    if (!patch) return;
-    db.updateProfile(id, patch).then(function (res) {
+    if (!patch2) return;
+
+    db.updateProfile(id, patch2).then(function (res) {
       if (res.error) { adminState.aviso = 'Não deu certo: ' + res.error.message; desenharAdmin(); return; }
       // Confia no que o BANCO devolveu, não no que pedimos: se o trigger
       // tiver revertido algo, a tela mostra a verdade.
       adminState.lista = adminState.lista.map(function (x) { return x.id === id ? res.data : x; });
       adminState.aviso = texto;
+      adminState.editandoTelas = null;
       desenharAdmin();
     });
   }
@@ -501,15 +820,32 @@
         planComparisonHTML();
       return;
     }
-    var isPro = currentProfile && currentProfile.plano === 'pro';
-    var plano = isPro ? 'Pro' : 'Gratuito';
+    var ehAdmin = window.IL.account.isAdmin();
     wrap.innerHTML =
       '<div class="config-row"><span class="config-label">E-mail</span><span>' + currentUser.email + '</span></div>' +
-      '<div class="config-row"><span class="config-label">Plano</span><span class="plan-badge' +
-      (isPro ? ' plan-badge-pro' : '') + '">' + plano + '</span></div>' +
+      '<div class="config-row"><span class="config-label">Acesso</span><span class="plan-badge' +
+      (ehAdmin ? ' plan-badge-pro' : '') + '">' + (ehAdmin ? '👑 Administrador' : 'Liberado') + '</span></div>' +
+      '<button class="btn-secondary" id="btn-trocar-senha">Trocar minha senha</button>' +
+      '<div id="config-senha" hidden>' +
+      '<div class="field"><label for="config-nova-senha">Senha nova</label>' +
+      '<input type="password" id="config-nova-senha" minlength="6" autocomplete="new-password"/></div>' +
+      '<button class="btn-primary" id="btn-salvar-senha">Salvar a senha</button>' +
+      '<p class="si-legend" id="config-senha-msg"></p></div>' +
       '<button class="btn-secondary btn-config-sair" id="btn-sair-config">Sair da conta</button>' +
       planComparisonHTML();
     $('btn-sair-config').addEventListener('click', handleSignOut);
+    $('btn-trocar-senha').addEventListener('click', function () {
+      $('config-senha').hidden = !$('config-senha').hidden;
+    });
+    $('btn-salvar-senha').addEventListener('click', function () {
+      var nova = $('config-nova-senha').value;
+      if (!nova || nova.length < 6) { $('config-senha-msg').textContent = 'A senha precisa de pelo menos 6 letras.'; return; }
+      $('config-senha-msg').textContent = 'Salvando…';
+      db.trocarSenha(nova).then(function (res) {
+        $('config-senha-msg').textContent = res.error ? res.error.message : 'Senha trocada.';
+        if (!res.error) $('config-nova-senha').value = '';
+      });
+    });
   }
 
   // O Laboratório (gerador de progressões, exclusivo Pro) saiu do menu em
@@ -602,8 +938,10 @@
       currentUser = null;
       renderHeader();
       syncAdminNav();
+      aplicarModulos();
       notifyAccountChange();
       openAuthModal();
+      atualizarPortao();
       setAuthMsg('O acesso de ' + email + ' foi suspenso por quem administra a plataforma' +
         (motivo ? ' — motivo: ' + motivo : '') + '. Fale com o administrador se achar que é engano.', true);
     });
@@ -613,9 +951,15 @@
     currentUser = session ? session.user : null;
     if (!currentUser) {
       currentProfile = null;
+      // Quem sai (ou chega sem sessão) vê a tela de ENTRAR, nunca a de criar
+      // conta que ficou aberta antes. O recado de erro/aviso não é apagado
+      // aqui: é por ele que a pessoa bloqueada descobre o motivo.
+      authMode = 'login';
       renderHeader();
       syncAdminNav();
+      aplicarModulos();
       notifyAccountChange();
+      atualizarPortao();
       return;
     }
     db.getProfile(currentUser.id).then(function (res) {
@@ -623,7 +967,9 @@
       if (currentProfile && currentProfile.bloqueado) { cortarAcessoBloqueado(); return; }
       renderHeader();
       syncAdminNav();
+      aplicarModulos();
       notifyAccountChange();
+      atualizarPortao();
     });
   }
 
@@ -634,10 +980,14 @@
       var p = res.data;
       if (!p) return;
       var mudou = !currentProfile || p.bloqueado !== currentProfile.bloqueado ||
-        p.plano !== currentProfile.plano || p.papel !== currentProfile.papel;
+        p.plano !== currentProfile.plano || p.papel !== currentProfile.papel ||
+        p.aprovado !== currentProfile.aprovado ||
+        JSON.stringify(p.modulos) !== JSON.stringify(currentProfile.modulos);
       currentProfile = p;
       if (p.bloqueado) { cortarAcessoBloqueado(); return; }
-      if (mudou) { renderHeader(); syncAdminNav(); notifyAccountChange(); }
+      if (mudou) {
+        renderHeader(); syncAdminNav(); aplicarModulos(); notifyAccountChange(); atualizarPortao();
+      }
     });
   }
 
@@ -658,16 +1008,60 @@
       setAuthMsg('', false);
     });
 
+    // "Esqueci minha senha": manda o e-mail com o link.
+    $('auth-esqueci').addEventListener('click', function (ev) {
+      ev.preventDefault();
+      var email = $('auth-email').value.trim();
+      if (!email) { setAuthMsg('Escreva seu e-mail aí em cima e clique de novo.', true); return; }
+      setAuthMsg('Enviando…', false);
+      db.enviarSenhaNova(email).then(function (res) {
+        setAuthMsg(res.error ? res.error.message
+          : 'Pronto. Se existir conta com esse e-mail, o link para criar uma senha nova já está a caminho.', !!res.error);
+      });
+    });
+
+    // Senha nova (quem chegou pelo link do e-mail).
+    $('auth-nova-senha').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var nova = $('auth-nova').value;
+      setAuthMsg('Salvando…', false);
+      db.trocarSenha(nova).then(function (res) {
+        if (res.error) { setAuthMsg(res.error.message, true); return; }
+        recuperandoSenha = false;
+        $('auth-nova-senha').reset();
+        setAuthMsg('Senha trocada. Pode continuar.', false);
+        atualizarPortao();
+      });
+    });
+
+    $('auth-estado-sair').addEventListener('click', handleSignOut);
+
     if (!db.sdkLoaded()) {
       renderHeader();
       return;
     }
 
-    db.getSession().then(function (res) {
-      refreshUserAndProfile(res.data && res.data.session);
+    // Sistema fechado: o portão sobe ANTES de saber se há sessão, para o
+    // site não "piscar" aberto por um instante em quem não entrou.
+    if (sistemaFechado()) {
+      document.body.classList.add('sistema-travado');
+      $('auth-modal').hidden = false;
+    }
+
+    carregarConfig().then(function () {
+      atualizarPortao();
+      return db.getSession();
+    }).then(function (res) {
+      refreshUserAndProfile(res && res.data && res.data.session);
     });
 
     db.onAuthStateChange(function (event, session) {
+      if (event === 'PASSWORD_RECOVERY') {
+        recuperandoSenha = true;
+        $('auth-modal').hidden = false;
+        atualizarPortao();
+        return;
+      }
       refreshUserAndProfile(session);
     });
 

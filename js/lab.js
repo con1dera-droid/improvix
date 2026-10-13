@@ -9,8 +9,9 @@
  * acorde. Isso permite representar tanto graus diatônicos quanto graus
  * emprestados (ex.: bVII) com a grafia certa (Bb, não A#).
  *
- * Exclusivo do plano Pro — quem decide isso é a tela (js/auth-ui.js), não
- * este módulo, que só gera progressões.
+ * A aba Laboratório saiu em 13/10/2026 (deu lugar à Biblioteca de Acordes),
+ * mas este módulo continua em uso: é ele que sugere a progressão quando se
+ * troca a tonalidade na Análise de Harmonia.
  *
  * Funciona no navegador (window.IL.lab) e no Node (testes).
  */

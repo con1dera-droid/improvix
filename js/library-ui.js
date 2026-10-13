@@ -15,9 +15,9 @@
 
   var PER_PAGE = 12;
 
-  // Enquanto não há cobrança configurada, o nível Avançado da Biblioteca fica
-  // liberado para todos (decisão do dono do projeto em 10/09/2026). Para
-  // voltar a exigir o plano Pro, basta mudar para false.
+  // Todos os níveis liberados para quem entra. Era uma trava de plano; os
+  // planos acabaram em 13/10/2026 e quem controla o acesso agora é o
+  // administrador, tela por tela (js/auth-ui.js).
   var ADVANCED_FREE = true;
   var state = { list: [], built: false, playingId: null, userPickedScale: false, rodada: 0 };
 

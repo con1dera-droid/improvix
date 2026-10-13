@@ -71,6 +71,61 @@
     return c.auth.onAuthStateChange(callback);
   }
 
+  /**
+   * Manda o e-mail de "criar uma senha nova" para alguém. Não precisa de
+   * chave secreta: é o mesmo pedido que a própria pessoa faria no "esqueci
+   * minha senha". O link cai no site, e a tela de entrada mostra o campo da
+   * senha nova (o supabase-js avisa com o evento PASSWORD_RECOVERY).
+   */
+  function enviarSenhaNova(email) {
+    var c = getClient();
+    if (!c) return Promise.resolve({ data: null, error: notConfiguredError() });
+    return c.auth.resetPasswordForEmail(email, { redirectTo: root.location.origin + root.location.pathname });
+  }
+
+  /** Troca a senha de quem está com a sessão aberta (inclusive na recuperação). */
+  function trocarSenha(nova) {
+    var c = getClient();
+    if (!c) return Promise.resolve({ data: null, error: notConfiguredError() });
+    return c.auth.updateUser({ password: nova });
+  }
+
+  // ---------------- Configuração do sistema ----------------
+  // Uma linha só, legível por qualquer um (a tela de entrada precisa dela
+  // antes de haver sessão) e gravável só por administrador — quem garante
+  // isso é a política de RLS, não este arquivo.
+
+  function getConfig() {
+    var c = getClient();
+    if (!c) return Promise.resolve({ data: null, error: notConfiguredError() });
+    return c.from('config_sistema').select('*').eq('id', 1).single();
+  }
+
+  function updateConfig(patch) {
+    var c = getClient();
+    if (!c) return Promise.resolve({ data: null, error: notConfiguredError() });
+    patch = Object.assign({}, patch, { atualizado_em: new Date().toISOString() });
+    return c.from('config_sistema').update(patch).eq('id', 1).select().single();
+  }
+
+  function listConvites() {
+    var c = getClient();
+    if (!c) return Promise.resolve({ data: null, error: notConfiguredError() });
+    return c.from('convites').select('*').order('criado_em', { ascending: false });
+  }
+
+  function criarConvite(email) {
+    var c = getClient();
+    if (!c) return Promise.resolve({ data: null, error: notConfiguredError() });
+    return c.from('convites').insert({ email: String(email || '').trim().toLowerCase() }).select().single();
+  }
+
+  function apagarConvite(email) {
+    var c = getClient();
+    if (!c) return Promise.resolve({ data: null, error: notConfiguredError() });
+    return c.from('convites').delete().eq('email', email);
+  }
+
   function getProfile(userId) {
     var c = getClient();
     if (!c) return Promise.resolve({ data: null, error: notConfiguredError() });
@@ -205,6 +260,13 @@
     getProfile: getProfile,
     listProfiles: listProfiles,
     updateProfile: updateProfile,
+    enviarSenhaNova: enviarSenhaNova,
+    trocarSenha: trocarSenha,
+    getConfig: getConfig,
+    updateConfig: updateConfig,
+    listConvites: listConvites,
+    criarConvite: criarConvite,
+    apagarConvite: apagarConvite,
     saveAnalise: saveAnalise,
     listAnalises: listAnalises,
     deleteAnalise: deleteAnalise,

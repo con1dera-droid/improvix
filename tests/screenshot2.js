@@ -1,5 +1,6 @@
 const { chromium } = require('playwright');
 const path = require('path');
+const { prepararSemLogin } = require('./fake-supabase.js');
 
 (async () => {
   const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
@@ -9,6 +10,7 @@ const path = require('path');
   page.on('pageerror', (err) => errors.push('pageerror: ' + err.message));
 
   const filePath = 'file://' + path.resolve(__dirname, '../index.html');
+  await prepararSemLogin(page);
   await page.goto(filePath);
   await page.waitForTimeout(200);
 
