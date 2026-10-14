@@ -1,0 +1,88 @@
+<!--
+  IMPROVIX — e-mail de confirmação de cadastro.
+
+  Este arquivo NÃO é usado pelo site: quem manda o e-mail é o Supabase. Para
+  valer, o conteúdo abaixo precisa ser colado em
+  Authentication > Emails > Templates > "Confirm signup", no painel do
+  Supabase. O passo a passo está em docs/emails-supabase.md.
+
+  {{ .ConfirmationURL }} é o link que o próprio Supabase troca na hora de
+  enviar. Não mexa no nome dele.
+
+  Escrito com tabelas e estilo "inline" de propósito: cliente de e-mail não
+  entende CSS moderno — Gmail, Outlook e Apple Mail cortam folha de estilo,
+  flexbox e grid. É feio por dentro para ficar certo por fora.
+-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0;padding:0;background-color:#0b1220;">
+  <tr>
+    <td align="center" style="padding:28px 12px;">
+
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background-color:#111a2c;border:1px solid #223052;border-radius:14px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+
+        <!-- marca -->
+        <tr>
+          <td style="padding:26px 30px 6px;">
+            <span style="font-size:22px;">&#127925;</span>
+            <span style="color:#e7ecf7;font-size:20px;font-weight:700;letter-spacing:0.02em;vertical-align:middle;">IMPROVIX</span>
+            <div style="color:#94a3c4;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;margin-top:4px;">Teoria &bull; Harmonia &bull; Prática</div>
+          </td>
+        </tr>
+
+        <!-- título -->
+        <tr>
+          <td style="padding:14px 30px 0;">
+            <h1 style="margin:0;color:#e7ecf7;font-size:24px;line-height:1.25;">Parabéns, seja bem-vindo!</h1>
+          </td>
+        </tr>
+
+        <!-- texto -->
+        <tr>
+          <td style="padding:14px 30px 0;color:#c7d2e8;font-size:16px;line-height:1.55;">
+            <p style="margin:0 0 14px;">
+              Seja bem-vindo ao seu <strong style="color:#e7ecf7;">professor de improvisação</strong>.
+              Daqui em diante você tem escalas, fraseados, tablaturas, partituras e áudio
+              para estudar no seu ritmo.
+            </p>
+            <p style="margin:0;">
+              Clique no botão abaixo para confirmar seu e-mail e começar a improvisar!
+            </p>
+          </td>
+        </tr>
+
+        <!-- botão -->
+        <tr>
+          <td align="center" style="padding:26px 30px 6px;">
+            <a href="{{ .ConfirmationURL }}"
+               style="display:inline-block;background-color:#7dd3fc;color:#06283d;font-size:16px;font-weight:700;text-decoration:none;padding:14px 26px;border-radius:10px;">
+              Confirmar e-mail e começar a improvisar
+            </a>
+          </td>
+        </tr>
+
+        <!-- link de reserva: tem cliente que bloqueia botão -->
+        <tr>
+          <td style="padding:16px 30px 0;color:#94a3c4;font-size:12px;line-height:1.5;">
+            Se o botão não funcionar, copie e cole este endereço no navegador:<br/>
+            <a href="{{ .ConfirmationURL }}" style="color:#7dd3fc;word-break:break-all;">{{ .ConfirmationURL }}</a>
+          </td>
+        </tr>
+
+        <!-- rodapé -->
+        <tr>
+          <td style="padding:22px 30px 26px;">
+            <div style="border-top:1px solid #223052;padding-top:14px;color:#5c6c8f;font-size:12px;line-height:1.5;">
+              Você recebeu este e-mail porque alguém usou este endereço para criar uma conta no IMPROVIX.
+              Se não foi você, é só ignorar — sem o clique acima, a conta não é ativada.
+            </div>
+          </td>
+        </tr>
+
+      </table>
+
+      <div style="max-width:560px;margin:14px auto 0;color:#5c6c8f;font-size:11px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+        IMPROVIX &bull; sua evolução musical, um acorde de cada vez
+      </div>
+
+    </td>
+  </tr>
+</table>

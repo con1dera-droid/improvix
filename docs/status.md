@@ -1631,6 +1631,43 @@ continuam as mesmas**; o rótulo do botão bate com a corda e a casa onde a
 tablatura começa; a escolha vale só para aquele exercício; e no teclado, que
 não tem tablatura, não aparece botão nenhum.
 
+## Os e-mails com a cara do IMPROVIX — ✅ (2026-10-14)
+
+Pedido do dono do projeto, olhando o e-mail que chegou para um cadastro novo:
+ele vinha em inglês, sem marca nenhuma — *"Confirm your email address"*, de
+"Supabase Auth". Ele queria o nome do IMPROVIX no título e um texto de
+boas-vindas: *"parabéns, seja bem-vindo ao seu professor de improvisação,
+clique em confirmar e-mail e comece a improvisar"*.
+
+**O ponto que decide tudo**: esse e-mail não sai do site. Quem manda é o
+Supabase, com um modelo guardado no painel — não dá para mudá-lo por código,
+nem daqui. O que dá para fazer é escrever o modelo e dizer exatamente onde
+colar.
+
+Nova pasta `email/` com três modelos prontos, em português e com a marca:
+`confirmacao.html` (Confirm signup), `senha-nova.html` (Reset password — é o
+e-mail que o botão 🔑 da Administração dispara) e `convite.html` (Invite
+user). O passo a passo, com os títulos sugeridos para cada um, está em
+`docs/emails-supabase.md`; o `docs/etapa4-supabase.md` ganhou um passo
+apontando para lá, e a pasta entrou no `.vercelignore` (não é arquivo de
+site).
+
+Os modelos são escritos **com tabelas e estilo em cada elemento**, de
+propósito: cliente de e-mail não é navegador — Gmail, Outlook e Apple Mail
+cortam folha de estilo, flexbox e grid. É feio por dentro para ficar certo por
+fora. O `{{ .ConfirmationURL }}` é o único pedaço que não pode ser tocado: é
+onde o Supabase encaixa o link na hora de enviar.
+
+**O limite, dito na cara**: o **remetente** continua aparecendo como "Supabase
+Auth &lt;noreply@mail.app.supabase.io&gt;". Título e corpo são nossos; o nome de
+quem envia vem do serviço de e-mail embutido. Para dizer "IMPROVIX" é preciso
+ligar um SMTP próprio (Resend, Brevo e afins, com plano gratuito), o que
+normalmente pede um domínio próprio — meia hora de configuração, e nada muda
+no código. Vale lembrar também que o serviço embutido do Supabase é para
+testes e tem limite baixo de envios por hora (visível em *Authentication >
+Rate Limits*): se um aluno disser que o e-mail não chegou, é o primeiro lugar
+para olhar.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

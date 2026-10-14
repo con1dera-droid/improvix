@@ -207,6 +207,7 @@ tests/sugestoes.smoke.js Caixa de ideias: quem usa manda, quem administra lê
 tests/tablatura.test.js Confere que a tablatura bate com as notas (1 milhão de casas, todas as digitações)
 tests/digitacoes.smoke.js As opções de digitação na tela (trocar a região sem mudar as notas)
 tests/screenshot*.js   Scripts opcionais de checagem visual com Playwright (dev only)
+email/                 Modelos dos e-mails do Supabase (confirmação, senha nova, convite) — ver docs/emails-supabase.md
 docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos, status e guias do Supabase/Planos
 ```
 

@@ -2,6 +2,7 @@
 tests/
 docs/
 sql/
+email/
 Claude outputs/
 abrir-site.command
 *.png

@@ -160,7 +160,17 @@ situação) — e **não** vê o histórico, os favoritos nem os exercícios de
 ninguém. Isso não é escolha da tela: não existe regra no banco que dê esse
 acesso.
 
-## Passo 7 — O endereço público (Site URL)
+## Passo 7 — Os e-mails com a cara do IMPROVIX
+
+Quem manda o e-mail de confirmação de cadastro é o Supabase, com um modelo que
+fica no painel dele — por isso o texto não está no código do site. Os modelos
+prontos (confirmação, senha nova e convite), com a marca e em português, estão
+na pasta `email/`, e o passo a passo de onde colar cada um está em
+**`docs/emails-supabase.md`**. Lá também está o que o plano gratuito não deixa
+mudar: o remetente continua "Supabase Auth", e para dizer "IMPROVIX" é preciso
+ligar um SMTP próprio.
+
+## Passo 8 — O endereço público (Site URL)
 
 Se o site está publicado (ex.: `https://improvix.vercel.app`), avise o
 Supabase: **Authentication > URL Configuration**, campo **Site URL**. É o
