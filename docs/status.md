@@ -1452,6 +1452,34 @@ faz parte do acorde — o dó aberto é `x32010`, e trocá-lo por uma pestana se
 ensinar errado. Formas de acorde e digitação de linha melódica são coisas
 diferentes.
 
+## Botões de ouvir: azul claro parado, vermelho tocando — ✅ (2026-10-14)
+
+Pedido do dono do projeto: *"quero que todos os botões de OUVIR fiquem na cor
+azul claro e quando apertar fiquem vermelho, para que a pessoa consiga ver
+logo em destaque"*. Num site cheio de botões cinzas, o que faz som tem de
+saltar à vista — e o que está tocando ainda mais, porque é nele que se clica
+para parar.
+
+Entrou a classe **`.btn-ouvir`** em todo botão que faz som, nas seis telas que
+têm algum: ouvir um exercício, a escala, uma frase da Biblioteca, um padrão,
+um acorde (e cada voicing), a progressão, a linha inteira, a transcrição e o
+original do trecho. Cores novas no `:root`: `--ouvir` (#7dd3fc), `--ouvir-hover`
+e `--parar` (#dc2626), a mesma vermelha que o site já usava para "clique para
+parar".
+
+**Um detalhe que só aparece medindo**: o "▶ Tocar a linha inteira" tinha cor
+própria escrita por `#btn-tocar-linha`, e seletor de id ganha de classe —
+ficava azul-escuro enquanto todos os outros já eram azul claro. A regra dele
+perdeu a cor e ficou só com o peso da letra.
+
+`tests/ouvir.smoke.js` (novo) varre as seis telas, acha todo botão que faz som
+pelo rótulo (🔊, 🎧 ou "▶ Tocar") e confere a cor que o **navegador calculou**
+— é assim que se pega uma regra que existe mas foi sobrescrita por outra mais
+específica. São **80 botões** conferidos: nenhum fora do padrão, nenhum sem a
+classe. Confere também o ciclo inteiro (azul → aperta → vermelho com letra
+branca e o texto virando "Parar" → solta → azul) e que no celular a cor e o
+tamanho de dedo continuam.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

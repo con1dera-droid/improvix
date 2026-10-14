@@ -151,7 +151,7 @@
   // ---------------------------------------------------------------- desenho
 
   function botaoOuvir(tag, midis, instrumento, arpejo, rotulo) {
-    return '<button class="view-btn" data-act="ouvir" data-tag="' + tag + '" data-instr="' + instrumento +
+    return '<button class="view-btn btn-ouvir" data-act="ouvir" data-tag="' + tag + '" data-instr="' + instrumento +
       '" data-arpejo="' + (arpejo ? 1 : 0) + '" data-midis="' + midis.join(',') +
       '" data-label="' + rotulo + '">' + rotulo + '</button>';
   }

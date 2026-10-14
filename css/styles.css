@@ -9,6 +9,12 @@
   --text-dim: #5c6c8f;
   --accent: #3b82f6;
   --accent-2: #22c55e;
+  /* Ouvir: azul claro parado, vermelho tocando. São os botões que mais se
+     procuram no site, então eles não se parecem com nenhum outro. */
+  --ouvir: #7dd3fc;
+  --ouvir-hover: #a5e4fd;
+  --ouvir-ink: #06283d;
+  --parar: #dc2626;
   --tonica: #16a34a;
   --tonica-relativa: #2563eb;
   --subdominante: #7c3aed;
@@ -198,15 +204,48 @@ select, input[type="text"] {
   width: 100%;
 }
 .btn-secondary.playing { background: var(--accent); border-color: var(--accent); color: #fff; }
-/* "Tocar a linha inteira" é a ação principal desta coluna: azul, como o
-   "Outra ideia". Enquanto toca fica vermelho, que no resto do site quer
-   dizer "clique para parar". */
-#btn-tocar-linha {
-  background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600;
+/* "Tocar a linha inteira" é a ação principal desta coluna. A cor dele é a
+   dos botões de ouvir (.btn-ouvir, mais abaixo): azul claro parado, vermelho
+   tocando. Só o peso da letra é dele. Antes tinha cor própria aqui, e como
+   seletor de id ganha de classe, ele ficava azul-escuro enquanto todos os
+   outros botões de som já eram azul claro — pegado por tests/ouvir.smoke.js. */
+#btn-tocar-linha { font-weight: 700; }
+.view-btn.playing { background: var(--parar); border-color: var(--parar); color: #fff; }
+
+/* ============ BOTÕES DE OUVIR ============
+   Todo botão que faz som — ouvir um exercício, uma frase, um acorde, a
+   progressão, a transcrição — é azul claro parado e VERMELHO enquanto toca.
+   Pedido do dono do projeto (14/10/2026): num site cheio de botões cinzas,
+   o que faz som tem de saltar à vista, e o que está tocando ainda mais,
+   porque é nele que se clica para parar.
+   Quem ganha a classe: ver tests/ouvir.smoke.js, que confere a cor de todos. */
+.btn-ouvir,
+.view-btn.btn-ouvir,
+.btn-primary.btn-ouvir,
+.btn-secondary.btn-ouvir {
+  background: var(--ouvir);
+  border: 1px solid var(--ouvir);
+  color: var(--ouvir-ink);
+  font-weight: 600;
 }
-#btn-tocar-linha:hover:not(.playing) { background: #2f6fe0; border-color: #2f6fe0; }
-#btn-tocar-linha.playing { background: #dc2626; border-color: #dc2626; color: #fff; }
-.view-btn.playing { background: #dc2626; border-color: #dc2626; color: #fff; }
+.btn-ouvir:hover:not(.playing),
+.view-btn.btn-ouvir:hover:not(.playing),
+.btn-primary.btn-ouvir:hover:not(.playing),
+.btn-secondary.btn-ouvir:hover:not(.playing) {
+  background: var(--ouvir-hover);
+  border-color: var(--ouvir-hover);
+  color: var(--ouvir-ink);
+}
+.btn-ouvir.playing,
+.view-btn.btn-ouvir.playing,
+.btn-primary.btn-ouvir.playing,
+.btn-secondary.btn-ouvir.playing,
+#btn-tocar-linha.btn-ouvir.playing {
+  background: var(--parar);
+  border-color: var(--parar);
+  color: #fff;
+}
+.btn-ouvir:disabled { opacity: 0.45; }
 .chord-pill { transition: box-shadow 0.15s, transform 0.15s; }
 .chord-pill.playing { box-shadow: 0 0 0 3px rgba(255,255,255,0.55) inset; transform: translateY(-2px); }
 .progressao-nota {

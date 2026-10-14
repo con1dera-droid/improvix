@@ -286,7 +286,7 @@
         '<button class="view-btn" data-act="mover" data-i="' + s.indice + '" data-d="12">↑ oitava</button>' +
         '<button class="view-btn" data-act="mover" data-i="' + s.indice + '" data-d="-12">↓ oitava</button>' +
         '<button class="view-btn" data-act="apagar" data-i="' + s.indice + '">🗑 apagar</button>' +
-        '<button class="view-btn" data-act="ouvir-nota" data-i="' + s.indice + '">🔊 ouvir só ela</button>' +
+        '<button class="view-btn btn-ouvir" data-act="ouvir-nota" data-i="' + s.indice + '">🔊 ouvir só ela</button>' +
         (state.historico[s.indice] && state.historico[s.indice].length
           ? '<button class="view-btn" data-act="desfazer" data-i="' + s.indice + '">↩ desfazer</button>' : '') +
         '<small>ou use as setas ↑ ↓ do teclado; ← → andam de nota</small>' +
@@ -299,8 +299,8 @@
       '<div class="lib-card-title">Seção ' + (s.indice + 1) + ' — compassos ' + s.compasso +
       (s.compassoFim > s.compasso ? '–' + s.compassoFim : '') + '</div>' +
       '<div class="lib-card-actions">' +
-      '<button class="view-btn" data-act="ouvir" data-i="' + s.indice + '" data-label="🔊 Transcrição">🔊 Transcrição</button>' +
-      '<button class="view-btn" data-act="original" data-i="' + s.indice + '" data-label="🎧 Original">🎧 Original</button>' +
+      '<button class="view-btn btn-ouvir" data-act="ouvir" data-i="' + s.indice + '" data-label="🔊 Transcrição">🔊 Transcrição</button>' +
+      '<button class="view-btn btn-ouvir" data-act="original" data-i="' + s.indice + '" data-label="🎧 Original">🎧 Original</button>' +
       '<button class="view-btn" data-act="exercicio" data-i="' + s.indice + '">⭐ Treinar</button>' +
       '</div></div>' +
       '<p class="si-legend">' + s.eventos.length + ' notas · ' +

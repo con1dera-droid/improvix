@@ -265,7 +265,7 @@
                   <select id="input-motivo" title="Deixe variado ou fixe um padrão para atravessar a progressão inteira com ele">
                     <option value="">Automático (variado)</option>
                   </select>
-                  <button class="btn-secondary" id="btn-tocar-linha" title="Toca todas as frases em sequência, com o acompanhamento">▶ Tocar a linha inteira</button>
+                  <button class="btn-secondary btn-ouvir" id="btn-tocar-linha" title="Toca todas as frases em sequência, com o acompanhamento">▶ Tocar a linha inteira</button>
                   <div class="transport" data-transport="linha"><button type="button" class="tr-btn tr-metro" data-act="metro" title="Metrônomo (liga/desliga)" aria-pressed="false">⏱</button><button type="button" class="tr-btn" data-act="menos" title="Mais devagar (−5 bpm)">−</button><span class="tr-bpm" title="Andamento"><input type="number" class="tr-bpm-input" min="40" max="240" step="1" value="100" aria-label="Andamento em bpm"/><small>bpm</small></span><button type="button" class="tr-btn" data-act="mais" title="Mais rápido (+5 bpm)">+</button><button type="button" class="tr-btn tr-loop" data-act="loop" title="Repetir (toca em loop até você parar)" aria-pressed="false">🔁</button></div>
                 </div>
                 <div id="lista-fraseados" class="phrase-list"></div>
@@ -284,7 +284,7 @@
                   <button class="view-btn" data-view="tab">Tab</button>
                   <button class="view-btn" data-view="partitura">Partitura</button>
                   <button class="view-btn" data-view="cifra">Cifra</button>
-                  <button class="view-btn" data-view="audio" title="Tocar este fraseado">🔊 Áudio</button>
+                  <button class="view-btn btn-ouvir" data-view="audio" title="Tocar este fraseado">🔊 Áudio</button>
                 </div>
 
                 <div class="fraseado-actions">
@@ -334,7 +334,7 @@
             </div>
             <p class="muted-note">Backing sintetizado no navegador (sem gravações, sem custo).</p>
 <div class="transport" data-transport="prog"><button type="button" class="tr-btn tr-metro" data-act="metro" title="Metrônomo (liga/desliga)" aria-pressed="false">⏱</button><button type="button" class="tr-btn" data-act="menos" title="Mais devagar (−5 bpm)">−</button><span class="tr-bpm" title="Andamento"><input type="number" class="tr-bpm-input" min="40" max="240" step="1" value="110" aria-label="Andamento em bpm"/><small>bpm</small></span><button type="button" class="tr-btn" data-act="mais" title="Mais rápido (+5 bpm)">+</button><button type="button" class="tr-btn tr-loop" data-act="loop" title="Repetir (toca em loop até você parar)" aria-pressed="false">🔁</button></div>
-            <button class="btn-secondary" id="btn-play-progressao">▶ Tocar progressão</button>
+            <button class="btn-secondary btn-ouvir" id="btn-play-progressao">▶ Tocar progressão</button>
           </div>
 
           <div class="card side-card">
@@ -599,7 +599,7 @@
         </div>
         <div class="pad-nav">
           <button class="btn-secondary" id="btn-pad-ant" title="Padrão anterior">◀ Anterior</button>
-          <button class="btn-primary" id="btn-pad-tocar">▶ Tocar todos os tons</button>
+          <button class="btn-primary btn-ouvir" id="btn-pad-tocar">▶ Tocar todos os tons</button>
           <button class="btn-secondary" id="btn-pad-prox" title="Próximo padrão">Próximo ▶</button>
           <span class="pad-view-toggle">
             <button class="view-btn pad-view active" data-v="partitura">Partitura</button>

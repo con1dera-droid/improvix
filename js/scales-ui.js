@@ -158,7 +158,7 @@
     }
     return '<div class="lib-card esc-ex">' +
       '<div class="lib-card-head"><div class="lib-card-title">' + (i + 1) + '. ' + esc(ex.title) + '</div>' +
-      '<div class="lib-card-actions"><button class="view-btn" data-act="ouvir-ex" data-i="' + i + '" data-label="🔊 Ouvir">🔊 Ouvir</button></div></div>' +
+      '<div class="lib-card-actions"><button class="view-btn btn-ouvir" data-act="ouvir-ex" data-i="' + i + '" data-label="🔊 Ouvir">🔊 Ouvir</button></div></div>' +
       '<p class="si-legend">' + esc(ex.dica) + '</p>' +
       '<div class="lib-card-body">' + body + notasHTML(ex) + '</div></div>';
   }
@@ -200,7 +200,7 @@
       '<span class="lib-badge">' + nf.notes.length + ' notas</span>' +
       '<span class="lib-badge lib-badge-chord"><strong>' + esc(chord.symbol) + '</strong> ' + esc(chord.tones.join(' – ')) + '</span></div></div>' +
       '<div class="esc-head-actions">' +
-      '<button class="view-btn" data-act="ouvir-escala" data-label="🔊 Ouvir a escala">🔊 Ouvir a escala</button>' +
+      '<button class="view-btn btn-ouvir" data-act="ouvir-escala" data-label="🔊 Ouvir a escala">🔊 Ouvir a escala</button>' +
       (temFraseados ? '<button class="view-btn" data-act="ir-fraseados">🎼 Fraseados nesta escala</button>' : '') +
       '</div></div>' +
       '<div class="transport" data-transport="escala">' +

@@ -197,6 +197,7 @@ tests/escalas.test.js  Testes da Biblioteca de Escalas — node tests/escalas.te
 tests/escalas.smoke.js Smoke test da tela Biblioteca de Escalas
 tests/som.smoke.js     Mede o volume real na saída de áudio em cada modo e instrumento
 tests/toque.smoke.js   Mede o TOQUE: variação de força entre as notas e silêncio entre elas
+tests/ouvir.smoke.js   Confere a cor dos 80 botões de ouvir (azul parado, vermelho tocando)
 tests/tablatura.test.js Confere que a tablatura bate com as notas (512 mil casas)
 tests/screenshot*.js   Scripts opcionais de checagem visual com Playwright (dev only)
 docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos, status e guias do Supabase/Planos
@@ -235,6 +236,7 @@ node tests/acordes.test.js
 node tests/acordes.smoke.js
 node tests/toque.smoke.js
 node tests/tablatura.test.js
+node tests/ouvir.smoke.js
 ```
 
 `tests/celular.smoke.js` percorre o site em três tamanhos de telefone

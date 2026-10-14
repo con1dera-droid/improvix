@@ -192,7 +192,7 @@
         var lbl = v === 'partitura' ? 'Partitura' : (v === 'tab' ? 'Tab' : 'Notas');
         return '<button class="view-btn lib-view' + (v === view ? ' active' : '') + '" data-v="' + v + '">' + lbl + '</button>';
       }).join('') +
-      '<button class="view-btn lib-play" data-play="1">🔊 Ouvir</button></div></div>' +
+      '<button class="view-btn lib-play btn-ouvir" data-play="1">🔊 Ouvir</button></div></div>' +
       '<div class="lib-badges">' + badges + '</div>' +
       '<div class="lib-card-body">' + body + '</div>' +
       '<p class="lib-explicacao">' + p.explanation + (artTxt ? ' ' + artTxt : '') + '</p>' +

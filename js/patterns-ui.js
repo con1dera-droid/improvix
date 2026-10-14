@@ -162,7 +162,7 @@
       line.chords.map(function (c) {
         return esc(c.symbol) + ' <span class="chord-notes-inline">(' + esc(window.IL.theory.chordNotesText(c.symbol)) + ')</span>';
       }).join(' · ') + '</div>' +
-      '<div class="lib-card-actions"><button class="view-btn lib-play' + (playing ? ' playing' : '') + '" data-play="1">' +
+      '<div class="lib-card-actions"><button class="view-btn lib-play btn-ouvir' + (playing ? ' playing' : '') + '" data-play="1">' +
       (playing ? '⏸ Parar' : '🔊 Ouvir') + '</button></div></div>' +
       '<div class="lib-card-body">' + body + '</div></div>';
   }
