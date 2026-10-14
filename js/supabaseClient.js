@@ -159,6 +159,17 @@
     return c.from('profiles').select('*').order('criado_em', { ascending: false });
   }
 
+  /**
+   * Exclui a conta de alguém, com os dados dela. Quem decide se pode é o
+   * banco: excluir_conta() recusa quem não é admin e recusa a própria conta
+   * do admin (ver sql/schema.sql).
+   */
+  function excluirConta(id) {
+    var c = getClient();
+    if (!c || !c.rpc) return Promise.resolve({ data: null, error: notConfiguredError() });
+    return Promise.resolve(c.rpc('excluir_conta', { alvo: id }));
+  }
+
   /** `patch`: { plano } | { papel } | { bloqueado, motivo_bloqueio } */
   function updateProfile(id, patch) {
     var c = getClient();
@@ -276,6 +287,7 @@
     registrarAcesso: registrarAcesso,
     listProfiles: listProfiles,
     updateProfile: updateProfile,
+    excluirConta: excluirConta,
     enviarSenhaNova: enviarSenhaNova,
     trocarSenha: trocarSenha,
     getConfig: getConfig,

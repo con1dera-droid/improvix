@@ -121,6 +121,48 @@ $$;
 revoke all on function public.registrar_acesso() from public;
 grant execute on function public.registrar_acesso() to authenticated;
 
+-- Excluir uma conta, com tudo que ela guardou.
+--
+-- Precisa ser uma função `security definer` por um motivo simples: as
+-- políticas das tabelas de dados só deixam cada um mexer no que é seu
+-- (`auth.uid() = user_id`), então nem o administrador consegue apagar o
+-- histórico de outra pessoa pela API — e deixar os dados órfãos seria pior do
+-- que não excluir. Aqui dentro, a função confere quem está chamando antes de
+-- apagar qualquer coisa.
+--
+-- O que ela NÃO faz: apagar o login da pessoa no Supabase Auth. Isso exigiria
+-- a chave `service_role`, que nunca entra no site. Quem quiser remover de vez
+-- apaga em Authentication > Users, no painel. Sem o perfil, a pessoa já não
+-- entra: `pode_usar()` passa a ser falso para ela.
+create or replace function public.excluir_conta(alvo uuid)
+returns boolean
+language plpgsql security definer set search_path = public
+as $$
+begin
+  if not public.eh_admin(auth.uid()) then
+    raise exception 'só quem administra pode excluir contas';
+  end if;
+  if alvo = auth.uid() then
+    raise exception 'o administrador não pode excluir a própria conta';
+  end if;
+  if not exists (select 1 from public.profiles where id = alvo) then
+    return false;
+  end if;
+
+  delete from public.analises where user_id = alvo;
+  delete from public.favoritos where user_id = alvo;
+  delete from public.exercicios where user_id = alvo;
+  -- o convite volta a valer: o e-mail pode ser convidado de novo
+  delete from public.convites
+   where lower(email) = (select lower(email) from public.profiles where id = alvo);
+  delete from public.profiles where id = alvo;
+  return true;
+end;
+$$;
+
+revoke all on function public.excluir_conta(uuid) from public;
+grant execute on function public.excluir_conta(uuid) to authenticated;
+
 -- ============================================================
 -- 1b) config_sistema — a configuração que o administrador controla
 --

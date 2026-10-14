@@ -182,3 +182,22 @@ nada ainda.
 ² Nem o admin: a coluna é revertida pelo trigger. Conferido em
 `tests/rls.sql` ("ninguém inventa a própria data de acesso", "nem o admin
 reescreve o acesso de outra pessoa").
+
+## Excluir conta (2026-10-14)
+
+| Ação | Sem conta | Esperando | Liberado | Admin |
+|---|---|---|---|---|
+| Excluir a conta de outra pessoa | ❌ | ❌ | ❌ | ✅ |
+| Excluir a própria conta | ❌ | ❌ | ❌ | ❌¹ |
+| Apagar dados de estudo de outra pessoa | ❌ | ❌ | ❌ | ✅² |
+
+¹ Nem o admin: é o que garante que a plataforma não fique sem dono.
+
+² Só por dentro de `public.excluir_conta()`, junto com o perfil. Fora dela,
+nenhuma política dá a ninguém acesso aos dados de estudo de outra pessoa —
+inclusive ao admin.
+
+O que a exclusão **não** faz: apagar o login em `auth.users`. Isso exige a
+chave `service_role`, que nunca entra no site; o admin remove em
+*Authentication > Users*. Sem perfil, `pode_usar()` é falso e a pessoa não
+entra — e, se tentar, recebe o aviso de que a conta foi removida.

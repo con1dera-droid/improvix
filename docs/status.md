@@ -1516,6 +1516,48 @@ coluna fica vazia até o script ser rodado.
 usar, o banco guardou a hora das duas contas, e uma tentativa de reescrever a
 própria data pela API não cola.
 
+## Excluir conta: uma lixeira na aba Contas — ✅ (2026-10-14)
+
+Pedido do dono do projeto, com o acerto de que fosse *"um pequeno ícone de
+lixeira"* — e não mais um botão competindo com as ações do dia a dia. Ele fica
+discreto na linha, vermelho ao passar o mouse, como as outras ações de perigo.
+
+**A regra mora no banco, não no botão.** `public.excluir_conta(alvo)` é
+`security definer` por necessidade: as políticas das tabelas de dados só
+deixam cada um mexer no que é seu (`auth.uid() = user_id`), então nem o
+administrador conseguiria apagar o histórico de outra pessoa pela API — e
+deixar os dados órfãos seria pior do que não excluir. Dentro da função:
+recusa quem não é admin, recusa a própria conta do admin (senão a plataforma
+fica sem dono), e aí apaga análises, favoritos, exercícios, o convite daquele
+e-mail (para poder convidar de novo) e o perfil.
+
+Seis regras novas em `tests/rls.sql` — agora **50**, num PostgreSQL de
+verdade: usuário comum não exclui ninguém, o admin não exclui a si mesmo, a
+conta tinha dados antes, o admin exclui outra pessoa, o perfil sai e os dados
+vão junto sem sobrar órfão.
+
+**Confirmação que dá trabalho de propósito**: é a única ação da tela que não
+dá para desfazer, e em "tem certeza?" todo mundo clica no automático. Então o
+site pede para **escrever o e-mail da pessoa**. E-mail errado não apaga nada e
+diz isso.
+
+**O limite, dito na cara**: o login no Supabase Auth **continua existindo** —
+apagá-lo exigiria a chave `service_role`, que nunca entra no site. Na prática
+a pessoa já não entra (sem perfil, `pode_usar()` é falso); para sumir de vez,
+o admin remove em *Authentication > Users*, no painel. O aviso na tela diz
+isso depois de excluir.
+
+**E quem foi excluído, se voltar?** Antes ficaria olhando a tela de entrada
+sem entender. Agora, sessão válida e perfil nenhum vira um aviso claro ("a
+conta foi removida por quem administra") e a sessão é encerrada. Com uma
+segunda tentativa antes de desistir, porque logo depois do cadastro o perfil
+pode demorar um instante para aparecer — sem isso, um cadastro novo seria
+derrubado por engano.
+
+`tests/admin.smoke.js` cobre o caminho inteiro: e-mail errado não exclui, o
+certo exclui, os dados somem junto, o aviso aparece, e quem foi excluído
+recebe a explicação ao tentar voltar.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

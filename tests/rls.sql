@@ -248,6 +248,43 @@ begin
   select count(*) into n from public.profiles where ultimo_acesso is not null;
   insert into resultado values (n >= 1, 'o admin enxerga o último acesso das contas (viu ' || n || ')');
 
+  -- ===================== excluir conta =====================
+  -- A exclusão é a ação mais perigosa da tela: a regra tem de estar aqui, e
+  -- não no botão. Quem não é admin não apaga ninguém, nem a si mesmo; o admin
+  -- não apaga a própria conta (senão a plataforma fica sem dono); e quando
+  -- apaga alguém, os dados daquela pessoa vão junto, sem sobrar órfão.
+  perform set_config('request.jwt.claim.sub', alvo_id::text, true);
+  begin
+    perform public.excluir_conta(admin_id);
+    insert into resultado values (false, 'usuário comum NÃO exclui a conta de outra pessoa');
+  exception when others then
+    insert into resultado values (true, 'usuário comum NÃO exclui a conta de outra pessoa');
+  end;
+
+  perform set_config('request.jwt.claim.sub', admin_id::text, true);
+  begin
+    perform public.excluir_conta(admin_id);
+    insert into resultado values (false, 'o admin NÃO exclui a própria conta');
+  exception when others then
+    insert into resultado values (true, 'o admin NÃO exclui a própria conta');
+  end;
+
+  -- o alvo tem dados guardados antes de ser excluído
+  set local role postgres;
+  select count(*) into n from public.analises where user_id = alvo_id;
+  insert into resultado values (n >= 1, 'antes de excluir, a conta tinha dados (' || n || ')');
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', admin_id::text, true);
+  select public.excluir_conta(alvo_id) into b;
+  insert into resultado values (b, 'o admin exclui a conta de outra pessoa');
+
+  set local role postgres;
+  select count(*) into n from public.profiles where id = alvo_id;
+  insert into resultado values (n = 0, 'o perfil sai da lista');
+  select count(*) into n from public.analises where user_id = alvo_id;
+  insert into resultado values (n = 0, 'e os dados dela vão junto, sem sobrar órfão (' || n || ')');
+
   -- ===================== visitante (sem sessão) =====================
   set local role authenticated;
   perform set_config('request.jwt.claim.sub', '', true);

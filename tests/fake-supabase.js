@@ -176,9 +176,29 @@ const FAKE_SUPABASE = `
       bloqueado: false, modulos: null, ultimo_acesso: null, criado_em: new Date().toISOString()
     });
   };
+  /** excluir_conta(): as mesmas recusas do banco, e os dados vão junto. */
+  FakeClient.prototype._excluirConta = function (alvo) {
+    var eu = this.auth.currentUser ? this.auth.currentUser.id : null;
+    var meu = this.store.profiles.filter(function (p) { return p.id === eu; })[0];
+    var souAdmin = !!(meu && meu.papel === 'admin' && meu.aprovado && !meu.bloqueado);
+    if (!souAdmin) return Promise.resolve({ data: null, error: { message: 'só quem administra pode excluir contas' } });
+    if (alvo === eu) return Promise.resolve({ data: null, error: { message: 'o administrador não pode excluir a própria conta' } });
+    var p = this.store.profiles.filter(function (x) { return x.id === alvo; })[0];
+    if (!p) return Promise.resolve({ data: false, error: null });
+    var store = this.store;
+    ['analises', 'favoritos', 'exercicios'].forEach(function (t) {
+      store[t] = (store[t] || []).filter(function (r) { return r.user_id !== alvo; });
+    });
+    store.convites = (store.convites || []).filter(function (c) {
+      return String(c.email).toLowerCase() !== String(p.email).toLowerCase();
+    });
+    store.profiles = store.profiles.filter(function (x) { return x.id !== alvo; });
+    return Promise.resolve({ data: true, error: null });
+  };
   FakeClient.prototype.from = function (n) { return new FakeTable(this, n); };
   /** As funções do banco (rpc). Hoje só registrar_acesso(). */
-  FakeClient.prototype.rpc = function (nome) {
+  FakeClient.prototype.rpc = function (nome, args) {
+    if (nome === 'excluir_conta') return this._excluirConta(args && args.alvo);
     if (nome !== 'registrar_acesso') return Promise.resolve({ data: null, error: { message: 'função desconhecida' } });
     var eu = this.auth.currentUser ? this.auth.currentUser.id : null;
     if (!eu) return Promise.resolve({ data: null, error: null });

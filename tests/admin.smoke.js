@@ -161,7 +161,51 @@ const COMUM = 'comum@teste.com';
   await page.waitForTimeout(700);
   ok(!!(await page.$('#btn-sair')), 'desbloqueado consegue entrar de novo');
 
-  // 6) a tela de administração num celular
+  // 6) excluir uma conta
+  // O e-mail errado não exclui nada; o certo exclui, leva os dados junto e a
+  // pessoa, se voltar, é avisada de que a conta foi removida.
+  await sair(page);
+  await entrar(page, ADMIN, false);
+  await page.waitForTimeout(500);
+  await abrirAdmin();
+  await page.evaluate((email) => {
+    window.__respostaPrompt = 'não é o e-mail';
+    window.prompt = function () { return window.__respostaPrompt; };
+    // dá um dado salvo para a conta, para ver se some junto
+    window.__fake.store.analises = [{ id: 'a1', user_id: window.__fake.store.profiles.find((p) => p.email === email).id }];
+  }, COMUM);
+  await page.click(LINHA + ' [data-adm="excluir"]');
+  await page.waitForTimeout(400);
+  ok(/não é o de/i.test(await page.$eval('#admin-conteudo .tra-aviso', (x) => x.textContent)),
+    'escrever o e-mail errado NÃO exclui a conta');
+  ok((await page.$$eval('.adm-tabela tbody tr[data-uid]', (r) => r.length)) === 2, 'e a conta continua na lista');
+
+  await page.evaluate((email) => { window.__respostaPrompt = email; }, COMUM);
+  await page.click(LINHA + ' [data-adm="excluir"]');
+  await page.waitForTimeout(600);
+  ok((await page.$$eval('.adm-tabela tbody tr[data-uid]', (r) => r.length)) === 1,
+    'escrevendo o e-mail certo, a conta sai da lista');
+  const sobrou = await page.evaluate(() => ({
+    perfis: window.__fake.store.profiles.length,
+    analises: (window.__fake.store.analises || []).length
+  }));
+  ok(sobrou.perfis === 1 && sobrou.analises === 0,
+    'e os dados dela vão junto, sem sobrar órfão (perfis: ' + sobrou.perfis + ', análises: ' + sobrou.analises + ')');
+  ok(/foi excluída/i.test(await page.$eval('#admin-conteudo .tra-aviso', (x) => x.textContent)),
+    'o admin vê a confirmação do que aconteceu');
+
+  // quem foi excluído e tenta voltar recebe o aviso, não uma tela muda
+  await sair(page);
+  await entrar(page, COMUM, false);
+  await page.waitForTimeout(2600);
+  const avisoRemovida = await page.$eval('#auth-modal-msg', (e) => e.textContent);
+  ok(!(await page.$('#btn-sair')), 'quem foi excluído NÃO entra');
+  ok(/removida/i.test(avisoRemovida), 'e vê o motivo: "' + avisoRemovida.slice(0, 60) + '…"');
+
+  await entrar(page, ADMIN, false);
+  await page.waitForTimeout(500);
+
+  // 7) a tela de administração num celular
   await sair(page);
   await entrar(page, ADMIN, false);
   await page.waitForTimeout(500);
@@ -184,7 +228,7 @@ const COMUM = 'comum@teste.com';
   ok(cel.estoura <= 0, 'CELULAR: a tela de administração cabe na tela do telefone' +
     (cel.estoura > 0 ? ' (estoura ' + cel.estoura + 'px)' : ''));
   ok(cel.tabelaRola, 'CELULAR: a tabela de contas rola dentro da própria caixa');
-  ok(cel.linhas >= 2, 'CELULAR: as contas continuam listadas (' + cel.linhas + ')');
+  ok(cel.linhas >= 1, 'CELULAR: as contas continuam listadas (' + cel.linhas + ')');
 
   console.log('\nErros de página:', erros.length ? erros : 'nenhum');
   if (erros.length) falhas += erros.length;

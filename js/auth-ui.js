@@ -625,6 +625,8 @@
           (ehAdmin ? '↓ Tirar admin' : '👑 Tornar admin') + '</button>' +
           '<button class="view-btn" data-adm="telas" data-id="' + p.id + '">🖥 Telas</button>' +
           '<button class="view-btn" data-adm="senha" data-id="' + p.id + '">🔑 Senha nova</button>' +
+          '<button class="view-btn adm-perigo adm-lixeira" data-adm="excluir" data-id="' + p.id +
+          '" title="Excluir esta conta e tudo que ela guardou">🗑</button>' +
           '<button class="view-btn ' + (p.bloqueado ? '' : 'adm-perigo') + '" data-adm="bloqueio" data-id="' + p.id + '">' +
           (p.bloqueado ? '✓ Desbloquear' : '⛔ Bloquear') + '</button>';
 
@@ -748,9 +750,44 @@
     return mapa;
   }
 
+  /**
+   * Excluir uma conta. Pede para escrever o e-mail antes: é a única ação da
+   * tela que não dá para desfazer, e "tem certeza?" todo mundo clica no
+   * automático. O banco também recusa o que não pode (ver excluir_conta no
+   * sql/schema.sql) — aqui o cuidado é com a mão, não com a segurança.
+   */
+  function excluirConta(id) {
+    var p = adminState.lista.filter(function (x) { return x.id === id; })[0];
+    if (!p) return;
+    var digitado = window.prompt(
+      'Excluir a conta de ' + p.email + '?\n\n' +
+      'Isto apaga o histórico, os favoritos e os exercícios dessa pessoa, e não dá para desfazer.\n\n' +
+      'Para confirmar, escreva o e-mail dela:');
+    if (digitado === null) return;                       // desistiu
+    if (digitado.trim().toLowerCase() !== String(p.email || '').toLowerCase()) {
+      adminState.aviso = 'Não excluí nada: o e-mail escrito não é o de ' + p.email + '.';
+      desenharAdmin();
+      return;
+    }
+    adminState.aviso = 'Excluindo…';
+    desenharAdmin();
+    Promise.resolve(db.excluirConta(id)).then(function (res) {
+      if (res && res.error) { adminState.aviso = 'Não deu certo: ' + res.error.message; desenharAdmin(); return; }
+      adminState.lista = adminState.lista.filter(function (x) { return x.id !== id; });
+      adminState.aviso = 'A conta de ' + p.email + ' foi excluída, com tudo que ela tinha salvo. ' +
+        'O login dela no Supabase continua existindo (sem perfil, ela não entra); ' +
+        'para apagar de vez, remova em Authentication > Users, no painel do Supabase.';
+      desenharAdmin();
+    }).catch(function (e) {
+      adminState.aviso = 'Não deu certo: ' + ((e && e.message) || 'erro inesperado');
+      desenharAdmin();
+    });
+  }
+
   function acaoAdmin(acao, id, botao) {
     if (acao === 'aba') { adminState.aba = botao.getAttribute('data-v'); adminState.aviso = ''; desenharAdmin(); return; }
     if (acao === 'recarregar') { adminState.lista = []; adminState.aviso = ''; renderAdminView(); return; }
+    if (acao === 'excluir') { excluirConta(id); return; }
     if (acao === 'telas') { adminState.editandoTelas = id; desenharAdmin(); return; }
     if (acao === 'telas-fechar') { adminState.editandoTelas = null; desenharAdmin(); return; }
 
@@ -983,6 +1020,26 @@
     });
   }
 
+  var perfilSumiu = false;   // ver o trecho "sessão válida e perfil nenhum"
+
+  /** A conta foi excluída por quem administra: encerra a sessão explicando. */
+  function contaRemovida() {
+    var email = currentUser ? currentUser.email : '';
+    perfilSumiu = false;
+    currentProfile = null;
+    db.signOut().then(function () {
+      currentUser = null;
+      renderHeader();
+      syncAdminNav();
+      aplicarModulos();
+      notifyAccountChange();
+      openAuthModal();
+      atualizarPortao();
+      setAuthMsg('A conta de ' + email + ' foi removida por quem administra o IMPROVIX. ' +
+        'Se achar que é engano, fale com o administrador.', true);
+    });
+  }
+
   function refreshUserAndProfile(session) {
     currentUser = session ? session.user : null;
     if (!currentUser) {
@@ -1000,6 +1057,18 @@
     }
     db.getProfile(currentUser.id).then(function (res) {
       currentProfile = res.data || null;
+      // Sessão válida e perfil nenhum: é a conta que o administrador excluiu
+      // (o login no Supabase continua existindo). Sem isto a pessoa ficaria
+      // olhando a tela de entrada sem entender por quê. Uma segunda tentativa
+      // antes de desistir, porque logo depois do cadastro o perfil pode
+      // demorar um instante para aparecer.
+      if (!currentProfile) {
+        if (perfilSumiu) { contaRemovida(); return; }
+        perfilSumiu = true;
+        setTimeout(function () { refreshUserAndProfile(session); }, 1200);
+        return;
+      }
+      perfilSumiu = false;
       if (currentProfile && currentProfile.bloqueado) { cortarAcessoBloqueado(); return; }
       // Marca o último acesso: uma vez por visita, e só para quem entrou de
       // verdade (quem está esperando liberação ou bloqueado não "usou" nada).
