@@ -129,9 +129,16 @@ sistema é o administrador**, carimbado pelo próprio banco (trigger
 
 **Aba Sistema** — a configuração geral:
 
-* **Quem pode entrar**: *Com aprovação* (padrão), *Cadastro livre* (cria e
-  já usa) ou *Fechado* (não aparece botão de criar conta — só entra quem
-  você convidar).
+* **Quem pode entrar**: *Com aprovação* (padrão — a pessoa confirma o
+  e-mail e fica esperando você liberar na aba Contas), *Confirmou o e-mail,
+  já entra* (clicou no link de confirmação, está dentro, sem esperar por
+  você) ou *Fechado* (não aparece botão de criar conta — só entra quem você
+  convidar). Nos três, confirmar o e-mail é obrigatório: isso é do Supabase
+  e não se desliga aqui; o que muda é o que acontece **depois** da
+  confirmação. Escolhendo *Confirmou o e-mail, já entra*, você continua
+  podendo suspender a liberação, bloquear ou excluir qualquer conta depois,
+  na aba Contas — as três fichas ficam desenhadas como cartões, com a
+  explicação embaixo do nome, e a escolhida acende na hora do clique.
 * **Recado na tela de entrada**: aparece para todo mundo antes de entrar
   (ex.: "Aula na quinta, 19h. Quem ainda não tem acesso, me chame no
   WhatsApp").

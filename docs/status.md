@@ -1668,6 +1668,44 @@ testes e tem limite baixo de envios por hora (visível em *Authentication >
 Rate Limits*): se um aluno disser que o e-mail não chegou, é o primeiro lugar
 para olhar.
 
+## Confirmou o e-mail, já entra — ✅ (2026-10-14)
+
+Pedido do dono: *"quando a pessoa confirme o e-mail já libere o acesso dela;
+aí se eu como administrador quiser tirar, eu tiro depois"*.
+
+**Não foi preciso mecanismo novo** — isso já existia e se chamava "Cadastro
+livre" na aba Sistema. O trigger `handle_new_user` nasce com `aprovado = true`
+quando a configuração está em `livre`, e o Supabase só deixa entrar depois do
+link de confirmação; somando os dois, o efeito é exatamente "confirmou →
+entra". O problema era de **nome e de leitura**: "Cadastro livre" soa como
+"entra qualquer um sem confirmar nada", que é o oposto do que acontece, e as
+três escolhas apareciam grudadas numa linha só de texto corrido — a classe
+`.adm-modo` nunca tinha ganhado estilo, então nome e explicação saíam coladas
+e ninguém entendia o que estava marcando.
+
+O que mudou:
+
+* O modo passou a se chamar **"Confirmou o e-mail, já entra"**, e cada
+  explicação diz o que acontece depois da confirmação, incluindo que você
+  continua podendo suspender, bloquear ou excluir na aba Contas.
+* Uma legenda acima das três opções diz o que vale para todas: confirmar o
+  e-mail é obrigatório sempre, porque é do Supabase — o que muda ali é só o
+  **depois**.
+* As três viraram cartões de verdade (`.adm-modos`/`.adm-modo` no CSS): nome
+  em cima, explicação embaixo, a escolhida com a borda acesa — e o aceso
+  acompanha o clique, em vez de esperar o "Salvar configuração".
+
+**Medido, não achado**: o `tests/admin.smoke.js` agora compara as posições na
+tela — exige que a explicação de cada modo fique *abaixo* do nome (e não ao
+lado), que cada ficha ocupe a linha inteira e que exatamente um cartão fique
+aceso no instante do clique. Bateria inteira repassada: 12 testes de unidade
+(incluindo 1.023.389 casas de tablatura) e 27 smokes de navegador, sem erro de
+página.
+
+Para o dono, na prática: **Administração → Sistema → "Confirmou o e-mail, já
+entra" → Salvar configuração**. Quem já estiver esperando na aba Contas
+continua esperando — esses saem com o "✓ Liberar acesso".
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

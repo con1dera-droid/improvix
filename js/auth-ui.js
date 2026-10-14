@@ -738,18 +738,28 @@
     var cfg = configSistema || {};
     var modo = cfg.cadastro || 'aprovacao';
     var MODOS = [
-      ['aprovacao', 'Com aprovação', 'A pessoa se cadastra e fica esperando você liberar. É o padrão.'],
-      ['livre', 'Cadastro livre', 'Qualquer um cria a conta e já usa. Você continua podendo bloquear depois.'],
-      ['fechado', 'Fechado', 'Não aparece botão de criar conta. Só entra quem você convidar pelo e-mail, aqui embaixo.']
+      ['aprovacao', 'Com aprovação',
+        'A pessoa se cadastra, confirma o e-mail e fica esperando você liberar na aba Contas. ' +
+        'Bom quando você quer olhar quem é antes de abrir a porta.'],
+      ['livre', 'Confirmou o e-mail, já entra',
+        'Quem se cadastra entra assim que clicar no link de confirmação — sem esperar por você. ' +
+        'Você continua podendo suspender a liberação, bloquear ou excluir depois, na aba Contas.'],
+      ['fechado', 'Fechado',
+        'Não aparece botão de criar conta. Só entra quem você convidar pelo e-mail, aqui embaixo.']
     ];
 
     return '<div class="adm-sec">' +
       '<h4 class="esc-grupo">Quem pode entrar</h4>' +
+      '<p class="si-legend">Nos três, a pessoa só consegue entrar depois de confirmar o e-mail ' +
+      '— isso é do Supabase e vale sempre. O que muda aqui é o que acontece <strong>depois</strong> ' +
+      'da confirmação.</p>' +
+      '<div class="adm-modos">' +
       MODOS.map(function (m) {
         return '<label class="adm-modo' + (modo === m[0] ? ' is-on' : '') + '">' +
           '<input type="radio" name="adm-cadastro" value="' + m[0] + '"' + (modo === m[0] ? ' checked' : '') + '/>' +
           '<span><strong>' + m[1] + '</strong><small>' + m[2] + '</small></span></label>';
       }).join('') +
+      '</div>' +
       '</div>' +
 
       '<div class="adm-sec">' +
@@ -835,6 +845,16 @@
     $('admin-conteudo').querySelectorAll('[data-adm]').forEach(function (b) {
       b.addEventListener('click', function () {
         acaoAdmin(b.getAttribute('data-adm'), b.getAttribute('data-id'), b);
+      });
+    });
+    // O cartão aceso tem de acompanhar a bolinha na hora de clicar; se só
+    // mudasse ao salvar, ficaria dizendo que vale o modo antigo.
+    $('admin-conteudo').querySelectorAll('input[name="adm-cadastro"]').forEach(function (r) {
+      r.addEventListener('change', function () {
+        $('admin-conteudo').querySelectorAll('.adm-modo').forEach(function (lab) {
+          var alvo = lab.querySelector('input[name="adm-cadastro"]');
+          lab.classList.toggle('is-on', !!(alvo && alvo.checked));
+        });
       });
     });
   }

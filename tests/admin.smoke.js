@@ -53,7 +53,24 @@ const COMUM = 'comum@teste.com';
   await abrirAdmin();
   await page.click('[data-adm="aba"][data-v="sistema"]');
   await page.waitForTimeout(300);
+
+  // As três escolhas de "Quem pode entrar" precisam ser lidas: cada uma um
+  // cartão, com a explicação embaixo do nome — e não tudo grudado numa
+  // linha só, como ficava quando a classe .adm-modo não tinha estilo.
+  const modos = await page.$$eval('.adm-modo', (labels) => labels.map((lab) => {
+    const nome = lab.querySelector('strong').getBoundingClientRect();
+    const desc = lab.querySelector('small').getBoundingClientRect();
+    return { valor: lab.querySelector('input').value, abaixo: desc.top >= nome.bottom - 1, largura: lab.getBoundingClientRect().width };
+  }));
+  ok(modos.length === 3, 'as três escolhas de quem pode entrar aparecem');
+  ok(modos.every((m) => m.abaixo), 'a explicação de cada modo fica embaixo do nome, não na mesma linha');
+  ok(modos.every((m) => m.largura > 300), 'cada modo ocupa a linha inteira, como um cartão');
+
   await page.click('input[name="adm-cadastro"][value="livre"]');
+  await page.waitForTimeout(150);
+  const aceso = await page.$$eval('.adm-modo.is-on', (l) => l.map((x) => x.querySelector('input').value));
+  ok(aceso.length === 1 && aceso[0] === 'livre', 'o cartão aceso acompanha a bolinha na hora do clique');
+
   await page.click('[data-adm="salvar-sistema"]');
   await page.waitForTimeout(500);
   await sair(page);
