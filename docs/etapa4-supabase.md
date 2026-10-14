@@ -171,7 +171,9 @@ a pessoa de volta. Com o campo errado, os e-mails mandam para
 ## Atualizando um projeto que já existia
 
 O `sql/schema.sql` é **idempotente**: dá para rodar de novo no SQL Editor
-sem perder nada — ele cria o que falta (`aprovado`, `modulos`,
+sem perder nada (e é preciso rodar de novo a cada novidade do banco — a
+última foi o **último acesso** de cada conta, em 14/10/2026: sem rodar, a
+coluna aparece vazia na Administração) — ele cria o que falta (`aprovado`, `modulos`,
 `config_sistema`, `convites`, a função `pode_usar`) e atualiza as políticas.
 
 Um detalhe importante nessa atualização: as contas que **já existiam**

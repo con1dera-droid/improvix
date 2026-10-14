@@ -132,6 +132,21 @@
     return c.from('profiles').select('*').eq('id', userId).single();
   }
 
+  /**
+   * Diz ao banco que esta pessoa está usando o site agora.
+   *
+   * Não manda data nenhuma: quem carimba a hora é o `now()` do PostgreSQL,
+   * dentro de registrar_acesso() (ver sql/schema.sql). Falhar aqui não pode
+   * atrapalhar ninguém — se der erro, o site segue normalmente.
+   */
+  function registrarAcesso() {
+    var c = getClient();
+    if (!c || !c.rpc) return Promise.resolve({ data: null, error: null });
+    return Promise.resolve(c.rpc('registrar_acesso')).catch(function () {
+      return { data: null, error: null };
+    });
+  }
+
   // ---------------- Administração ----------------
   // Quem pode o quê é decidido pelo BANCO (ver sql/schema.sql): para um
   // usuário comum, listProfiles devolve só o próprio perfil e qualquer
@@ -258,6 +273,7 @@
     getSession: getSession,
     onAuthStateChange: onAuthStateChange,
     getProfile: getProfile,
+    registrarAcesso: registrarAcesso,
     listProfiles: listProfiles,
     updateProfile: updateProfile,
     enviarSenhaNova: enviarSenhaNova,

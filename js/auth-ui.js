@@ -549,6 +549,30 @@
       }).join('') + '</div>';
   }
 
+  /**
+   * "Há quanto tempo" em português de gente: é o que o admin lê de relance
+   * para saber quem sumiu. A data exata fica no title, ao passar o mouse.
+   */
+  function tempoDesde(iso) {
+    if (!iso) return { txt: 'nunca entrou', classe: 'adm-acesso-nunca', exato: '' };
+    var ms = Date.now() - new Date(iso).getTime();
+    var min = Math.floor(ms / 60000), h = Math.floor(min / 60), d = Math.floor(h / 24);
+    var txt;
+    if (ms < 0 || min < 2) txt = 'agora há pouco';
+    else if (min < 60) txt = 'há ' + min + ' min';
+    else if (h < 24) txt = 'há ' + h + (h === 1 ? ' hora' : ' horas');
+    else if (d === 1) txt = 'ontem';
+    else if (d < 30) txt = 'há ' + d + ' dias';
+    else if (d < 60) txt = 'há 1 mês';
+    else if (d < 365) txt = 'há ' + Math.floor(d / 30) + ' meses';
+    else txt = 'há mais de um ano';
+    return {
+      txt: txt,
+      classe: d >= 30 ? 'adm-acesso-sumiu' : (d >= 7 ? 'adm-acesso-longe' : 'adm-acesso-perto'),
+      exato: formatDate(iso)
+    };
+  }
+
   function situacaoHTML(p) {
     if (p.bloqueado) {
       return '<span class="adm-status-bloq">bloqueado</span>' +
@@ -576,12 +600,17 @@
     var esperando = adminState.lista.filter(function (p) { return !p.aprovado && !p.bloqueado; }).length;
     var admins = adminState.lista.filter(function (p) { return p.papel === 'admin'; }).length;
     var bloqueados = adminState.lista.filter(function (p) { return p.bloqueado; }).length;
+    var seteDias = Date.now() - 7 * 24 * 3600 * 1000;
+    var ativos = adminState.lista.filter(function (p) {
+      return p.ultimo_acesso && new Date(p.ultimo_acesso).getTime() >= seteDias;
+    }).length;
 
     var resumo = '<div class="tra-resumo">' +
       '<div class="n"><span>contas</span><b>' + total + '</b></div>' +
       '<div class="n"><span>esperando liberação</span><b>' + esperando + '</b></div>' +
       '<div class="n"><span>administradores</span><b>' + admins + '</b></div>' +
       '<div class="n"><span>bloqueados</span><b>' + bloqueados + '</b></div>' +
+      '<div class="n"><span>usaram nos últimos 7 dias</span><b>' + ativos + '</b></div>' +
       '</div>';
 
     var linhas = lista.map(function (p) {
@@ -603,13 +632,18 @@
         '<td><div class="adm-email">' + escHtml(p.email || '(sem e-mail)') + (eu ? ' <span class="adm-eu">você</span>' : '') + '</div>' +
         '<small class="adm-desde">desde ' + formatDate(p.criado_em) + '</small></td>' +
         '<td>' + situacaoHTML(p) + '</td>' +
+        '<td>' + (function () {
+          var a = tempoDesde(p.ultimo_acesso);
+          return '<span class="' + a.classe + '"' + (a.exato ? ' title="' + escHtml(a.exato) + '"' : '') +
+            '>' + a.txt + '</span>';
+        })() + '</td>' +
         '<td>' + (ehAdmin ? '<span class="adm-papel">👑 admin</span>' : '<span class="muted-note">usuário</span>') + '</td>' +
         '<td>' + (p.modulos && Object.keys(p.modulos).length
           ? '<small>só as marcadas</small>' : '<small class="muted-note">as do sistema</small>') + '</td>' +
         '<td class="adm-acoes">' + acoes + '</td></tr>';
 
       if (editando) {
-        linha += '<tr class="adm-editor"><td colspan="5">' +
+        linha += '<tr class="adm-editor"><td colspan="6">' +
           '<strong>Telas liberadas para ' + escHtml(p.email) + '</strong>' +
           telasHTML(p.modulos || (configSistema && configSistema.modulos) || {}, 'u') +
           '<div class="acd-forma-acoes">' +
@@ -628,9 +662,9 @@
       '<button class="view-btn" data-adm="recarregar">↻ Atualizar</button>' +
       '</div>' +
       '<div class="adm-tabela-wrap"><table class="theory-table adm-tabela"><thead><tr>' +
-      '<th>Conta</th><th>Situação</th><th>Papel</th><th>Telas</th><th>Ações</th>' +
+      '<th>Conta</th><th>Situação</th><th>Último acesso</th><th>Papel</th><th>Telas</th><th>Ações</th>' +
       '</tr></thead><tbody>' +
-      (linhas || '<tr><td colspan="5"><p class="muted-note">Ninguém encontrado com esse e-mail.</p></td></tr>') +
+      (linhas || '<tr><td colspan="6"><p class="muted-note">Ninguém encontrado com esse e-mail.</p></td></tr>') +
       '</tbody></table></div>' +
       '<p class="si-legend">Liberar e bloquear valem na hora: quem perde o acesso é desconectado assim que abrir ou voltar ' +
       'para a aba, e os dados ficam inacessíveis mesmo por fora do site — quem recusa é o banco, não a tela.</p>';
@@ -967,6 +1001,14 @@
     db.getProfile(currentUser.id).then(function (res) {
       currentProfile = res.data || null;
       if (currentProfile && currentProfile.bloqueado) { cortarAcessoBloqueado(); return; }
+      // Marca o último acesso: uma vez por visita, e só para quem entrou de
+      // verdade (quem está esperando liberação ou bloqueado não "usou" nada).
+      // A hora é do banco, não daqui — ver registrar_acesso() no schema.
+      if (podeUsar() && db.registrarAcesso) {
+        db.registrarAcesso().then(function (r) {
+          if (currentProfile && r && r.data) currentProfile.ultimo_acesso = r.data;
+        });
+      }
       renderHeader();
       syncAdminNav();
       aplicarModulos();

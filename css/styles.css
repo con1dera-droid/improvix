@@ -824,6 +824,13 @@ select, input[type="text"] {
 .adm-status-ok { color: #4ade80; font-weight: 600; font-size: 0.82rem; }
 .adm-status-bloq { color: #f87171; font-weight: 600; font-size: 0.82rem; }
 .adm-bloqueado { background: rgba(248, 113, 113, 0.06); }
+/* Último acesso: a cor diz, de relance, quem está sumindo. Até uma semana
+   claro, até um mês apagado, mais que isso alaranjado, e "nunca entrou"
+   escrito como aviso — é o que o admin procura na lista. */
+.adm-acesso-perto { color: var(--text); font-size: 0.82rem; }
+.adm-acesso-longe { color: var(--text-muted); font-size: 0.82rem; }
+.adm-acesso-sumiu { color: #fbbf24; font-size: 0.82rem; }
+.adm-acesso-nunca { color: var(--text-dim); font-size: 0.82rem; font-style: italic; }
 .adm-acoes { white-space: nowrap; }
 .adm-acoes .view-btn { margin: 0 0.25rem 0.25rem 0; }
 .adm-acoes .view-btn.adm-perigo { color: #f87171; border-color: rgba(248, 113, 113, 0.5); }

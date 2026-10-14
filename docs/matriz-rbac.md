@@ -159,3 +159,26 @@ mesmo Supabase falso, que reproduz essas regras.
 contra quem chame a API por fora do site. Os **arquivos** do site (HTML,
 CSS, JS) continuam públicos — é um site estático; o login fecha o uso
 prático e os dados, não o download do código.
+
+## Último acesso (2026-10-14)
+
+Campo novo: `profiles.ultimo_acesso`. Quem escreve nele é **só** a função
+`public.registrar_acesso()` (`security definer`), que usa o relógio do banco e
+a sessão de quem chamou — não aceita data nem id como parâmetro. O trigger
+`protege_campos_privilegiados` reverte qualquer escrita direta na coluna,
+inclusive a do administrador.
+
+| Ação | Sem conta | Esperando | Liberado | Admin |
+|---|---|---|---|---|
+| Registrar o próprio acesso (`registrar_acesso()`) | ❌ | ❌¹ | ✅ | ✅ |
+| Ver o próprio último acesso | ❌ | ❌ | ✅ | ✅ |
+| Ver o último acesso de todas as contas | ❌ | ❌ | ❌ | ✅ |
+| Escrever a data direto na coluna | ❌ | ❌ | ❌ | ❌² |
+
+¹ A função existe para qualquer sessão autenticada, mas o site só a chama
+para quem passou no `pode_usar()` — quem está esperando liberação não usou
+nada ainda.
+
+² Nem o admin: a coluna é revertida pelo trigger. Conferido em
+`tests/rls.sql` ("ninguém inventa a própria data de acesso", "nem o admin
+reescreve o acesso de outra pessoa").

@@ -1480,6 +1480,42 @@ classe. Confere também o ciclo inteiro (azul → aperta → vermelho com letra
 branca e o texto virando "Parar" → solta → azul) e que no celular a cor e o
 tamanho de dedo continuam.
 
+## Último acesso de cada pessoa — ✅ (2026-10-14)
+
+Pedido do dono do projeto: ver na Administração quando cada pessoa usou o
+site pela última vez. Entrou uma coluna na tabela de contas e um número novo
+no resumo (**usaram nos últimos 7 dias**).
+
+**A decisão que importa é de onde vem a data.** Não vem do navegador. Vem de
+uma função no banco, `public.registrar_acesso()`, que não recebe parâmetro
+nenhum: a hora é o `now()` do PostgreSQL e de quem é o acesso é a sessão
+(`auth.uid()`) que diz. O site só chama a função; não escreve a data. E a
+coluna `profiles.ultimo_acesso` entrou na lista de campos que o trigger
+`protege_campos_privilegiados` reverte — nem a própria pessoa, nem o
+administrador escrevem ali por fora. A única coisa que alguém controla é
+quando abre o site, que é exatamente o que a coluna quer dizer.
+
+Quatro regras novas em `tests/rls.sql` (agora **44**, todas passando num
+PostgreSQL de verdade): a função marca a hora de quem chamou; ninguém
+inventa a própria data; nem o admin reescreve a de outra pessoa; e o admin
+enxerga a coluna de todo mundo.
+
+**Na tela**, a data vira tempo de gente — "agora há pouco", "há 9 dias", "há
+3 meses", "nunca entrou" — com a data exata no *title*, ao passar o mouse. A
+cor diz de relance quem está sumindo: clara até uma semana, apagada até um
+mês, alaranjada depois disso, e "nunca entrou" em itálico. É o que o admin
+procura quando bate o olho na lista.
+
+**Quem registra e quando**: uma vez por visita, e só para quem entrou de
+verdade — quem está esperando liberação ou bloqueado não "usou" nada, então
+não marca. Se a função ainda não existir no banco (projeto que não rodou o
+`schema.sql` novo), a chamada falha em silêncio e o site segue igual: a
+coluna fica vazia até o script ser rodado.
+
+`tests/admin.smoke.js` ganhou três checagens: a coluna mostra quem acabou de
+usar, o banco guardou a hora das duas contas, e uma tentativa de reescrever a
+própria data pela API não cola.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

@@ -121,6 +121,7 @@ const FAKE_SUPABASE = `
         var p = Object.assign({}, patch);
         if (nome === 'profiles') {
           // trigger protege_campos_privilegiados
+          delete p.ultimo_acesso;          // só registrar_acesso() escreve
           if (!souAdmin || r.id === eu) {
             delete p.plano; delete p.papel; delete p.bloqueado; delete p.motivo_bloqueio;
             delete p.aprovado; delete p.modulos;
@@ -172,10 +173,20 @@ const FAKE_SUPABASE = `
       id: user.id, email: user.email, plano: 'gratuito',
       papel: primeiro ? 'admin' : 'usuario',
       aprovado: !!(primeiro || convite || cfg.cadastro === 'livre'),
-      bloqueado: false, modulos: null, criado_em: new Date().toISOString()
+      bloqueado: false, modulos: null, ultimo_acesso: null, criado_em: new Date().toISOString()
     });
   };
   FakeClient.prototype.from = function (n) { return new FakeTable(this, n); };
+  /** As funções do banco (rpc). Hoje só registrar_acesso(). */
+  FakeClient.prototype.rpc = function (nome) {
+    if (nome !== 'registrar_acesso') return Promise.resolve({ data: null, error: { message: 'função desconhecida' } });
+    var eu = this.auth.currentUser ? this.auth.currentUser.id : null;
+    if (!eu) return Promise.resolve({ data: null, error: null });
+    // igual ao banco: a hora é daqui, não de quem chamou
+    var quando = new Date().toISOString();
+    this.store.profiles.forEach(function (p) { if (p.id === eu) p.ultimo_acesso = quando; });
+    return Promise.resolve({ data: quando, error: null });
+  };
 
   window.__fake = null;
   window.supabase = { createClient: function () { window.__fake = window.__fake || new FakeClient(); return window.__fake; } };

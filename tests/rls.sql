@@ -220,6 +220,34 @@ begin
   select bloqueado_em is null and motivo_bloqueio is null into b from public.profiles where id = alvo_id;
   insert into resultado values (b, 'desbloquear limpa o carimbo e o motivo');
 
+  -- ===================== último acesso =====================
+  -- A data só pode nascer da função registrar_acesso(), com o relógio do
+  -- banco. Se desse para escrever na coluna, a lista do admin viraria ficção.
+  perform set_config('request.jwt.claim.sub', alvo_id::text, true);
+  perform public.registrar_acesso();
+  set local role postgres;
+  select ultimo_acesso is not null into b from public.profiles where id = alvo_id;
+  insert into resultado values (b, 'registrar_acesso() marca a hora de quem chamou');
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', alvo_id::text, true);
+  update public.profiles set ultimo_acesso = '2020-01-01'::timestamptz where id = alvo_id;
+  set local role postgres;
+  select ultimo_acesso > '2024-01-01'::timestamptz into b from public.profiles where id = alvo_id;
+  insert into resultado values (b, 'ninguém inventa a própria data de acesso (o trigger reverte)');
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', admin_id::text, true);
+  update public.profiles set ultimo_acesso = '2020-01-01'::timestamptz where id = alvo_id;
+  set local role postgres;
+  select ultimo_acesso > '2024-01-01'::timestamptz into b from public.profiles where id = alvo_id;
+  insert into resultado values (b, 'nem o admin reescreve o acesso de outra pessoa');
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', admin_id::text, true);
+  select count(*) into n from public.profiles where ultimo_acesso is not null;
+  insert into resultado values (n >= 1, 'o admin enxerga o último acesso das contas (viu ' || n || ')');
+
   -- ===================== visitante (sem sessão) =====================
   set local role authenticated;
   perform set_config('request.jwt.claim.sub', '', true);

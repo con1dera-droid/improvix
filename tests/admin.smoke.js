@@ -88,8 +88,22 @@ const COMUM = 'comum@teste.com';
   const linhas = await page.$$eval('.adm-tabela tbody tr', (r) => r.length);
   ok(linhas === 2, 'admin enxerga todas as contas (' + linhas + ' de 2)');
   const numeros = await page.$$eval('#admin-conteudo .tra-resumo .n b', (b) => b.map((x) => x.textContent));
-  ok(numeros.join('/') === '2/0/1/0',
-    'o resumo bate: ' + numeros.join('/') + ' (contas/esperando/admins/bloqueados)');
+  ok(numeros.join('/') === '2/0/1/0/2',
+    'o resumo bate: ' + numeros.join('/') + ' (contas/esperando/admins/bloqueados/ativos 7 dias)');
+
+  // --- último acesso: quem acabou de entrar aparece como recém-chegado ---
+  const acessos = await page.$$eval('.adm-tabela tbody tr[data-uid] td:nth-child(3)',
+    (tds) => tds.map((t) => t.textContent.trim()));
+  ok(acessos.length === 2 && acessos.every((a) => /agora há pouco|há \d+ min/.test(a)),
+    'a coluna de último acesso mostra quem acabou de usar: ' + JSON.stringify(acessos));
+  const gravado = await page.evaluate(() => window.__fake.store.profiles.map((p) => !!p.ultimo_acesso));
+  ok(gravado.every(Boolean), 'e o banco guardou a hora das duas contas');
+  const naoFalsifica = await page.evaluate(async () => {
+    const eu = window.__fake.auth.currentUser.id;
+    await window.IL.db.updateProfile(eu, { ultimo_acesso: '2020-01-01T00:00:00.000Z' });
+    return window.__fake.store.profiles.find((p) => p.id === eu).ultimo_acesso;
+  });
+  ok(!/2020/.test(naoFalsifica), 'ninguém reescreve a própria data de acesso pela API');
 
   // daqui para a frente, endereçamos a linha pelo id da conta (o e-mail é
   // o que o admin enxerga, mas a linha carrega o uid no DOM)

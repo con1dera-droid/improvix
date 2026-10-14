@@ -44,6 +44,13 @@ alter table public.profiles alter column aprovado set default false;
 -- Telas liberadas só para esta pessoa (nulo = vale a configuração geral).
 alter table public.profiles add column if not exists modulos jsonb;
 
+-- Último acesso (14/10/2026): quando esta pessoa usou o site pela última vez.
+-- Quem escreve aqui NÃO é o navegador: é a função registrar_acesso() abaixo,
+-- que carimba o relógio do BANCO. Assim ninguém inventa uma data — a única
+-- coisa que a pessoa controla é quando abre o site, que é justamente o que a
+-- coluna quer dizer.
+alter table public.profiles add column if not exists ultimo_acesso timestamptz;
+
 do $$
 begin
   if not exists (select 1 from pg_constraint where conname = 'profiles_papel_check') then
@@ -88,6 +95,31 @@ language sql stable security definer set search_path = public
 as $$
   select coalesce((select aprovado and not bloqueado from public.profiles where id = uid), false);
 $$;
+
+-- Registra que esta pessoa usou o site agora.
+--
+-- `security definer` para poder escrever numa coluna que o trigger protege, e
+-- `auth.uid()` lá dentro para que ninguém registre acesso no lugar de outro:
+-- a função não recebe parâmetro nenhum, nem a data (quem dá a hora é o
+-- `now()` do banco) nem de quem (quem diz é a sessão). O site chama isto uma
+-- vez por visita; se a pessoa não entra, a coluna não se mexe sozinha.
+create or replace function public.registrar_acesso()
+returns timestamptz
+language plpgsql security definer set search_path = public
+as $$
+declare
+  quando timestamptz := now();
+begin
+  if auth.uid() is null then
+    return null;                                  -- sem sessão não há o que registrar
+  end if;
+  update public.profiles set ultimo_acesso = quando where id = auth.uid();
+  return quando;
+end;
+$$;
+
+revoke all on function public.registrar_acesso() from public;
+grant execute on function public.registrar_acesso() to authenticated;
 
 -- ============================================================
 -- 1b) config_sistema — a configuração que o administrador controla
@@ -244,10 +276,12 @@ begin
     new.motivo_bloqueio := old.motivo_bloqueio;
     new.aprovado := old.aprovado;              -- ninguém se aprova sozinho
     new.modulos := old.modulos;                -- nem libera telas para si
+    new.ultimo_acesso := old.ultimo_acesso;    -- só registrar_acesso() escreve
     return new;
   end if;
 
-  -- admin mexendo em outra pessoa: carimba o bloqueio no banco
+  -- admin mexendo em outra pessoa: nem o admin reescreve o último acesso
+  new.ultimo_acesso := old.ultimo_acesso;
   if new.bloqueado is distinct from old.bloqueado then
     new.bloqueado_em := case when new.bloqueado then now() else null end;
     new.bloqueado_por := case when new.bloqueado then auth.uid() else null end;
