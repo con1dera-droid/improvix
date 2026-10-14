@@ -247,6 +247,11 @@
   function semitomAbaixo(nome) {
     if (nome.indexOf('b') > 0) {
       var li = LETRAS.indexOf(nome.charAt(0));
+      // Cb e Fb são as exceções: a letra de baixo já está a meio tom delas
+      // (Cb soa si, Fb soa mi). Descer meio tom a partir de Cb dá Bb, não B —
+      // sem isso o nome e a altura se descolavam e a tablatura escrevia uma
+      // nota mandando tocar outra (pegado por tests/tablatura.test.js).
+      if (nome.charAt(0) === 'C' || nome.charAt(0) === 'F') return LETRAS[(li + 6) % 7] + 'b';
       return LETRAS[(li + 6) % 7];              // Eb -> D, Ab -> G
     }
     if (nome.indexOf('#') > 0) return nome.charAt(0);   // F# -> F

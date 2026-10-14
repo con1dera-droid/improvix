@@ -1324,6 +1324,76 @@ de começar) com um clique de metrônomo melhor, acompanhamento (drone ou
 acorde) por baixo da escala, swing nos exercícios e andamento subindo a cada
 repetição.
 
+## A tablatura mentia no baixo (e nos sopros) — ✅ (2026-10-14)
+
+O dono do projeto olhou o exercício 1 da Biblioteca de Escalas no **baixo** e
+desconfiou: *"me parece que não estão condizendo com as notas mostradas
+embaixo; o Dó está como se fosse corda solta"*. Estava certo, e o buraco era
+maior do que a tela mostrava.
+
+### O que acontecia
+
+`realizeForInstrument` deslocava a frase por oitavas só para aproximá-la do
+**centro confortável** do instrumento — sem saber o que o instrumento
+alcança. No baixo, o exercício de duas oitavas em dó caía em MIDI 24 (dó1),
+**quatro semitons abaixo da corda mais grave** (mi1 = 28). Como não existe
+casa negativa, `toTabEvents` caía no fallback `Math.max(0, …)` e grampeava a
+nota na **corda solta**: estava escrito dó e a tablatura mandava tocar mi. O
+mesmo valia para as três primeiras notas, todas viradas mi.
+
+Medido antes do conserto, varrendo 46 escalas × 7 tons × 20 exercícios:
+
+| instrumento | exercícios com nota fora do alcance |
+|---|---|
+| baixo | 3.853 |
+| trompete | 4.889 |
+| flauta | 3.480 |
+| sax | 3.476 |
+| violino | 2.373 |
+| guitarra, violão, teclado | 0 |
+
+Guitarra, violão e teclado estavam limpos — é por isso que o erro passou
+tanto tempo sem aparecer: são os instrumentos em que mais se olha a tela.
+
+### O conserto, em três camadas
+
+1. **`INSTRUMENT_RANGE`**: o que cada instrumento realmente alcança, do grave
+   mais baixo à nota mais aguda. Os dois lados não valem o mesmo: abaixo da
+   corda solta mais grave a nota é **impossível**; acima do limite é só
+   desconfortável. Por isso, na escolha da oitava, estourar embaixo custa
+   vinte vezes mais do que estourar em cima.
+2. **`deslocamentoDeOitava()`**: em vez de um único deslocamento "para o
+   centro", procura a oitava que deixa tudo dentro do alcance; se a frase for
+   mais larga que o instrumento inteiro (exercício de duas oitavas no
+   trompete), escolhe a que deixa menos notas de fora. Empate fica com a mais
+   perto do centro — então, para quem já cabia, **nada mudou**.
+3. **Dobra para dentro e casa 20**: a nota que ainda sobrar é dobrada uma
+   oitava para dentro (o que o músico faz na hora, e o nome da nota não muda),
+   e o limite de casa da tablatura subiu de 17 para 20, que é o que um braço
+   tem. Sem isso, as notas das últimas casas não tinham onde ser escritas e
+   caíam no mesmo grampo.
+
+### Dois erros que o teste novo pegou de brinde
+
+- **`semitomAbaixo('Cb')` devolvia `B`** (e `Fb` devolvia `E`). Cb e Fb são as
+  exceções: a letra de baixo já está a meio tom delas. Nos exercícios de
+  aproximação cromática e de cerco, isso descolava o nome da altura — estava
+  escrito Bb e soava lá. Trinta e seis notas em escalas com essa grafia
+  (alterada, diminuta) em tons bemóis.
+- O próprio teste precisou aprender o que é um **bend**: ali a casa escrita é
+  onde o dedo entra e a nota escrita é a altura depois de puxar a corda
+  (`6b8`). Dezoito posições que pareciam erradas estavam certas.
+
+### O teste que impede a volta
+
+`tests/tablatura.test.js` confere a promessa que uma tablatura faz — "ponha o
+dedo aqui e sai a nota escrita ali" — nota a nota: a casa soa exatamente o que
+está escrito, nenhuma nota cai abaixo da corda solta mais grave, nenhuma casa
+passa da 20ª, e o nome da nota bate com a altura dela. Varre os exercícios de
+escala (46 escalas × 4 tons × 3 instrumentos), os 91 padrões em dois tons e as
+frases da Biblioteca nos oito estilos: **512.067 casas conferidas, zero
+erradas**. Antes do conserto, as mesmas contas davam milhares de erros.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

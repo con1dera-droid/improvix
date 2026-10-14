@@ -55,6 +55,66 @@
     flauta: 72    // flauta transversal, região confortável em torno de C5
   };
 
+  /**
+   * O que cada instrumento REALMENTE alcança (MIDI), do grave mais baixo à
+   * nota mais aguda que dá para tocar (nos instrumentos de traste, o que a
+   * tablatura consegue escrever: corda mais aguda + 17ª casa).
+   *
+   * Isso existe porque faltava: o exercício era deslocado só pelo "centro"
+   * do instrumento e podia cair ABAIXO da corda mais grave. No baixo, o Dó
+   * do exercício virava MIDI 24 — quatro semitons abaixo do mi da 4ª corda —
+   * e a tablatura, sem onde pôr, grampeava na corda solta: a tab mandava
+   * tocar mi onde estava escrito dó. Medido: 3853 exercícios no baixo, 4889
+   * no trompete, 3480 na flauta, 3476 no sax e 2373 no violino.
+   */
+  var INSTRUMENT_RANGE = {
+    guitarra: [40, 84],   // E2 … 20ª casa da 1ª corda
+    violao:   [40, 84],
+    baixo:    [28, 63],   // E1 … 20ª casa da 1ª corda
+    teclado:  [21, 108],  // o piano inteiro
+    sax:      [49, 81],   // sax alto, em som real (Db3 … A5)
+    trompete: [52, 82],   // E3 … Bb5
+    violino:  [55, 96],   // G3 (corda solta mais grave) … C7
+    flauta:   [60, 96]    // C4 … C7
+  };
+
+  // Os dois lados não são iguais. Abaixo da corda solta mais grave (ou da
+  // nota mais grave do sopro) a nota é IMPOSSÍVEL — não existe jeito de
+  // tocar, e era aí que a tablatura mentia. Acima do limite ela é só
+  // desconfortável: casa muito alta, nota muito aguda, mas sai. Por isso
+  // estourar embaixo custa vinte vezes mais do que estourar em cima.
+
+  /**
+   * Em que oitava a frase cabe no instrumento.
+   *
+   * Parte do deslocamento que aproxima a frase do centro confortável e, daí,
+   * procura a oitava que deixa TUDO dentro do alcance. Se a frase for larga
+   * demais para o instrumento (acontece em exercício de duas oitavas no
+   * trompete), escolhe a que deixa menos notas de fora, e as de fora o menos
+   * longe possível. Empate: fica a mais perto do centro — então, para quem já
+   * cabia (guitarra, violão, teclado), nada muda.
+   */
+  function deslocamentoDeOitava(midis, instrument) {
+    var center = INSTRUMENT_CENTER[instrument] || 60;
+    var mean = midis.reduce(function (a, b) { return a + b; }, 0) / midis.length;
+    var base = 12 * Math.round((center - mean) / 12);
+    var faixa = INSTRUMENT_RANGE[instrument];
+    if (!faixa) return base;
+    var melhor = base, menorCusto = Infinity;
+    for (var k = -4; k <= 4; k++) {
+      var shift = base + 12 * k;
+      var abaixo = 0, acima = 0;
+      for (var i = 0; i < midis.length; i++) {
+        var m = midis[i] + shift;
+        if (m < faixa[0]) abaixo += faixa[0] - m;
+        else if (m > faixa[1]) acima += m - faixa[1];
+      }
+      var custo = abaixo * 200 + acima * 10 + Math.abs(mean + shift - center);
+      if (custo < menorCusto) { menorCusto = custo; melhor = shift; }
+    }
+    return melhor;
+  }
+
   function nearestMidiForPitchClass(pc, prevMidi) {
     var best = null, bestDist = Infinity;
     for (var k = 0; k <= 10; k++) {
@@ -86,14 +146,24 @@
   function realizeForInstrument(noteNames, instrument, midi) {
     var center = INSTRUMENT_CENTER[instrument] || 60;
     if (midi && midi.length === noteNames.length) {
-      var mean = midi.reduce(function (a, b) { return a + b; }, 0) / midi.length;
-      var shift = 12 * Math.round((center - mean) / 12);
+      var shift = deslocamentoDeOitava(midi, instrument);
       return noteNames.map(function (name, i) { return { name: name, midi: midi[i] + shift }; });
     }
-    return realizeMidiSequence(noteNames, center);
+    var seq = realizeMidiSequence(noteNames, center);
+    // a condução "nota mais próxima" também pode sair do alcance: reencaixa
+    var ajuste = deslocamentoDeOitava(seq.map(function (x) { return x.midi; }), instrument);
+    if (!ajuste) return seq;
+    return seq.map(function (x) { return { name: x.name, midi: x.midi + ajuste }; });
   }
 
-  /** Converte uma sequência já realizada (com MIDI) em tablatura. */
+  /**
+   * Converte uma sequência já realizada (com MIDI) em tablatura.
+   *
+   * Versão simples, hoje usada só pelos testes antigos: quem desenha a
+   * tablatura do site é toTabEvents (articulações, bends, custo de mão). As
+   * garantias de alcance e de casa máxima estão lá, e são conferidas em
+   * tests/tablatura.test.js.
+   */
   function toTab(realized, instrument) {
     var strings = TUNINGS[instrument];
     if (!strings) return null;
@@ -370,7 +440,11 @@
     if (!strings) return null;
     var notes = events.filter(function (e) { return !e.rest; });
     if (!notes.length) return { notes: [], dropped: [] };
-    var maxFret = 17;
+    // 20 casas: é o que um braço comum tem, e é o limite que INSTRUMENT_RANGE
+    // promete. Com 17 (o valor antigo) as notas das últimas casas não tinham
+    // onde ser escritas e caíam no "grampo" lá embaixo — a tab mandava tocar
+    // uma nota diferente da escrita.
+    var maxFret = 20;
 
     var cands = notes.map(function (e) {
       var fingerMidi = e.art === 'b' && e.bendFrom !== undefined ? e.bendFrom : e.midi;
@@ -509,6 +583,23 @@
       if (e.bendFrom !== undefined) o.bendFrom = e.bendFrom + shift;
       return o;
     });
+    // Nota que sobrou fora do alcance vai para a oitava de dentro.
+    //
+    // Depois do deslocamento acima quase tudo cabe, mas um exercício de duas
+    // oitavas é mais largo que um baixo ou um trompete inteiro: alguma nota
+    // sobra. Dobrá-la uma oitava para dentro é o que o músico faz na hora, e
+    // mantém a NOTA (dó continua dó) — o que não dá é deixar passar, porque
+    // aí a tablatura grampeia na corda solta e manda tocar outra coisa.
+    var faixa = INSTRUMENT_RANGE[instrument];
+    if (faixa) {
+      ev.forEach(function (e) {
+        if (e.rest) return;
+        var antes = e.midi;
+        while (e.midi < faixa[0]) e.midi += 12;
+        while (e.midi > faixa[1]) e.midi -= 12;
+        if (e.bendFrom !== undefined) e.bendFrom += e.midi - antes;
+      });
+    }
     var tab = TUNINGS[instrument] ? toTabEvents(ev, instrument) : null;
     if (tab && tab.dropped.length) {
       var k = 0;
