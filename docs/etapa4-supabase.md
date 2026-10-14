@@ -126,6 +126,20 @@ sistema é o administrador**, carimbado pelo próprio banco (trigger
   ninguém.
 * **⛔ Bloquear / ✓ Desbloquear** — corta o acesso da conta. Ao bloquear,
   você pode registrar um motivo, que fica guardado e aparece para a pessoa.
+* **🗑 (lixeira)** — exclui a conta e tudo que ela guardou. Pede que você
+  escreva o e-mail da pessoa, porque não dá para desfazer.
+
+**Bloquear ou excluir?** Bloquear tira o acesso e volta atrás quando você
+quiser; a conta e os dados ficam. Excluir apaga os dados e não volta — e,
+atenção, **não apaga o login no Supabase Auth** (isso exigiria a chave
+`service_role`, que nunca pode estar dentro do site). Então o e-mail
+**continua ocupado**: a pessoa não entra (vê o aviso de conta removida e é
+desconectada) e também **não consegue se cadastrar de novo com ele**. Com
+outro e-mail, consegue — e cai na fila de aprovação como qualquer
+desconhecido. Para liberar o e-mail de verdade, apague a pessoa em
+*Authentication > Users*, no painel. Para o caso comum de "não quero mais
+essa pessoa", ⛔ Bloquear é a escolha certa; a lixeira é para limpeza de
+verdade (quem pediu para sair, contas de teste).
 
 **Aba Sistema** — a configuração geral:
 

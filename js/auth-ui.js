@@ -731,7 +731,15 @@
       (linhas || '<tr><td colspan="6"><p class="muted-note">Ninguém encontrado com esse e-mail.</p></td></tr>') +
       '</tbody></table></div>' +
       '<p class="si-legend">Liberar e bloquear valem na hora: quem perde o acesso é desconectado assim que abrir ou voltar ' +
-      'para a aba, e os dados ficam inacessíveis mesmo por fora do site — quem recusa é o banco, não a tela.</p>';
+      'para a aba, e os dados ficam inacessíveis mesmo por fora do site — quem recusa é o banco, não a tela.</p>' +
+      // A diferença entre ⛔ e 🗑 não é óbvia, e é a pergunta que o dono fez:
+      // "removi a conta, a pessoa cria de novo?". Não cria — e é melhor ele
+      // saber disso antes de clicar, não depois.
+      '<p class="si-legend"><strong>⛔ Bloquear</strong> tira o acesso e dá para desfazer; a conta e os dados ficam. ' +
+      '<strong>🗑 Excluir</strong> apaga os dados da pessoa e não dá para desfazer — e o login dela no Supabase ' +
+      'continua existindo, então o e-mail segue ocupado: ela não entra nem consegue se cadastrar de novo com ele. ' +
+      'Para liberar o e-mail, apague a pessoa em <em>Authentication → Users</em>, no painel do Supabase (daqui não dá: ' +
+      'isso exigiria a chave secreta, que nunca pode estar dentro do site).</p>';
   }
 
   function desenharSistema() {
@@ -886,6 +894,11 @@
     var digitado = window.prompt(
       'Excluir a conta de ' + p.email + '?\n\n' +
       'Isto apaga o histórico, os favoritos e os exercícios dessa pessoa, e não dá para desfazer.\n\n' +
+      'O login dela no Supabase NÃO é apagado daqui: ela não entra mais (vê um aviso e é ' +
+      'desconectada), e esse e-mail continua ocupado — ela também não consegue se cadastrar ' +
+      'de novo com ele. Para liberar o e-mail, apague a pessoa em Authentication > Users, no ' +
+      'painel do Supabase.\n\n' +
+      'Se é só para tirar o acesso, o ⛔ Bloquear faz isso e dá para desfazer.\n\n' +
       'Para confirmar, escreva o e-mail dela:');
     if (digitado === null) return;                       // desistiu
     if (digitado.trim().toLowerCase() !== String(p.email || '').toLowerCase()) {
@@ -899,8 +912,9 @@
       if (res && res.error) { adminState.aviso = 'Não deu certo: ' + res.error.message; desenharAdmin(); return; }
       adminState.lista = adminState.lista.filter(function (x) { return x.id !== id; });
       adminState.aviso = 'A conta de ' + p.email + ' foi excluída, com tudo que ela tinha salvo. ' +
-        'O login dela no Supabase continua existindo (sem perfil, ela não entra); ' +
-        'para apagar de vez, remova em Authentication > Users, no painel do Supabase.';
+        'O login dela no Supabase continua existindo: sem perfil ela não entra, e esse e-mail ' +
+        'segue ocupado (ninguém se cadastra de novo com ele). Para liberar o e-mail, remova a ' +
+        'pessoa em Authentication > Users, no painel do Supabase.';
       desenharAdmin();
     }).catch(function (e) {
       adminState.aviso = 'Não deu certo: ' + ((e && e.message) || 'erro inesperado');

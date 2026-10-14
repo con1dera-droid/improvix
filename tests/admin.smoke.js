@@ -195,9 +195,17 @@ const COMUM = 'comum@teste.com';
   await entrar(page, ADMIN, false);
   await page.waitForTimeout(500);
   await abrirAdmin();
+  // A diferença entre bloquear e excluir tem de estar escrita na tela, não só
+  // na cabeça de quem administra: excluir não apaga o login no Supabase, logo
+  // o e-mail fica ocupado e a pessoa não se recadastra.
+  const legendasContas = await page.$$eval('#admin-conteudo .si-legend', (l) => l.map((x) => x.textContent).join(' '));
+  ok(/Bloquear/.test(legendasContas) && /Excluir/.test(legendasContas), 'a aba Contas explica a diferença entre bloquear e excluir');
+  ok(/ocupado/.test(legendasContas) && /Users/.test(legendasContas), 'e avisa que o e-mail fica ocupado, com o caminho no painel do Supabase');
+
   await page.evaluate((email) => {
     window.__respostaPrompt = 'não é o e-mail';
-    window.prompt = function () { return window.__respostaPrompt; };
+    window.__textoPrompt = '';
+    window.prompt = function (msg) { window.__textoPrompt = String(msg || ''); return window.__respostaPrompt; };
     // dá um dado salvo para a conta, para ver se some junto
     window.__fake.store.analises = [{ id: 'a1', user_id: window.__fake.store.profiles.find((p) => p.email === email).id }];
   }, COMUM);
@@ -206,6 +214,11 @@ const COMUM = 'comum@teste.com';
   ok(/não é o de/i.test(await page.$eval('#admin-conteudo .tra-aviso', (x) => x.textContent)),
     'escrever o e-mail errado NÃO exclui a conta');
   ok((await page.$$eval('.adm-tabela tbody tr[data-uid]', (r) => r.length)) === 2, 'e a conta continua na lista');
+
+  const avisoPrompt = await page.evaluate(() => window.__textoPrompt);
+  ok(/ocupado/.test(avisoPrompt) && /Authentication > Users/.test(avisoPrompt),
+    'o pedido de confirmação avisa, ANTES do clique, que o e-mail fica ocupado');
+  ok(/Bloquear/.test(avisoPrompt), 'e lembra que o ⛔ Bloquear é a opção que dá para desfazer');
 
   await page.evaluate((email) => { window.__respostaPrompt = email; }, COMUM);
   await page.click(LINHA + ' [data-adm="excluir"]');

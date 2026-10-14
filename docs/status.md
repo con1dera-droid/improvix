@@ -1726,6 +1726,43 @@ exatamente um cartão fica aceso no instante do clique. Bateria inteira
 repassada: 12 testes de unidade (1.023.389 casas de tablatura entre eles) e 27
 smokes de navegador, sem erro de página.
 
+## Excluir ou bloquear: a diferença escrita na tela — ✅ (2026-10-14)
+
+Pergunta do dono, e é a pergunta certa: *"quando eu remover uma conta, ele pode
+criar o login e senha novamente? porque eu tô sempre aprovando"*.
+
+**A resposta é não — e isso é mais surpreendente do que parece.** A lixeira
+apaga o perfil e os dados da pessoa dentro do IMPROVIX, mas **não** apaga o
+login no Supabase Auth: apagar de lá exigiria a chave `service_role`, que nunca
+pode estar dentro de um site estático. Então o e-mail **continua ocupado**. Na
+prática:
+
+* Entrar com a senha antiga: a sessão abre, não acha perfil, e a pessoa leva o
+  aviso "a conta foi removida por quem administra" e é desconectada.
+* Cadastrar de novo com o mesmo e-mail: o Supabase recusa, porque o usuário
+  ainda está lá.
+* Com **outro** e-mail: aí sim, cria uma conta nova — e cai na fila de
+  aprovação como qualquer desconhecido.
+* Para liberar o e-mail de verdade: *Authentication > Users*, no painel do
+  Supabase.
+
+Isso já estava escrito no aviso **depois** de excluir, que é tarde: a decisão
+acontece antes. Então:
+
+* O pedido de confirmação (onde já era preciso **escrever o e-mail** da pessoa)
+  agora diz, antes do clique, que o login do Supabase sobrevive, que o e-mail
+  fica ocupado e que o **⛔ Bloquear** é a opção que dá para desfazer.
+* A aba Contas ganhou uma legenda comparando os dois: bloquear tira o acesso e
+  volta atrás; excluir apaga os dados, não volta, e deixa o e-mail travado.
+* O `tests/admin.smoke.js` agora lê o texto do próprio pedido de confirmação e
+  exige que ele fale em "ocupado", no caminho *Authentication > Users* e no
+  Bloquear — e exige a comparação na legenda da aba.
+
+**Qual usar, na prática**: para "não quero mais essa pessoa aqui", ⛔ Bloquear —
+a conta fica na lista com o motivo, ela não entra, e o e-mail segue ocupado, o
+que impede o recadastro. A lixeira é para limpar de verdade: alguém que pediu
+para sair, ou uma conta de teste.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
