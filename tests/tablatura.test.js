@@ -12,7 +12,8 @@
  *
  *   1. a casa indicada soa EXATAMENTE a nota escrita;
  *   2. nenhuma nota cai abaixo da corda solta mais grave (impossível de tocar);
- *   3. nenhuma casa passa da 20ª (não existe braço);
+ *   3. nenhuma casa passa da 20ª (não existe braço) e nenhuma nota sai em
+ *      corda solta (a digitação tem de servir em qualquer tom);
  *   4. a classe de altura da nota escrita bate com o nome dela (dó é dó).
  *
  *   node tests/tablatura.test.js
@@ -61,6 +62,11 @@ function conferir(pr, instrument, onde) {
     }
     if (t.fret < 0 || t.fret > 20) {
       problemas.push(onde + ' nota ' + (i + 1) + ': casa ' + t.fret + ' não existe');
+    }
+    // Sem cordas soltas: a digitação tem de servir em qualquer tom, e corda
+    // solta não aceita vibrato nem bend (ver SEM_CORDAS_SOLTAS em notation.js).
+    if (t.fret === 0) {
+      problemas.push(onde + ' nota ' + (i + 1) + ' (' + e.name + '): está em corda solta');
     }
     if (e.midi < cordas[0]) {
       problemas.push(onde + ' nota ' + (i + 1) + ' (' + e.name + '): MIDI ' + e.midi +

@@ -69,6 +69,12 @@ Com isso, todo o escopo da Etapa 5 previsto em `docs/PRD.md` está entregue.
 - **Ficha da escala**: ao escolher a escala/modo na Biblioteca aparecem a
   fórmula (1 2 b3 4 5 6 b7), os intervalos (2M 3m 4J...), tons e semitons,
   as notas no tom, a sonoridade, a nota característica e onde usar.
+- **Tablatura sem cordas soltas** (14/10/2026): as digitações saem todas
+  "fechadas" — a mesma forma serve em qualquer tom, e a nota aceita vibrato e
+  bend. A corda solta só aparece quando não existe outro jeito de tocar a
+  nota. De quebra a mão ficou mais fechada: a maior abertura em quatro notas
+  caiu de 17 para 12 casas. (A Biblioteca de Acordes continua com os acordes
+  abertos de sempre — lá a corda solta faz parte do acorde.)
 - **Som real**: samples de instrumentos (FluidR3_GM, CC BY 3.0 — créditos em
   `sounds/CREDITOS.md`); seletor Real / Guitarra com drive / Sintetizado.
   Todos os níveis liberados, inclusive o Avançado (estilo Parker completo).

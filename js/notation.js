@@ -67,10 +67,21 @@
    * tocar mi onde estava escrito dó. Medido: 3853 exercícios no baixo, 4889
    * no trompete, 3480 na flauta, 3476 no sax e 2373 no violino.
    */
+  // Tablatura sem cordas soltas (pedido do dono do projeto em 14/10/2026).
+  //
+  // Corda solta é cômoda e traiçoeira: a digitação não serve para outro tom,
+  // a nota não aceita vibrato nem bend, e o aluno acaba decorando o desenho
+  // em vez do intervalo. Com isto ligado, a corda solta só aparece quando
+  // NÃO existe outro jeito de tocar a nota — e o alcance de cada instrumento
+  // sobe um semitom, para o exercício não ser empurrado justamente para a
+  // nota que só sai solta.
+  var SEM_CORDAS_SOLTAS = true;
+  var CUSTO_CORDA_SOLTA = 30;   // contra ~1 por casa de deslocamento da mão
+
   var INSTRUMENT_RANGE = {
-    guitarra: [40, 84],   // E2 … 20ª casa da 1ª corda
-    violao:   [40, 84],
-    baixo:    [28, 63],   // E1 … 20ª casa da 1ª corda
+    guitarra: [41, 84],   // F2 (1ª casa da 6ª corda) … 20ª casa da 1ª corda
+    violao:   [41, 84],
+    baixo:    [29, 63],   // F1 (1ª casa da 4ª corda) … 20ª casa da 1ª corda
     teclado:  [21, 108],  // o piano inteiro
     sax:      [49, 81],   // sax alto, em som real (Db3 … A5)
     trompete: [52, 82],   // E3 … Bb5
@@ -479,13 +490,16 @@
       else c += shift > 4 ? 2 + (shift - 4) * 1.2 : shift * 0.25;
       c += Math.abs(ds) > 1 ? (Math.abs(ds) - 1) * 0.9 : 0;
       if (np) c += ds === 0 ? 0 : 0.4;
-      if (cc.f === 0) c += 0.8;
+      if (cc.f === 0) c += SEM_CORDAS_SOLTAS ? CUSTO_CORDA_SOLTA : 0.8;
       if (cc.f > 12) c += (cc.f - 12) * 0.25;
       return c;
     }
 
     // Viterbi
-    var dp = [cands[0].map(function (c) { return { cost: Math.abs(c.f - 7) * 0.15 + (c.f === 0 ? 0.8 : 0), prev: -1 }; })];
+    var dp = [cands[0].map(function (c) {
+      var solta = c.f === 0 ? (SEM_CORDAS_SOLTAS ? CUSTO_CORDA_SOLTA : 0.8) : 0;
+      return { cost: Math.abs(c.f - 7) * 0.15 + solta, prev: -1 };
+    })];
     for (var i = 1; i < notes.length; i++) {
       dp.push(cands[i].map(function (cc) {
         var best = { cost: Infinity, prev: -1 };

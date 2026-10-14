@@ -1411,6 +1411,47 @@ administrador liga e desliga para cada pessoa — agora na mesma ordem em que
 ela as vê, senão conferir vira caça ao tesouro) e `tests/menu.smoke.js`, que
 é a especificação da ordem e falha se alguém mexer sem querer.
 
+## Tablatura sem cordas soltas — ✅ (2026-10-14)
+
+Pedido do dono do projeto: *"quero todas as notas sem usar as cordas
+soltas"*. A razão é boa e vale escrever: corda solta é cômoda e traiçoeira —
+a digitação não serve para outro tom, a nota não aceita vibrato nem bend, e o
+aluno acaba decorando o desenho em vez do intervalo. Digitação fechada é a
+que se transporta.
+
+Duas mudanças, as duas em `js/notation.js`:
+
+1. **`SEM_CORDAS_SOLTAS`** (ligado) faz a casa 0 custar 30 na escolha da
+   digitação, contra cerca de 1 por casa de deslocamento da mão. Ou seja: a
+   corda solta só aparece se não existir outro jeito de tocar aquela nota.
+2. **O alcance subiu um semitom** (violão e guitarra de 40 para 41, baixo de
+   28 para 29). Sem isso, a escolha da oitava podia empurrar o exercício
+   justamente para a nota que só sai solta, e aí o custo não teria o que
+   escolher.
+
+**Medido** em 337.296 posições (46 escalas × 4 tons × 20 exercícios, violão e
+baixo), antes e depois:
+
+| | antes | depois |
+|---|---|---|
+| notas em corda solta | 18.458 | **0** |
+| notas acima da 12ª casa | 15,4% | 16,0% |
+| abertura média da mão em 4 notas | 3,54 casas | **2,97 casas** |
+| maior abertura em 4 notas | 17 casas | **12 casas** |
+
+A surpresa boa: a mão ficou **mais** fechada, não menos. As aberturas de 17
+casas eram exatamente o movimento "toca a corda solta aqui embaixo e pula lá
+para cima" — tirar a corda solta tirou junto o pulo.
+
+`tests/tablatura.test.js` passou a conferir isso também: nas 512.067 casas que
+ele varre (exercícios de escala, os 91 padrões e as frases da Biblioteca nos
+oito estilos), nenhuma é corda solta.
+
+**O que NÃO mudou, de propósito**: a Biblioteca de Acordes. Lá a corda solta
+faz parte do acorde — o dó aberto é `x32010`, e trocá-lo por uma pestana seria
+ensinar errado. Formas de acorde e digitação de linha melódica são coisas
+diferentes.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
