@@ -99,6 +99,18 @@
       $('btn-entrar').addEventListener('click', openAuthModal);
     }
     updateActionButtons();
+    atualizarIconeSugestao();
+  }
+
+  /**
+   * O 💡 do alto só existe para quem está dentro: sem conta liberada não há
+   * para quem mandar sugestão, e um ícone que não funciona é pior que nenhum.
+   */
+  function atualizarIconeSugestao() {
+    var b = $('btn-sugestao');
+    if (!b) return;
+    b.hidden = !(currentUser && podeUsar());
+    if (b.hidden) { var c = $('sugestao-conta'); if (c) c.hidden = true; }
   }
 
   // ---------------- Modal de login/cadastro ----------------
@@ -177,6 +189,51 @@
       return configSistema;
     }).catch(function () { return null; });
   }
+
+  // ---------------- Caixa de ideias (sugestões) ----------------
+
+  function abrirSugestao() {
+    if (!(currentUser && podeUsar())) return;
+    $('sugestao-msg').hidden = true;
+    $('sugestao-form').hidden = false;
+    $('sugestao-modal').hidden = false;
+    var t = $('sugestao-texto');
+    t.value = '';
+    t.focus();
+  }
+
+  function fecharSugestao() { $('sugestao-modal').hidden = true; }
+
+  function mandarSugestao(ev) {
+    ev.preventDefault();
+    var texto = $('sugestao-texto').value.trim();
+    if (!texto) return;
+    var msg = $('sugestao-msg');
+    var btn = $('sugestao-enviar');
+    btn.disabled = true;
+    msg.hidden = false;
+    msg.className = 'auth-modal-msg';
+    msg.textContent = 'Mandando…';
+    Promise.resolve(db.enviarSugestao(texto)).then(function (res) {
+      btn.disabled = false;
+      if (res && res.error) {
+        msg.className = 'auth-modal-msg is-error';
+        msg.textContent = res.error.message;
+        return;
+      }
+      $('sugestao-form').hidden = true;
+      msg.className = 'auth-modal-msg';
+      msg.textContent = 'Chegou! Obrigado — quem administra o IMPROVIX vai ler.';
+      timer(function () { fecharSugestao(); }, 2200);
+    }).catch(function (e) {
+      btn.disabled = false;
+      msg.className = 'auth-modal-msg is-error';
+      msg.textContent = (e && e.message) || 'Não deu certo. Tente de novo.';
+    });
+  }
+
+  /** Um setTimeout que não trava teste nenhum se a página fechar antes. */
+  function timer(fn, ms) { setTimeout(fn, ms); }
 
   function openAuthModal() {
     authMode = 'login';
@@ -493,7 +550,8 @@
   // botões não terão efeito nenhum. A tela é conveniência para quem PODE.
 
   var adminState = {
-    aba: 'contas', lista: [], convites: [], busca: '', carregando: false, aviso: '', editandoTelas: null
+    aba: 'contas', lista: [], convites: [], sugestoes: [], busca: '',
+    carregando: false, aviso: '', editandoTelas: null
   };
 
   function escHtml(t) {
@@ -525,7 +583,7 @@
     adminState.carregando = true;
     if (adminState.lista.length) desenharAdmin();        // mantém a tabela na tela
     else $('admin-conteudo').innerHTML = '<p class="muted-note">Carregando…</p>';
-    Promise.all([db.listProfiles(), db.listConvites(), db.getConfig()].map(function (x) {
+    Promise.all([db.listProfiles(), db.listConvites(), db.getConfig(), db.listSugestoes()].map(function (x) {
       return Promise.resolve(x).catch(function (e) { return { error: e }; });
     })).then(function (res) {
       adminState.carregando = false;
@@ -536,14 +594,18 @@
       adminState.lista = res[0].data || [];
       adminState.convites = (res[1] && res[1].data) || [];
       if (res[2] && res[2].data) configSistema = res[2].data;
+      adminState.sugestoes = (res[3] && res[3].data) || [];
+      atualizarContaSugestoes();
       desenharAdmin();
     });
   }
 
   /** As abas da Administração: as contas e a configuração do sistema. */
   function abasHTML() {
+    var novas = adminState.sugestoes.filter(function (x) { return !x.lida; }).length;
     return '<div class="tabs meus-tabs adm-abas">' +
-      [['contas', '👥 Contas'], ['sistema', '⚙ Sistema']].map(function (a) {
+      [['contas', '👥 Contas'], ['sugestoes', '💡 Sugestões' + (novas ? ' (' + novas + ')' : '')],
+        ['sistema', '⚙ Sistema']].map(function (a) {
         return '<button class="tab' + (adminState.aba === a[0] ? ' active' : '') +
           '" data-adm="aba" data-v="' + a[0] + '">' + a[1] + '</button>';
       }).join('') + '</div>';
@@ -725,10 +787,46 @@
       '</div>';
   }
 
+  /** A caixa de ideias, da mais nova para a mais velha. */
+  function desenharSugestoes() {
+    if (!adminState.sugestoes.length) {
+      return '<p class="muted-note">Ninguém mandou sugestão ainda. Quem usa o site tem o ícone 💡 ' +
+        'no alto da tela para escrever.</p>';
+    }
+    return '<p class="si-legend">O que quem usa o IMPROVIX mandou para você. ' +
+      'Marque como lida para tirar do contador, e apague quando resolver.</p>' +
+      adminState.sugestoes.map(function (g) {
+        var q = tempoDesde(g.criado_em);
+        return '<div class="sug-item' + (g.lida ? '' : ' sug-nova') + '">' +
+          '<div class="sug-cab">' +
+          '<span class="sug-quem">' + escHtml(g.email || '(conta removida)') + '</span>' +
+          '<span class="sug-quando"' + (q.exato ? ' title="' + escHtml(q.exato) + '"' : '') + '>' +
+          q.txt + (g.lida ? '' : ' · <strong>nova</strong>') + '</span></div>' +
+          '<p class="sug-texto">' + escHtml(g.texto) + '</p>' +
+          '<div class="sug-acoes">' +
+          '<button class="view-btn" data-adm="sug-lida" data-id="' + g.id + '">' +
+          (g.lida ? '↩ Marcar como não lida' : '✓ Marcar como lida') + '</button>' +
+          '<button class="view-btn adm-perigo adm-lixeira" data-adm="sug-apagar" data-id="' + g.id +
+          '" title="Apagar esta sugestão">🗑</button>' +
+          '</div></div>';
+      }).join('');
+  }
+
+  /** A bolinha vermelha no 💡 do alto: só o admin vê, e só se houver não lida. */
+  function atualizarContaSugestoes() {
+    var alvo = $('sugestao-conta');
+    if (!alvo) return;
+    var novas = window.IL.account.isAdmin()
+      ? adminState.sugestoes.filter(function (x) { return !x.lida; }).length : 0;
+    alvo.hidden = !novas;
+    alvo.textContent = novas > 9 ? '9+' : String(novas);
+  }
+
   function desenharAdmin() {
     $('admin-conteudo').innerHTML = abasHTML() +
       (adminState.aviso ? '<div class="tra-aviso tra-flash">' + escHtml(adminState.aviso) + '</div>' : '') +
-      (adminState.aba === 'sistema' ? desenharSistema() : desenharContas());
+      (adminState.aba === 'sistema' ? desenharSistema()
+        : adminState.aba === 'sugestoes' ? desenharSugestoes() : desenharContas());
 
     var busca = $('admin-busca');
     if (busca) {
@@ -788,6 +886,31 @@
     if (acao === 'aba') { adminState.aba = botao.getAttribute('data-v'); adminState.aviso = ''; desenharAdmin(); return; }
     if (acao === 'recarregar') { adminState.lista = []; adminState.aviso = ''; renderAdminView(); return; }
     if (acao === 'excluir') { excluirConta(id); return; }
+    if (acao === 'sug-lida') {
+      var g = adminState.sugestoes.filter(function (x) { return x.id === id; })[0];
+      if (!g) return;
+      // O valor novo é decidido AQUI, antes de pedir. Inverter de novo depois
+      // da resposta (g.lida = !g.lida) parece igual e não é: se a resposta já
+      // tiver mexido no objeto, a segunda inversão desfaz o que foi gravado.
+      var novo = !g.lida;
+      Promise.resolve(db.marcarSugestao(id, novo)).then(function (res) {
+        if (res && res.error) { adminState.aviso = 'Não deu certo: ' + res.error.message; desenharAdmin(); return; }
+        g.lida = novo;
+        atualizarContaSugestoes();
+        desenharAdmin();
+      });
+      return;
+    }
+    if (acao === 'sug-apagar') {
+      Promise.resolve(db.apagarSugestao(id)).then(function (res) {
+        if (res && res.error) { adminState.aviso = 'Não deu certo: ' + res.error.message; desenharAdmin(); return; }
+        adminState.sugestoes = adminState.sugestoes.filter(function (x) { return x.id !== id; });
+        atualizarContaSugestoes();
+        adminState.aviso = 'Sugestão apagada.';
+        desenharAdmin();
+      });
+      return;
+    }
     if (acao === 'telas') { adminState.editandoTelas = id; desenharAdmin(); return; }
     if (acao === 'telas-fechar') { adminState.editandoTelas = null; desenharAdmin(); return; }
 
@@ -1070,6 +1193,14 @@
       }
       perfilSumiu = false;
       if (currentProfile && currentProfile.bloqueado) { cortarAcessoBloqueado(); return; }
+      // O admin chega sabendo quantas sugestões ainda não leu, sem precisar
+      // abrir a tela de Administração para a bolinha aparecer.
+      if (currentProfile.papel === 'admin' && db.listSugestoes) {
+        Promise.resolve(db.listSugestoes()).then(function (r) {
+          adminState.sugestoes = (r && r.data) || [];
+          atualizarContaSugestoes();
+        }).catch(function () { /* sem sugestões, sem bolinha */ });
+      }
       // Marca o último acesso: uma vez por visita, e só para quem entrou de
       // verdade (quem está esperando liberação ou bloqueado não "usou" nada).
       // A hora é do banco, não daqui — ver registrar_acesso() no schema.
@@ -1148,6 +1279,13 @@
     });
 
     $('auth-estado-sair').addEventListener('click', handleSignOut);
+
+    $('btn-sugestao').addEventListener('click', abrirSugestao);
+    $('sugestao-fechar').addEventListener('click', fecharSugestao);
+    $('sugestao-modal').addEventListener('click', function (ev) {
+      if (ev.target === $('sugestao-modal')) fecharSugestao();
+    });
+    $('sugestao-form').addEventListener('submit', mandarSugestao);
 
     if (!db.sdkLoaded()) {
       renderHeader();

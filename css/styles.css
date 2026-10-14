@@ -138,7 +138,25 @@ li { margin-bottom: 0.5rem; line-height: 1.4; }
   font-size: 0.85rem;
 }
 .topbar-right { display: flex; align-items: center; gap: 1rem; }
-.bell { font-size: 1.1rem; cursor: pointer; }
+.bell {
+  font-size: 1.1rem; cursor: pointer; position: relative; background: none;
+  border: none; color: inherit; padding: 0.2rem 0.3rem; line-height: 1;
+}
+.bell:hover { filter: brightness(1.3); }
+/* Quantas sugestões o admin ainda não leu: bolinha no canto do ícone. */
+.bell-conta {
+  position: absolute; top: -2px; right: -4px; min-width: 16px; height: 16px;
+  padding: 0 4px; border-radius: 9px; background: var(--parar); color: #fff;
+  font-size: 0.62rem; font-weight: 700; line-height: 16px; text-align: center;
+}
+/* Sugestões na Administração */
+.sug-item { border: 1px solid var(--border); border-radius: 10px; padding: 0.7rem 0.9rem; margin-bottom: 0.6rem; background: var(--bg-card); }
+.sug-item.sug-nova { border-color: var(--ouvir); background: rgba(125, 211, 252, 0.06); }
+.sug-cab { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: baseline; justify-content: space-between; margin-bottom: 0.35rem; }
+.sug-quem { font-weight: 600; font-size: 0.85rem; }
+.sug-quando { color: var(--text-muted); font-size: 0.75rem; }
+.sug-texto { white-space: pre-wrap; line-height: 1.45; font-size: 0.9rem; margin: 0 0 0.5rem; }
+.sug-acoes { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .user { display: flex; align-items: center; gap: 0.6rem; }
 .avatar {
   width: 34px; height: 34px; border-radius: 50%;
@@ -956,7 +974,10 @@ body.sistema-travado .modal-close { display: none; }
   .search { padding: 0.25rem 0.7rem; }
   .search input { min-height: 40px; }
   #som-ambiencia { order: 6; }
-  .bell { display: none; }
+  /* O 💡 fica: é por ele que quem usa fala com quem administra. (Antes aqui
+     morava um sino decorativo, que no celular sumia por não fazer nada.) */
+  .bell { order: 3; width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center;
+          background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; flex: 0 0 auto; }
 
   /* --- conteúdo --- */
   .content { padding: 0.9rem 0.8rem 2.5rem; }

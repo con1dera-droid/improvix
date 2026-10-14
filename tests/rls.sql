@@ -248,6 +248,59 @@ begin
   select count(*) into n from public.profiles where ultimo_acesso is not null;
   insert into resultado values (n >= 1, 'o admin enxerga o último acesso das contas (viu ' || n || ')');
 
+  -- ===================== sugestões =====================
+  -- A caixa de ideias: quem está liberado manda, cada um vê só a sua, o admin
+  -- vê todas e é o único que marca como lida ou apaga. E quem assina é o
+  -- banco — não dá para mandar sugestão em nome de outra pessoa.
+  perform set_config('request.jwt.claim.sub', alvo_id::text, true);
+  insert into public.sugestoes (texto, user_id, email)
+    values ('seria bom ter metrônomo visual', admin_id, 'mentira@teste.com');
+  set local role postgres;
+  select count(*) into n from public.sugestoes where user_id = alvo_id;
+  insert into resultado values (n = 1, 'a sugestão é carimbada com quem realmente mandou');
+  select email = 'alvo@teste' into b from public.sugestoes limit 1;
+  insert into resultado values (b, 'e com o e-mail de verdade dessa pessoa');
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', alvo_id::text, true);
+  select count(*) into n from public.sugestoes;
+  insert into resultado values (n = 1, 'quem mandou enxerga a própria sugestão (viu ' || n || ')');
+
+  perform set_config('request.jwt.claim.sub', comum_id::text, true);
+  select count(*) into n from public.sugestoes;
+  insert into resultado values (n = 0, 'outra pessoa NÃO enxerga a sugestão alheia (viu ' || n || ')');
+
+  perform set_config('request.jwt.claim.sub', admin_id::text, true);
+  select count(*) into n from public.sugestoes;
+  insert into resultado values (n = 1, 'o admin enxerga todas as sugestões (viu ' || n || ')');
+
+  perform set_config('request.jwt.claim.sub', alvo_id::text, true);
+  update public.sugestoes set lida = true;
+  set local role postgres;
+  select count(*) into n from public.sugestoes where lida;
+  insert into resultado values (n = 0, 'usuário comum NÃO marca sugestão como lida');
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', alvo_id::text, true);
+  delete from public.sugestoes;
+  set local role postgres;
+  select count(*) into n from public.sugestoes;
+  insert into resultado values (n = 1, 'usuário comum NÃO apaga sugestão');
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', admin_id::text, true);
+  update public.sugestoes set lida = true;
+  set local role postgres;
+  select count(*) into n from public.sugestoes where lida;
+  insert into resultado values (n = 1, 'o admin marca como lida');
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', admin_id::text, true);
+  delete from public.sugestoes;
+  set local role postgres;
+  select count(*) into n from public.sugestoes;
+  insert into resultado values (n = 0, 'e o admin apaga quando resolve');
+
   -- ===================== excluir conta =====================
   -- A exclusão é a ação mais perigosa da tela: a regra tem de estar aqui, e
   -- não no botão. Quem não é admin não apaga ninguém, nem a si mesmo; o admin

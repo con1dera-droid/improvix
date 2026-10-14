@@ -82,7 +82,10 @@
           <option value="pouca">🚪 Pouca sala</option>
           <option value="seco">▪ Sem sala (seco)</option>
         </select>
-        <span class="bell" title="Notificações">🔔</span>
+        <!-- A caixa de ideias: aparece para quem entrou (js/auth-ui.js). O
+             administrador vê aqui também quantas sugestões ainda não leu. -->
+        <button class="bell" id="btn-sugestao" type="button" hidden
+                title="Mandar uma sugestão para quem administra">💡<span class="bell-conta" id="sugestao-conta" hidden></span></button>
         <div class="user" id="user-area">
           <button class="btn-primary" id="btn-entrar">Entrar</button>
         </div>
@@ -729,6 +732,26 @@
       </div>
     </footer>
 
+  </div>
+</div>
+
+<!-- Caixa de ideias: qualquer pessoa liberada escreve e manda para quem
+     administra. Quem assina é o banco (ver trg_sugestao_carimba_autor). -->
+<div class="modal-overlay" id="sugestao-modal" hidden>
+  <div class="modal">
+    <button class="modal-close" id="sugestao-fechar">✕</button>
+    <h2>💡 Mandar uma sugestão</h2>
+    <p class="si-legend" id="sugestao-legenda">Achou que falta alguma coisa, achou um erro, pensou num exercício?
+      Escreva aqui — vai direto para quem administra o IMPROVIX.</p>
+    <div id="sugestao-msg" class="auth-modal-msg" hidden></div>
+    <form id="sugestao-form">
+      <div class="field">
+        <label for="sugestao-texto">Sua sugestão</label>
+        <textarea id="sugestao-texto" rows="5" maxlength="1000" required
+                  placeholder="Ex.: seria bom ter um metrônomo que pisca junto com o som."></textarea>
+      </div>
+      <button type="submit" class="btn-primary" id="sugestao-enviar">Mandar</button>
+    </form>
   </div>
 </div>
 

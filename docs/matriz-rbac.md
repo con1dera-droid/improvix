@@ -201,3 +201,18 @@ O que a exclusão **não** faz: apagar o login em `auth.users`. Isso exige a
 chave `service_role`, que nunca entra no site; o admin remove em
 *Authentication > Users*. Sem perfil, `pode_usar()` é falso e a pessoa não
 entra — e, se tentar, recebe o aviso de que a conta foi removida.
+
+## Sugestões (2026-10-14)
+
+| Ação | Sem conta | Esperando | Liberado | Admin |
+|---|---|---|---|---|
+| Mandar sugestão | ❌ | ❌ | ✅ | ✅ |
+| Ver as próprias sugestões | ❌ | ❌ | ✅ | ✅ |
+| Ver as sugestões de todo mundo | ❌ | ❌ | ❌ | ✅ |
+| Marcar como lida | ❌ | ❌ | ❌ | ✅ |
+| Apagar sugestão | ❌ | ❌ | ❌ | ✅ |
+| Assinar uma sugestão com o nome de outra pessoa | ❌ | ❌ | ❌ | ❌¹ |
+
+¹ O trigger `sugestao_carimba_autor` preenche `user_id`, `email` e `criado_em`
+no insert, ignorando o que vier do formulário. Conferido em `tests/rls.sql`
+("a sugestão é carimbada com quem realmente mandou").

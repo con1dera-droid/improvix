@@ -1558,6 +1558,46 @@ derrubado por engano.
 certo exclui, os dados somem junto, o aviso aparece, e quem foi excluído
 recebe a explicação ao tentar voltar.
 
+## Caixa de ideias: sugestões de quem usa para quem administra — ✅ (2026-10-14)
+
+Pedido do dono do projeto: *"uma opção da pessoa mandar sugestões para o
+administrador, pode ser um ícone no topo"*. O 💡 no alto da tela abre uma
+caixa de texto; na Administração entrou a aba **💡 Sugestões**, com a conta
+das não lidas no próprio ícone e na aba.
+
+**Quem assina é o banco.** O trigger `sugestao_carimba_autor` preenche autor,
+e-mail e data no `insert`: o formulário manda só o texto. Sem isso, bastaria
+mudar o que o navegador envia para assinar uma sugestão com o nome de outra
+pessoa — e o teste faz exatamente essa tentativa, mandando `email` e
+`user_id` falsos junto; o que fica gravado é quem realmente mandou.
+
+Políticas: quem está liberado manda a sua; **cada um vê só as suas**, o admin
+vê todas; marcar como lida e apagar são só do admin. Nove regras novas em
+`tests/rls.sql` — agora **59**, num PostgreSQL de verdade.
+
+**Um bug que só apareceu porque o banco falso passou a ser honesto.** Marcar
+como lida gravava e logo se desfazia. O código fazia `db.marcar(id, !g.lida)`
+e, na resposta, `g.lida = !g.lida` — parece igual e não é: se a resposta já
+tiver mexido no objeto, a segunda inversão desfaz o que foi gravado. Em
+produção o supabase-js devolve uma cópia e o erro ficaria latente; o falso
+devolvia a própria linha e o problema apareceu na hora. Dois consertos: o
+valor novo passou a ser decidido **antes** de pedir (`var novo = !g.lida`), e
+`tests/fake-supabase.js` passou a **devolver cópias**, como um banco de
+verdade — com isso ele deixa de esconder essa classe inteira de erro.
+
+**Dois ajustes de tela que o teste pegou de brinde**: `tests/celular.smoke.js`
+media "o modal cabe na tela" pegando o primeiro `.modal` da página — e agora
+há mais de um escondido, então passou a medir `.modal-overlay:not([hidden])`;
+e a checagem "a barra do topo está numa linha só" usava o sino decorativo
+como termômetro (o sino deu lugar ao 💡, que só aparece para quem entrou).
+Agora ela compara o **centro** de cada controle da barra, que é o que
+significa estar na mesma linha.
+
+`tests/sugestoes.smoke.js` (novo) cobre o caminho inteiro: sem conta o ícone
+não aparece; quem está dentro manda e vê que chegou; a assinatura é a de
+verdade; outro aluno não enxerga a sugestão alheia; o admin vê a bolinha, lê,
+marca como lida (a bolinha some) e apaga; e no celular o ícone continua à mão.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

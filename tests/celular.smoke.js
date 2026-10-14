@@ -172,14 +172,16 @@ async function irPara(p, nav) {
     await irPara(p, 'harmonia');
     await p.click('#btn-entrar');
     await p.waitForTimeout(500);
+    // ":not([hidden])" importa: a página tem mais de um modal escondido (o de
+    // entrada e a caixa de sugestões), e medir o errado não diz nada.
     const modal = await p.evaluate((L) => {
-      const m = document.querySelector('.modal');
+      const m = document.querySelector('.modal-overlay:not([hidden]) .modal');
       if (!m) return null;
       const c = m.getBoundingClientRect();
       return { esq: Math.round(c.left), dir: Math.round(c.right), L: L };
     }, t.w);
     ok(modal && modal.esq >= 0 && modal.dir <= t.w, 'LOGIN: o modal cabe na tela' + (modal ? ' (' + modal.esq + '→' + modal.dir + ')' : ''));
-    const fechar = await p.$('.modal-close');
+    const fechar = await p.$('.modal-overlay:not([hidden]) .modal-close');
     if (fechar) { await fechar.click(); await p.waitForTimeout(300); }
 
     // --- alvos de toque ---
@@ -221,13 +223,29 @@ async function irPara(p, nav) {
       menuVisivel: s.left >= 0 && s.width > 200,
       botaoEscondido: getComputedStyle(document.getElementById('btn-menu')).display === 'none',
       marcaEscondida: getComputedStyle(document.querySelector('.topbar-brand')).display === 'none',
-      sino: getComputedStyle(document.querySelector('.bell')).display !== 'none',
+      // Tudo numa linha só: cada controle visível da barra começa na mesma
+      // altura. (Antes isto era medido pelo sino decorativo, que no lugar
+      // dele agora tem o 💡 de sugestões — e esse só aparece para quem
+      // entrou, então não servia mais de termômetro.)
+      umaLinha: (function () {
+        // Pelo CENTRO, não pelo topo: os controles têm alturas diferentes e
+        // ficam centralizados — alinhados pelo meio é o que significa "na
+        // mesma linha".
+        var meios = [];
+        Array.prototype.forEach.call(document.querySelectorAll('.topbar > *, .topbar-right > *'), function (n) {
+          var c = n.getBoundingClientRect();
+          if (c.width > 0 && c.height > 0 && !n.classList.contains('topbar-right')) meios.push(c.top + c.height / 2);
+        });
+        return meios.length >= 3 && Math.max.apply(null, meios) - Math.min.apply(null, meios) <= 8;
+      })(),
+      temIconeSugestao: !!document.getElementById('btn-sugestao'),
       linhas: document.querySelector('.topbar').getBoundingClientRect().height
     };
   });
   ok(pc.menuVisivel, 'PC: o menu lateral continua fixo à esquerda');
   ok(pc.botaoEscondido && pc.marcaEscondida, 'PC: o botão ☰ e a marca do topo não aparecem');
-  ok(pc.sino, 'PC: a barra do topo continua inteira (numa linha só)');
+  ok(pc.umaLinha, 'PC: a barra do topo continua inteira (numa linha só)');
+  ok(pc.temIconeSugestao, 'PC: o 💡 de sugestões existe na barra (aparece para quem entra)');
   ok(pc.linhas < 90, 'PC: a barra do topo não engordou (' + Math.round(pc.linhas) + 'px)');
   await d.close();
 

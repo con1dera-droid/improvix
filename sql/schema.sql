@@ -219,6 +219,65 @@ drop policy if exists "so admin apaga convites" on public.convites;
 create policy "so admin apaga convites" on public.convites for delete using (public.eh_admin());
 
 
+-- ============================================================
+-- 1d) sugestoes — o que quem usa quer dizer para quem administra
+-- ============================================================
+-- Uma caixa de ideias, não um chat: a pessoa escreve e manda; quem administra
+-- lê, marca como lida e apaga quando resolver. Fica no banco (e não num
+-- e-mail) para não depender de serviço nenhum e para ninguém perder nada.
+create table if not exists public.sugestoes (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  email text,
+  texto text not null,
+  criado_em timestamptz not null default now(),
+  lida boolean not null default false
+);
+alter table public.sugestoes enable row level security;
+create index if not exists sugestoes_criado_em_idx on public.sugestoes(criado_em desc);
+
+-- Quem assina a sugestão é o banco, não o formulário: o trigger carimba
+-- autor, e-mail e data. Sem isto, daria para mandar uma sugestão em nome de
+-- outra pessoa só mudando o que o navegador envia.
+create or replace function public.sugestao_carimba_autor()
+returns trigger
+language plpgsql security definer set search_path = public
+as $$
+begin
+  new.user_id := auth.uid();
+  new.email := (select email from public.profiles where id = auth.uid());
+  new.criado_em := now();
+  new.lida := false;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_sugestao_carimba_autor on public.sugestoes;
+create trigger trg_sugestao_carimba_autor
+  before insert on public.sugestoes
+  for each row execute procedure public.sugestao_carimba_autor();
+
+drop policy if exists "usuario manda a propria sugestao" on public.sugestoes;
+create policy "usuario manda a propria sugestao"
+  on public.sugestoes for insert
+  with check (public.pode_usar());
+
+drop policy if exists "cada um ve as suas e o admin ve todas" on public.sugestoes;
+create policy "cada um ve as suas e o admin ve todas"
+  on public.sugestoes for select
+  using (public.eh_admin() or (auth.uid() = user_id and public.pode_usar()));
+
+drop policy if exists "so admin marca sugestao como lida" on public.sugestoes;
+create policy "so admin marca sugestao como lida"
+  on public.sugestoes for update
+  using (public.eh_admin()) with check (public.eh_admin());
+
+drop policy if exists "so admin apaga sugestao" on public.sugestoes;
+create policy "so admin apaga sugestao"
+  on public.sugestoes for delete
+  using (public.eh_admin());
+
+
 drop policy if exists "usuario ve o proprio perfil" on public.profiles;
 create policy "usuario ve o proprio perfil"
   on public.profiles for select

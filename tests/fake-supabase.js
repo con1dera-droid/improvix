@@ -77,7 +77,22 @@ const FAKE_SUPABASE = `
   FakeTable.prototype.order = function () { return this; };
   FakeTable.prototype.single = function () { this._single = true; return this; };
   FakeTable.prototype.catch = function () { return this; };
-  FakeTable.prototype.then = function (resolve) {
+  /**
+   * Um banco de verdade devolve dados, não ponteiros para as próprias linhas.
+   * Sem esta cópia, mexer no objeto que a tela recebeu mexia no "banco" — e um
+   * teste passaria com código que em produção não grava nada (ou grava duas
+   * vezes). Foi assim que o toggle de "marcar como lida" se traiu.
+   */
+  function copia(x) {
+    if (Array.isArray(x)) return x.map(function (r) { return Object.assign({}, r); });
+    return x && typeof x === 'object' ? Object.assign({}, x) : x;
+  }
+
+  FakeTable.prototype.then = function (resolveOriginal) {
+    var resolve = function (res) {
+      if (res && res.data) res = { data: copia(res.data), error: res.error };
+      return resolveOriginal(res);
+    };
     var db = this.db, nome = this.name;
     var rows = db.store[nome] = db.store[nome] || [];
     var eu = db.auth.currentUser ? db.auth.currentUser.id : null;
@@ -92,6 +107,9 @@ const FAKE_SUPABASE = `
       if (!souAdmin) filtrado = filtrado.filter(function (r) { return r.id === eu; });
     } else if (nome === 'config_sistema') {
       // qualquer um lê, até sem sessão (a tela de entrada precisa)
+    } else if (nome === 'sugestoes') {
+      // cada um vê as suas; o admin vê todas
+      if (!souAdmin) filtrado = podeUsar ? filtrado.filter(function (r) { return r.user_id === eu; }) : [];
     } else if (nome === 'convites') {
       if (!souAdmin) filtrado = [];
     } else if (!podeUsar) {
@@ -104,7 +122,14 @@ const FAKE_SUPABASE = `
       if (nome === 'convites' && !souAdmin) {
         resolve({ data: null, error: { message: 'new row violates row-level security policy' } }); return;
       }
-      if (nome !== 'convites' && !podeUsar) {
+      if (nome === 'sugestoes') {
+        if (!podeUsar) { resolve({ data: null, error: { message: 'new row violates row-level security policy' } }); return; }
+        // o trigger: quem assina é o banco, não o formulário
+        var meu = db.store.profiles.filter(function (p) { return p.id === eu; })[0];
+        this._data = { texto: this._data.texto, user_id: eu, email: meu ? meu.email : null,
+          criado_em: new Date().toISOString(), lida: false };
+      }
+      if (nome !== 'convites' && nome !== 'sugestoes' && !podeUsar) {
         resolve({ data: null, error: { message: 'new row violates row-level security policy' } }); return;
       }
       var row = Object.assign({ id: 'id' + Math.random().toString(36).slice(2), criado_em: new Date().toISOString() }, this._data);
@@ -117,6 +142,7 @@ const FAKE_SUPABASE = `
     if (this._op === 'update') {
       var patch = this._data;
       if (nome === 'config_sistema' && !souAdmin) { resolve({ data: null, error: null }); return; }
+      if (nome === 'sugestoes' && !souAdmin) { resolve({ data: null, error: null }); return; }
       filtrado.forEach(function (r) {
         var p = Object.assign({}, patch);
         if (nome === 'profiles') {
@@ -138,7 +164,9 @@ const FAKE_SUPABASE = `
     }
 
     if (this._op === 'delete') {
-      if (nome === 'convites' && !souAdmin) { resolve({ data: null, error: { message: 'row-level security' } }); return; }
+      if ((nome === 'convites' || nome === 'sugestoes') && !souAdmin) {
+        resolve({ data: null, error: { message: 'row-level security' } }); return;
+      }
       db.store[nome] = rows.filter(function (r) { return filtrado.indexOf(r) < 0; });
       resolve({ data: null, error: null });
       return;
@@ -155,6 +183,7 @@ const FAKE_SUPABASE = `
     this.store = {
       profiles: [],
       convites: [],
+      sugestoes: [],
       config_sistema: [{ id: 1, cadastro: 'aprovacao', mensagem_login: null, modulos: {} }]
     };
     this.emailsEnviados = [];

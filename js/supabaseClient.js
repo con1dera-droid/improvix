@@ -177,6 +177,35 @@
     return c.from('profiles').update(patch).eq('id', id).select().single();
   }
 
+  // ---------------- Sugestões ----------------
+  // Quem assina é o banco: o trigger carimba autor, e-mail e data, então o
+  // navegador só precisa mandar o texto (ver sql/schema.sql).
+
+  function enviarSugestao(texto) {
+    var c = getClient();
+    if (!c) return Promise.resolve({ data: null, error: notConfiguredError() });
+    return c.from('sugestoes').insert({ texto: texto }).select().single();
+  }
+
+  /** Para o admin, todas. Para os outros, as próprias (é o banco que decide). */
+  function listSugestoes() {
+    var c = getClient();
+    if (!c) return Promise.resolve({ data: null, error: notConfiguredError() });
+    return c.from('sugestoes').select('*').order('criado_em', { ascending: false });
+  }
+
+  function marcarSugestao(id, lida) {
+    var c = getClient();
+    if (!c) return Promise.resolve({ data: null, error: notConfiguredError() });
+    return c.from('sugestoes').update({ lida: !!lida }).eq('id', id).select().single();
+  }
+
+  function apagarSugestao(id) {
+    var c = getClient();
+    if (!c) return Promise.resolve({ data: null, error: notConfiguredError() });
+    return c.from('sugestoes').delete().eq('id', id);
+  }
+
   // ---------------- Dados (analises / favoritos / exercicios) ----------------
 
   function withUser(fn) {
@@ -292,6 +321,10 @@
     trocarSenha: trocarSenha,
     getConfig: getConfig,
     updateConfig: updateConfig,
+    enviarSugestao: enviarSugestao,
+    listSugestoes: listSugestoes,
+    marcarSugestao: marcarSugestao,
+    apagarSugestao: apagarSugestao,
     listConvites: listConvites,
     criarConvite: criarConvite,
     apagarConvite: apagarConvite,
