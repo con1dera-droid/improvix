@@ -13,7 +13,32 @@ Arquivos:
 | `email/senha-nova.html` | Authentication > Emails > Templates > **Reset password** | Pediu "Esqueci minha senha", ou o admin clicou em 🔑 Senha nova |
 | `email/convite.html` | Authentication > Emails > Templates > **Invite user** | Só se o convite for disparado pelo painel do Supabase |
 
-## O passo a passo
+## ⚠️ Antes de tentar colar: o plano gratuito travou isso (junho/2026)
+
+Em **3 de junho de 2026** o Supabase passou a **bloquear a edição dos modelos
+nos projetos novos do plano gratuito** que usam o serviço de e-mail embutido.
+Na tela de Templates aparece o aviso *"Set up custom SMTP to edit templates"* e
+os campos **Subject** e **Body** ficam travados — não adianta colar. Projetos
+criados antes dessa data continuam podendo editar; o do IMPROVIX é mais novo e
+pegou a regra nova.
+
+Ou seja: **ligar um SMTP próprio deixou de ser opcional**. Era só para o
+remetente dizer "IMPROVIX"; agora é a única forma de mudar qualquer coisa no
+e-mail. Com o SMTP ligado, os campos destravam e o passo a passo abaixo volta a
+valer, tal e qual.
+
+Enquanto isso há dois caminhos, e nenhum deles é "o site está quebrado":
+
+1. **Deixar o e-mail padrão em inglês.** A pessoa recebe *"Confirm your email
+   address"*, clica e entra. Feio, não defeituoso.
+2. **Desligar a confirmação de e-mail** em *Authentication > Sign In /
+   Providers > Email > Confirm email*. Aí nenhum e-mail é enviado no cadastro
+   e a conta vale na hora — com o custo de ninguém provar que o endereço é
+   seu (ver `docs/etapa4-supabase.md`, Passo 6).
+
+Fonte: <https://supabase.com/changelog/46599-changes-to-email-template-customisation-on-free-tier>
+
+## O passo a passo (depois que o SMTP estiver ligado)
 
 1. Entre em **supabase.com**, abra o projeto.
 2. No menu da esquerda: **Authentication** → **Emails** → aba **Templates**.

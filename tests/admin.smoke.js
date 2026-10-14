@@ -66,6 +66,16 @@ const COMUM = 'comum@teste.com';
   ok(modos.every((m) => m.abaixo), 'a explicação de cada modo fica embaixo do nome, não na mesma linha');
   ok(modos.every((m) => m.largura > 300), 'cada modo ocupa a linha inteira, como um cartão');
 
+  // Confirmar o e-mail é uma chave do Supabase, não desta tela: o dono pode
+  // tê-la desligado. Se a descrição de um modo prometer o link de
+  // confirmação, a tela passa a mentir no dia em que ele desligar. Então
+  // nenhuma descrição pode falar nisso — só a legenda, que diz onde a chave
+  // mora.
+  const textoModos = await page.$$eval('.adm-modo small', (l) => l.map((x) => x.textContent).join(' | '));
+  ok(!/confirma/i.test(textoModos), 'nenhum modo promete confirmação de e-mail (isso é chave do Supabase, não daqui)');
+  const legenda = await page.$eval('.adm-sec .si-legend', (e) => e.textContent);
+  ok(/Confirm email/.test(legenda) && /Supabase/.test(legenda), 'a legenda diz onde fica a chave de confirmar o e-mail');
+
   await page.click('input[name="adm-cadastro"][value="livre"]');
   await page.waitForTimeout(150);
   const aceso = await page.$$eval('.adm-modo.is-on', (l) => l.map((x) => x.querySelector('input').value));

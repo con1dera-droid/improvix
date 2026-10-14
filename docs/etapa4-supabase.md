@@ -129,16 +129,27 @@ sistema é o administrador**, carimbado pelo próprio banco (trigger
 
 **Aba Sistema** — a configuração geral:
 
-* **Quem pode entrar**: *Com aprovação* (padrão — a pessoa confirma o
-  e-mail e fica esperando você liberar na aba Contas), *Confirmou o e-mail,
-  já entra* (clicou no link de confirmação, está dentro, sem esperar por
-  você) ou *Fechado* (não aparece botão de criar conta — só entra quem você
-  convidar). Nos três, confirmar o e-mail é obrigatório: isso é do Supabase
-  e não se desliga aqui; o que muda é o que acontece **depois** da
-  confirmação. Escolhendo *Confirmou o e-mail, já entra*, você continua
-  podendo suspender a liberação, bloquear ou excluir qualquer conta depois,
-  na aba Contas — as três fichas ficam desenhadas como cartões, com a
-  explicação embaixo do nome, e a escolhida acende na hora do clique.
+* **Quem pode entrar**: *Com aprovação* (padrão — a pessoa se cadastra e
+  fica esperando você liberar na aba Contas), *Entra direto* (está dentro
+  sem esperar por você) ou *Fechado* (não aparece botão de criar conta — só
+  entra quem você convidar). Em qualquer um deles, você continua podendo
+  suspender a liberação, bloquear ou excluir uma conta depois, na aba
+  Contas. As três fichas são cartões, com a explicação embaixo do nome, e a
+  escolhida acende na hora do clique.
+
+  **Confirmar o e-mail é outra chave, e ela não fica aqui**: está no painel
+  do Supabase, em *Authentication > Sign In / Providers > Email > Confirm
+  email*. Ligada (o padrão), ninguém entra sem clicar no link que chega por
+  e-mail; desligada, a conta vale na hora do cadastro e **nenhum e-mail é
+  enviado**. Por isso o texto desta tela não fala em confirmação: ele
+  descreve só o que acontece **depois** dela, seja ela qual for.
+
+  **O que se perde desligando a confirmação**: ninguém prova que o e-mail é
+  seu. Quem errar uma letra no endereço fica sem o "Esqueci minha senha" (o
+  link vai para o endereço errado), e dá para se cadastrar com o e-mail de
+  outra pessoa. Desligada a confirmação, o modo *Com aprovação* passa a ser
+  a única porta de verdade — vale manter, a não ser que você aceite que
+  qualquer um com o endereço do site entre sozinho.
 * **Recado na tela de entrada**: aparece para todo mundo antes de entrar
   (ex.: "Aula na quinta, 19h. Quem ainda não tem acesso, me chame no
   WhatsApp").
@@ -173,9 +184,16 @@ Quem manda o e-mail de confirmação de cadastro é o Supabase, com um modelo qu
 fica no painel dele — por isso o texto não está no código do site. Os modelos
 prontos (confirmação, senha nova e convite), com a marca e em português, estão
 na pasta `email/`, e o passo a passo de onde colar cada um está em
-**`docs/emails-supabase.md`**. Lá também está o que o plano gratuito não deixa
-mudar: o remetente continua "Supabase Auth", e para dizer "IMPROVIX" é preciso
-ligar um SMTP próprio.
+**`docs/emails-supabase.md`**.
+
+**Mas há uma trava, desde 3/6/2026**: nos projetos novos do plano gratuito que
+usam o e-mail embutido, o Supabase não deixa mais editar os modelos — os campos
+Subject e Body ficam travados, com o aviso *"Set up custom SMTP to edit
+templates"*. Ligar um **SMTP próprio** destrava os dois campos (e de quebra faz
+o remetente dizer "IMPROVIX" em vez de "Supabase Auth"). Sem isso, o e-mail sai
+no padrão em inglês, que funciona — ou você desliga a confirmação de e-mail,
+como explicado no Passo 6. Os detalhes e as alternativas estão em
+`docs/emails-supabase.md`.
 
 ## Passo 8 — O endereço público (Site URL)
 

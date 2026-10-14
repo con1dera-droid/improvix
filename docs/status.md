@@ -1668,43 +1668,63 @@ testes e tem limite baixo de envios por hora (visível em *Authentication >
 Rate Limits*): se um aluno disser que o e-mail não chegou, é o primeiro lugar
 para olhar.
 
-## Confirmou o e-mail, já entra — ✅ (2026-10-14)
+## "Entra direto": o portão legível, e a trava que o Supabase pôs nos e-mails — ✅ (2026-10-14)
 
-Pedido do dono: *"quando a pessoa confirme o e-mail já libere o acesso dela;
-aí se eu como administrador quiser tirar, eu tiro depois"*.
+Começou como *"quando a pessoa confirme o e-mail já libere o acesso dela; aí se
+eu como administrador quiser tirar, eu tiro depois"* e terminou em outro lugar,
+porque no meio apareceu uma trava nova do Supabase.
 
-**Não foi preciso mecanismo novo** — isso já existia e se chamava "Cadastro
-livre" na aba Sistema. O trigger `handle_new_user` nasce com `aprovado = true`
-quando a configuração está em `livre`, e o Supabase só deixa entrar depois do
-link de confirmação; somando os dois, o efeito é exatamente "confirmou →
-entra". O problema era de **nome e de leitura**: "Cadastro livre" soa como
-"entra qualquer um sem confirmar nada", que é o oposto do que acontece, e as
-três escolhas apareciam grudadas numa linha só de texto corrido — a classe
-`.adm-modo` nunca tinha ganhado estilo, então nome e explicação saíam coladas
-e ninguém entendia o que estava marcando.
+**Primeira parte — não foi preciso mecanismo novo.** Isso já existia e se
+chamava "Cadastro livre" na aba Sistema: o trigger `handle_new_user` nasce com
+`aprovado = true` quando a configuração está em `livre`. O problema era de
+**nome e de leitura** — "Cadastro livre" soa como "entra qualquer um", e as três
+escolhas apareciam grudadas numa linha só de texto corrido, porque a classe
+`.adm-modo` nunca tinha ganhado estilo. Viraram cartões de verdade
+(`.adm-modos`/`.adm-modo` no CSS): nome em cima, explicação embaixo, a escolhida
+com a borda acesa — e o aceso acompanha o clique, em vez de esperar o "Salvar
+configuração".
 
-O que mudou:
+**Segunda parte — a trava.** Ao abrir *Authentication > Emails > Templates* para
+colar os modelos da pasta `email/`, o painel mostrou *"Set up custom SMTP to
+edit templates"*, com Subject e Body travados. Em **3/6/2026** o Supabase passou
+a bloquear a edição dos modelos nos projetos novos do plano gratuito que usam o
+e-mail embutido ([changelog](https://supabase.com/changelog/46599-changes-to-email-template-customisation-on-free-tier)).
+Isso muda o que estava escrito aqui: ligar um SMTP próprio deixou de ser
+"opcional, só para o remetente" e virou a única forma de mudar qualquer coisa no
+e-mail. Os modelos ficam guardados, prontos, para o dia em que houver SMTP.
 
-* O modo passou a se chamar **"Confirmou o e-mail, já entra"**, e cada
-  explicação diz o que acontece depois da confirmação, incluindo que você
-  continua podendo suspender, bloquear ou excluir na aba Contas.
-* Uma legenda acima das três opções diz o que vale para todas: confirmar o
-  e-mail é obrigatório sempre, porque é do Supabase — o que muda ali é só o
-  **depois**.
-* As três viraram cartões de verdade (`.adm-modos`/`.adm-modo` no CSS): nome
-  em cima, explicação embaixo, a escolhida com a borda acesa — e o aceso
-  acompanha o clique, em vez de esperar o "Salvar configuração".
+**Terceira parte — a decisão do dono**: *"quando o usuário cadastra o e-mail,
+sem precisar de confirmação de e-mail, o sistema já aceita ele logar
+normalmente"*. Isso é uma chave do Supabase (*Authentication > Sign In /
+Providers > Email > Confirm email*), não do site — e o código já aguentava os
+dois jeitos: `handleAuthSubmit` só manda "confirme seu e-mail" quando o
+`signUp` volta **sem** sessão, que é exatamente o caso da confirmação ligada.
+Nada a mudar no mecanismo.
 
-**Medido, não achado**: o `tests/admin.smoke.js` agora compara as posições na
-tela — exige que a explicação de cada modo fique *abaixo* do nome (e não ao
-lado), que cada ficha ocupe a linha inteira e que exatamente um cartão fique
-aceso no instante do clique. Bateria inteira repassada: 12 testes de unidade
-(incluindo 1.023.389 casas de tablatura) e 27 smokes de navegador, sem erro de
-página.
+**Mas o texto da tela passaria a mentir.** O nome que eu tinha acabado de dar ao
+modo — "Confirmou o e-mail, já entra" — e a legenda que dizia "confirmar o
+e-mail é obrigatório sempre" só valiam com a chave ligada. Então:
 
-Para o dono, na prática: **Administração → Sistema → "Confirmou o e-mail, já
-entra" → Salvar configuração**. Quem já estiver esperando na aba Contas
-continua esperando — esses saem com o "✓ Liberar acesso".
+* O modo virou **"Entra direto"**, e nenhuma descrição fala em confirmação:
+  elas descrevem só o que esta tela decide.
+* A legenda passou a dizer **onde a outra chave mora**, com o caminho no painel,
+  e o que muda com ela ligada ou desligada.
+* O `tests/admin.smoke.js` passou a **proibir** a palavra "confirma" nas
+  descrições dos modos e a exigir que a legenda cite `Confirm email` e o
+  Supabase — a mentira agora quebra o teste, não só o bom senso.
+
+**O preço de desligar a confirmação, dito na cara** (está no
+`docs/etapa4-supabase.md`): ninguém prova que o e-mail é seu. Quem errar uma
+letra fica sem o "Esqueci minha senha", e dá para se cadastrar com o e-mail de
+outra pessoa. Com a confirmação desligada, o modo *Com aprovação* vira a única
+porta de verdade — a não ser que o dono aceite que qualquer um com o endereço do
+site entre sozinho.
+
+**Medido, não achado**: o smoke compara posições na tela — a explicação de cada
+modo tem de ficar *abaixo* do nome, cada ficha ocupa a linha inteira, e
+exatamente um cartão fica aceso no instante do clique. Bateria inteira
+repassada: 12 testes de unidade (1.023.389 casas de tablatura entre eles) e 27
+smokes de navegador, sem erro de página.
 
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas

@@ -737,12 +737,17 @@
   function desenharSistema() {
     var cfg = configSistema || {};
     var modo = cfg.cadastro || 'aprovacao';
+    // O texto de cada modo não pode falar em "confirmar o e-mail": isso é uma
+    // chave separada, lá no Supabase, que o dono pode ter ligado ou não. Se a
+    // tela prometer o link de confirmação e a chave estiver desligada, a tela
+    // mente. Então aqui se descreve só o que esta escolha decide — e a
+    // legenda explica onde mora a outra chave.
     var MODOS = [
       ['aprovacao', 'Com aprovação',
-        'A pessoa se cadastra, confirma o e-mail e fica esperando você liberar na aba Contas. ' +
+        'A pessoa se cadastra e fica esperando você liberar na aba Contas. ' +
         'Bom quando você quer olhar quem é antes de abrir a porta.'],
-      ['livre', 'Confirmou o e-mail, já entra',
-        'Quem se cadastra entra assim que clicar no link de confirmação — sem esperar por você. ' +
+      ['livre', 'Entra direto',
+        'Quem se cadastra já está dentro, sem esperar por você. ' +
         'Você continua podendo suspender a liberação, bloquear ou excluir depois, na aba Contas.'],
       ['fechado', 'Fechado',
         'Não aparece botão de criar conta. Só entra quem você convidar pelo e-mail, aqui embaixo.']
@@ -750,9 +755,10 @@
 
     return '<div class="adm-sec">' +
       '<h4 class="esc-grupo">Quem pode entrar</h4>' +
-      '<p class="si-legend">Nos três, a pessoa só consegue entrar depois de confirmar o e-mail ' +
-      '— isso é do Supabase e vale sempre. O que muda aqui é o que acontece <strong>depois</strong> ' +
-      'da confirmação.</p>' +
+      '<p class="si-legend">Confirmar o e-mail é uma chave à parte, que fica no painel do ' +
+      'Supabase (Authentication → Sign In / Providers → Email → <em>Confirm email</em>). ' +
+      'Ligada, ninguém entra sem clicar no link que chega por e-mail; desligada, a conta ' +
+      'vale na hora. O que você escolhe aqui é o que acontece <strong>depois</strong> disso.</p>' +
       '<div class="adm-modos">' +
       MODOS.map(function (m) {
         return '<label class="adm-modo' + (modo === m[0] ? ' is-on' : '') + '">' +
