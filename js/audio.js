@@ -50,6 +50,43 @@
     sax: 0.8, trompete: 0.7, violino: 0.75, flauta: 0.85
   };
 
+  // Como cada família se comporta DEPOIS que a nota "acaba" na partitura.
+  //
+  // Corda dedilhada e piano continuam soando quando o dedo sai: cortar o som
+  // no fim exato da duração é o que fazia o exercício soar "tec-tec-tec".
+  // `cauda` é quanto tempo a nota ainda ressoa, sobrepondo a seguinte — como
+  // num instrumento de verdade. Sopro e arco são o contrário: o som acaba
+  // quando o ar (ou o arco) acaba, mas as notas se EMENDAM, sem buraco entre
+  // elas; por isso `respiro` quase 1 e um ataque menos seco.
+  var CORPO = {
+    violao:         { cauda: 0.85, ataque: 0.006, respiro: 0.94 },
+    guitarra:       { cauda: 0.70, ataque: 0.005, respiro: 0.94 },
+    guitarra_drive: { cauda: 0.60, ataque: 0.004, respiro: 0.95 },
+    baixo:          { cauda: 0.90, ataque: 0.008, respiro: 0.94 },
+    teclado:        { cauda: 1.10, ataque: 0.006, respiro: 0.95 },
+    piano_eletrico: { cauda: 1.00, ataque: 0.006, respiro: 0.95 },
+    sax:            { cauda: 0,    ataque: 0.030, respiro: 0.995 },
+    trompete:       { cauda: 0,    ataque: 0.022, respiro: 0.995 },
+    violino:        { cauda: 0,    ataque: 0.045, respiro: 0.995 },
+    flauta:         { cauda: 0,    ataque: 0.040, respiro: 0.995 }
+  };
+  function corpoDe(set) { return CORPO[set] || CORPO.teclado; }
+
+  /**
+   * Peso métrico: quanto a nota é acentuada por CAIR onde cai no compasso.
+   *
+   * É o que um professor faz sem pensar ao tocar uma escala — a primeira nota
+   * de cada grupo sai mais forte, e a de contratempo, mais leve. Sem isso,
+   * todas as notas com a mesma força viram uma régua, não uma frase.
+   */
+  function pesoMetrico(onset, bpb) {
+    var naBatida = Math.abs(onset - Math.round(onset)) < 1e-6;
+    var noCompasso = Math.abs(onset % (bpb || 4)) < 1e-6;
+    if (noCompasso) return 1.16;
+    if (naBatida) return 1.07;
+    return 0.92;
+  }
+
   var ctx = null;
   var activeNodes = [];
   var activeTimers = [];
@@ -83,17 +120,25 @@
   }
 
   // Saída: tudo passa por um compressor/limitador (volume forte sem estourar).
+  //
+  // Os valores são frouxos de propósito. O ajuste antigo (teto -16 dB, razão
+  // 4:1, ataque de 3 ms) segurava TUDO: um acento de 16% chegava na saída
+  // como 4%, e o exercício voltava a soar régua mesmo com a dinâmica certa
+  // sendo gerada. Medido em tests/toque.smoke.js. Agora o teto é mais alto, a
+  // razão menor e o ataque mais lento — o golpe inicial da nota passa antes
+  // de o compressor fechar, que é o que deixa o acento audível. Continua
+  // protegendo do estouro nos trechos cheios (escala + acompanhamento).
   var outBus = null;
   function getOut(ac) {
     if (outBus && outBus.context === ac) return outBus;
     var comp = ac.createDynamicsCompressor();
-    comp.threshold.value = -16;
-    comp.knee.value = 10;
-    comp.ratio.value = 4;
-    comp.attack.value = 0.003;
-    comp.release.value = 0.2;
+    comp.threshold.value = -9;
+    comp.knee.value = 14;
+    comp.ratio.value = 2.5;
+    comp.attack.value = 0.015;
+    comp.release.value = 0.25;
     var makeup = ac.createGain();
-    makeup.gain.value = 1.25;
+    makeup.gain.value = 1.1;
     comp.connect(makeup).connect(ac.destination);
     outBus = comp;
     revBus = null;
@@ -307,14 +352,27 @@
       }
     });
     var g = ac.createGain();
+    var corpo = corpoDe(set);
     var peak = (SAMPLE_GAIN[set] || 0.8) * v.vel * smp.norm * 0.55;
     var end = v.start + v.dur;
     var maxEnd = v.start + smp.buffer.duration / rate(p0.midi) - 0.02;
     if (end > maxEnd) end = maxEnd;
+    // Quanto a nota ainda ressoa depois de acabar. Numa sequência rápida a
+    // cauda encurta junto, senão vira sopa: oito notas soando ao mesmo tempo.
+    var cauda = corpo.cauda ? Math.min(corpo.cauda, Math.max(0.22, v.dur * 1.8)) : 0;
+    var fim = Math.min(end + cauda, maxEnd);
     g.gain.setValueAtTime(0.0001, v.start);
-    g.gain.linearRampToValueAtTime(peak, v.start + 0.006);
-    g.gain.setValueAtTime(peak, Math.max(v.start + 0.01, end - 0.07));
-    g.gain.exponentialRampToValueAtTime(0.0001, end);
+    g.gain.linearRampToValueAtTime(peak, v.start + corpo.ataque);
+    if (cauda > 0 && fim > end + 0.02) {
+      // Deixa soar: o sample já decai sozinho, então só seguramos o volume
+      // até o fim da nota e deixamos a ressonância morrer depois dela.
+      g.gain.setValueAtTime(peak, end);
+      g.gain.exponentialRampToValueAtTime(0.0001, fim);
+    } else {
+      g.gain.setValueAtTime(peak, Math.max(v.start + 0.01, end - 0.07));
+      g.gain.exponentialRampToValueAtTime(0.0001, end);
+      fim = end;
+    }
     // pequenos reataques dos hammer-ons (a nota "soa" um pouco mais)
     (v.accents || []).forEach(function (a) {
       g.gain.setValueAtTime(peak * a.level, a.t);
@@ -330,12 +388,12 @@
       depth.gain.linearRampToValueAtTime(d, v.vibrato.t + 0.18);
       lfo.connect(depth).connect(src.playbackRate);
       lfo.start(v.vibrato.t);
-      lfo.stop(end + 0.05);
+      lfo.stop(fim + 0.05);
       activeNodes.push(lfo, depth);
     }
     src.connect(g).connect(dest);
     src.start(v.start);
-    src.stop(end + 0.05);
+    src.stop(fim + 0.05);
     activeNodes.push(src, g);
   }
 
@@ -404,6 +462,9 @@
       var tEnd = timeOf(e.onset + e.dur);
       var jitter = opts.humanize ? (Math.random() - 0.5) * 0.012 : 0;
       var vel = (e.vel !== undefined ? e.vel : 0.8) * (opts.humanize ? 0.94 + Math.random() * 0.12 : 1);
+      // Acento de quem toca: a nota que abre o compasso sai mais forte, a da
+      // batida um pouco, a de contratempo mais leve (ver pesoMetrico).
+      if (opts.acentos !== false) vel = Math.min(1, vel * pesoMetrico(e.onset, opts.beatsPerBar || 4));
       var continues = cur && CONTINUES[e.art] && Math.abs(midi - cur.lastMidi) <= 7;
       if (continues) {
         var glide = e.art === 'sl' ? Math.min(0.09, (tEnd - t) * 0.5) : (e.art === 'r' ? Math.min(0.12, (tEnd - t) * 0.5) : 0);
@@ -425,8 +486,10 @@
         voices.push(cur);
       }
       if (e.vibrato) cur.vibrato = { t: t + Math.min(0.14, (tEnd - t) * 0.3), midi: midi, cents: e.art === 'b' ? 22 : 30, rate: 5.4 };
-      // leve "respiração" entre notas atacadas
-      cur.dur = Math.max(0.05, (tEnd - cur.start) * (CONTINUES[e.art] ? 1 : 0.94));
+      // leve "respiração" entre notas atacadas: curta na corda (que depois
+      // ainda ressoa) e quase nenhuma no sopro, onde as notas se emendam.
+      var respiro = opts.respiro || 0.94;
+      cur.dur = Math.max(0.05, (tEnd - cur.start) * (CONTINUES[e.art] ? 1 : respiro));
     });
     return voices;
   }
@@ -530,6 +593,11 @@
         noteEvents.map(function (e) { return e.midi; }));
       var midis = realized.map(function (r) { return r.midi; });
       var timbre = TIMBRES[instrument] || TIMBRES.teclado;
+      // As opções que mudam o TOQUE (não a música): respiro por família e
+      // acentos métricos. Ficam aqui para a passada de laço reaproveitar.
+      var vozOpts = Object.create(null);
+      Object.keys(opts).forEach(function (k) { vozOpts[k] = opts[k]; });
+      vozOpts.respiro = corpoDe(set).respiro;
 
       var end = 0;
       events.forEach(function (e) { end = Math.max(end, e.onset + e.dur); });
@@ -546,7 +614,7 @@
         var base = t0 + n * ciclo;
         var antes = activeNodes.length;
         function timeOf(beat) { return base + swung(beat) * spb; }
-        var voices = buildVoices(noteEvents, midis, timeOf, spb, opts);
+        var voices = buildVoices(noteEvents, midis, timeOf, spb, vozOpts);
         voices.forEach(function (v) {
           if (useSamples) voiceSample(ac, set, v, master); else voiceSynth(ac, timbre, v, master);
         });

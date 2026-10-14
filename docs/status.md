@@ -1262,6 +1262,68 @@ prático do site. Os **arquivos** do site continuam públicos: é um site
 estático, e quem tem o endereço baixa HTML, CSS e JS. Esconder o código
 exigiria um servidor próprio, que este projeto de propósito não tem.
 
+## O toque dos exercícios: acento, cauda e um compressor que atrapalhava — ✅ (2026-10-14)
+
+Pedido: melhorar o som da execução dos exercícios. Antes de mexer, medi:
+`tests/toque.smoke.js` grava o envelope do que sai na saída de áudio e
+responde três perguntas com número — quanto a força varia de nota para nota,
+se a corda continua soando entre elas e se nada estoura.
+
+**O diagnóstico, medido**: variação de força entre as notas de **3,5%**
+(praticamente régua) e **6,2%** do trecho em silêncio no meio do exercício.
+
+Três causas, três consertos:
+
+1. **Os exercícios tocavam com `humanize: false`.** Biblioteca de Escalas e
+   Início mandavam todas as notas com a mesma força (0.8) e no milímetro do
+   tempo — as frases e os padrões já tocavam humanizados, por isso soavam
+   mais vivos. Agora os exercícios também.
+
+2. **Faltava o acento de quem toca.** Entrou `pesoMetrico()` em
+   `js/audio.js`: a nota que abre o compasso sai 16% mais forte, a que cai na
+   batida 7%, e a de contratempo 8% mais fraca. É o que um professor faz sem
+   pensar ao tocar uma escala, e é o que transforma uma fila de notas numa
+   frase. Vale para todas as telas, menos a Transcrição (que passou a mandar
+   `acentos: false`: ali o som tem de bater com o original, não soar bonito).
+
+3. **A nota era cortada no fim da duração.** O som desligava exatamente
+   quando a nota acabava na partitura. Violão, guitarra, baixo e teclado
+   continuam soando depois que o dedo sai — é a ressonância que faz parecer
+   instrumento. Entrou a tabela `CORPO`, por família:
+   - **corda e piano**: `cauda` de 0,6 a 1,1 s depois do fim da nota,
+     encurtando junto com notas rápidas (`min(cauda, max(0.22, dur × 1.8))`)
+     para uma escala veloz não virar sopa;
+   - **sopro e arco**: cauda zero (o som acaba quando o ar acaba), ataque
+     mais lento (22–45 ms, em vez dos 6 ms fixos de antes) e `respiro` de
+     0,995 em vez de 0,94 — as notas se emendam em vez de soluçar.
+
+**O achado do dia**: com tudo isso pronto, a medição ainda dava só 6,8% de
+variação. O culpado era o **compressor da saída** — teto em -16 dB, razão
+4:1, ataque de 3 ms. Ele segurava justamente o golpe inicial de cada nota:
+um acento de 16% chegava ao ouvinte como 4%. Afrouxado (teto -9 dB, razão
+2,5:1, ataque 15 ms, reforço 1,25 → 1,10), o acento passa e o compressor
+continua fazendo o trabalho dele nos trechos cheios. Essa é a parte que mais
+mudou o som, e nenhum sample novo teria resolvido.
+
+**Depois, medido**: variação de **9% a 16%** (contra 3,5%), silêncio no meio
+**0%** (contra 6,2%), e no sax **4,4%** de silêncio — as notas emendadas.
+Pico entre 0,42 e 0,82: sem estourar, sem sumir.
+
+**Um teste antigo precisou mudar de régua, não de resultado**:
+`tests/ambiencia.smoke.js` media a reverberação olhando o que sobrava
+150–350 ms depois do ataque — e agora a corda ressoa sozinha nesse pedaço.
+A janela passou para 600–1200 ms, onde só resta a sala: "com sala" -25 dB,
+"pouca sala" -55 dB, "seco" silêncio de verdade. A ordem continua a mesma; o
+que mudou é que agora ela mede a sala, não a nota.
+
+**O que NÃO foi feito, de propósito**: trocar os samples. O violão tem 27
+notas amostradas (MIDI 40 a 84), então nenhuma nota é esticada mais que um
+semitom — o material é bom, o que faltava era como ele era tocado. Ficaram
+na fila, oferecidas e não escolhidas: contagem de entrada (um compasso antes
+de começar) com um clique de metrônomo melhor, acompanhamento (drone ou
+acorde) por baixo da escala, swing nos exercícios e andamento subindo a cada
+repetição.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

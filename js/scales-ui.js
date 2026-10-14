@@ -86,7 +86,10 @@
 
   function opts() {
     var t = window.IL.ui.transportOpts ? window.IL.ui.transportOpts('escala') : { bpm: 88 };
-    return { bpm: t.bpm, metronome: t.metronome, loop: t.loop, humanize: false };
+    // humanize: o exercício é para o aluno imitar, então tem de soar tocado —
+    // força e tempo variando de leve, como mão humana. Os acentos do compasso
+    // ficam por conta do motor (js/audio.js, pesoMetrico).
+    return { bpm: t.bpm, metronome: t.metronome, loop: t.loop, humanize: true };
   }
 
   function toggle(btn, tag, ex) {

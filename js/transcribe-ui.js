@@ -385,7 +385,9 @@
 
   function opts() {
     var t = window.IL.ui.transportOpts ? window.IL.ui.transportOpts('transcricao') : { bpm: state.resultado.bpm };
-    return { bpm: t.bpm || state.resultado.bpm, metronome: t.metronome, loop: t.loop, humanize: false };
+    // Aqui NÃO se humaniza nem se acentua: a transcrição tem de soar igual ao
+    // que foi escrito, senão o aluno compara com o original e não bate.
+    return { bpm: t.bpm || state.resultado.bpm, metronome: t.metronome, loop: t.loop, humanize: false, acentos: false };
   }
 
   function tocarSecao(btn, s) {

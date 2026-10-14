@@ -72,6 +72,13 @@ Com isso, todo o escopo da Etapa 5 previsto em `docs/PRD.md` está entregue.
 - **Som real**: samples de instrumentos (FluidR3_GM, CC BY 3.0 — créditos em
   `sounds/CREDITOS.md`); seletor Real / Guitarra com drive / Sintetizado.
   Todos os níveis liberados, inclusive o Avançado (estilo Parker completo).
+- **Toque, não régua** (14/10/2026): os exercícios saem com o acento de quem
+  toca — a nota que abre o compasso mais forte, a de contratempo mais leve —
+  e com força e tempo variando de leve, como mão humana. Violão, guitarra,
+  baixo e teclado **continuam soando** depois do fim da nota, como corda de
+  verdade; sopro e arco emendam as notas em vez de cortá-las. Medido em
+  `tests/toque.smoke.js`: a variação de força entre as notas passou de 3,5%
+  para 9–16%, e o silêncio no meio do exercício, de 6,2% para 0%.
 
 O site continua sendo 100% estático (sem servidor próprio) — mesmo com login,
 quem guarda os dados é o Supabase (gratuito), acessado direto do navegador.
@@ -183,6 +190,7 @@ tests/padroes.smoke.js Smoke test da tela de Exercícios de Padrões
 tests/escalas.test.js  Testes da Biblioteca de Escalas — node tests/escalas.test.js
 tests/escalas.smoke.js Smoke test da tela Biblioteca de Escalas
 tests/som.smoke.js     Mede o volume real na saída de áudio em cada modo e instrumento
+tests/toque.smoke.js   Mede o TOQUE: variação de força entre as notas e silêncio entre elas
 tests/screenshot*.js   Scripts opcionais de checagem visual com Playwright (dev only)
 docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos, status e guias do Supabase/Planos
 ```
@@ -218,6 +226,7 @@ node tests/celular.smoke.js
 node tests/inicio.smoke.js
 node tests/acordes.test.js
 node tests/acordes.smoke.js
+node tests/toque.smoke.js
 ```
 
 `tests/celular.smoke.js` percorre o site em três tamanhos de telefone

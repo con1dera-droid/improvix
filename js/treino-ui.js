@@ -91,7 +91,7 @@
     btn.textContent = '⏸ Parar';
     var t = window.IL.ui.transportOpts ? window.IL.ui.transportOpts('treino') : { bpm: 80 };
     audio.playEvents(prep.events, instrumento, {
-      bpm: t.bpm, metronome: t.metronome, loop: t.loop, humanize: false, chords: ex.chords || []
+      bpm: t.bpm, metronome: t.metronome, loop: t.loop, humanize: true, chords: ex.chords || []
     }, function () {
       if (state.playing === tag) parar();
     });

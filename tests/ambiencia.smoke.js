@@ -1,7 +1,11 @@
 /**
- * Smoke test da AMBIÊNCIA (reverb): confere que existe cauda depois da última
- * nota no modo "Com sala", que ela some no modo "seco", e que o clique do
- * metrônomo continua seco. node tests/ambiencia.smoke.js
+ * Smoke test da AMBIÊNCIA (reverb): confere que existe cauda da SALA depois
+ * da última nota no modo "Com sala", que ela some no modo "seco", e que o
+ * clique do metrônomo continua seco.
+ *
+ * A medida é feita 600–1200 ms depois do ataque: a corda ressoa sozinha por
+ * uns 200 ms (de propósito, ver CORPO em js/audio.js), e medir antes disso
+ * seria medir a nota, não a sala. node tests/ambiencia.smoke.js
  */
 const { chromium } = require('playwright');
 const path = require('path');
@@ -64,8 +68,11 @@ const { prepararSemLogin } = require('./fake-supabase.js');
     await page.evaluate(() => window.IL.audio.stopAll());
     const pico = Math.max(...env.map((e) => e.v), 0);
     const i0 = env.findIndex((e) => e.v > pico * 0.5);
-    // a nota dura 125 ms; a cauda é o que ainda soa 150–350 ms depois do ataque
-    const depois = env.slice(i0 + 5, i0 + 12).map((e) => e.v);
+    // A nota dura 125 ms, mas a corda RESSOA sozinha por mais uns 200 ms (é
+    // de propósito: ver CORPO em js/audio.js). Por isso a janela de medida
+    // fica bem depois disso — 600 a 1200 ms do ataque — onde só o que sobra
+    // é a sala. Antes a janela era 150–350 ms e media a própria nota.
+    const depois = env.slice(i0 + 20, i0 + 40).map((e) => e.v);
     const rel = depois.length ? Math.max(...depois) / (pico || 1) : 0;
     return { pico, cauda: rel, db: rel > 0 ? 20 * Math.log10(rel) : -120 };
   }
@@ -78,13 +85,15 @@ const { prepararSemLogin } = require('./fake-supabase.js');
     const ok = r.db >= minDb && r.db <= maxDb && r.pico > 0.25;
     if (!ok) failed = true;
     console.log((ok ? 'ok   ' : 'FALHA') + ' ' + nome.padEnd(14) +
-      'pico ' + r.pico.toFixed(3) + ' | cauda 150-350 ms depois do ataque: ' + r.db.toFixed(1) + ' dB' +
+      'pico ' + r.pico.toFixed(3) + ' | cauda 600-1200 ms depois do ataque: ' + r.db.toFixed(1) + ' dB' +
       '  (esperado ' + minDb + ' a ' + maxDb + ')');
   }
   // Ambiência discreta: audível, mas longe de "lavar" a frase.
-  linha('Com sala', sala, -26, -12);
-  linha('Pouca sala', pouca, -32, -16);
-  linha('Seco', seco, -120, -60);
+  // Medido: sala ≈ -25 dB, pouca ≈ -55 dB, seco = silêncio. Faixas largas de
+  // propósito — o que importa é a ordem e o seco ser seco mesmo.
+  linha('Com sala', sala, -40, -12);
+  linha('Pouca sala', pouca, -75, -32);
+  linha('Seco', seco, -130, -80);
 
   if (!(sala.db > seco.db + 20)) { failed = true; console.log('FALHA a sala deveria deixar mais cauda que o seco'); }
   if (!(sala.db >= pouca.db)) { failed = true; console.log('FALHA "com sala" deveria deixar mais cauda que "pouca sala"'); }
