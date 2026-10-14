@@ -69,6 +69,11 @@ Com isso, todo o escopo da Etapa 5 previsto em `docs/PRD.md` está entregue.
 - **Ficha da escala**: ao escolher a escala/modo na Biblioteca aparecem a
   fórmula (1 2 b3 4 5 6 b7), os intervalos (2M 3m 4J...), tons e semitons,
   as notas no tom, a sonoridade, a nota característica e onde usar.
+- **Duas ou três digitações** (14/10/2026): cada exercício com tablatura traz
+  as regiões do braço em que ele cabe — "6ª/8", "5ª/3" — e trocar muda só
+  onde a mão vai: as notas e o áudio são os mesmos. As opções são calculadas,
+  não escritas à mão, e todas passam pela mesma conferência (`tests/tablatura.test.js`
+  varre 11.459 digitações).
 - **Tablatura sem cordas soltas** (14/10/2026): as digitações saem todas
   "fechadas" — a mesma forma serve em qualquer tom, e a nota aceita vibrato e
   bend. A corda solta só aparece quando não existe outro jeito de tocar a
@@ -199,7 +204,8 @@ tests/som.smoke.js     Mede o volume real na saída de áudio em cada modo e ins
 tests/toque.smoke.js   Mede o TOQUE: variação de força entre as notas e silêncio entre elas
 tests/ouvir.smoke.js   Confere a cor dos 80 botões de ouvir (azul parado, vermelho tocando)
 tests/sugestoes.smoke.js Caixa de ideias: quem usa manda, quem administra lê
-tests/tablatura.test.js Confere que a tablatura bate com as notas (512 mil casas)
+tests/tablatura.test.js Confere que a tablatura bate com as notas (1 milhão de casas, todas as digitações)
+tests/digitacoes.smoke.js As opções de digitação na tela (trocar a região sem mudar as notas)
 tests/screenshot*.js   Scripts opcionais de checagem visual com Playwright (dev only)
 docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos, status e guias do Supabase/Planos
 ```
@@ -239,6 +245,7 @@ node tests/toque.smoke.js
 node tests/tablatura.test.js
 node tests/ouvir.smoke.js
 node tests/sugestoes.smoke.js
+node tests/digitacoes.smoke.js
 ```
 
 `tests/celular.smoke.js` percorre o site em três tamanhos de telefone

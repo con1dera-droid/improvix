@@ -26,7 +26,7 @@
     { key: 'blues_menor', label: 'Pentablues (pentatônica menor + b5)' }
   ];
 
-  var state = { built: false, key: 'jonio', tonic: 'C', playing: null, exercises: [] };
+  var state = { built: false, key: 'jonio', tonic: 'C', playing: null, exercises: [], digitacao: {} };
 
   function $(id) { return document.getElementById(id); }
   function esc(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
@@ -60,6 +60,12 @@
     if (!b) return;
     var act = b.getAttribute('data-act');
     if (act === 'ouvir-ex') { tocar(b, 'ex' + b.getAttribute('data-i'), state.exercises[Number(b.getAttribute('data-i'))]); return; }
+    // trocar a região do braço (as digitações vêm do cartão compartilhado)
+    if (act === 'digitacao') {
+      state.digitacao[b.getAttribute('data-i')] = Number(b.getAttribute('data-d'));
+      render();
+      return;
+    }
     if (act === 'ir-escalas') {
       var nav = document.querySelector('.nav-item[data-nav="biblioteca-escalas"]');
       if (nav) { nav.click(); window.IL.ui.renderEscalasView({ scaleKey: state.key, tonic: state.tonic }); }
@@ -149,7 +155,7 @@
         html += '<div class="lib-lista">';
         grupo = '';
       }
-      html += card(ex, i, instrumento);
+      html += card(ex, i, instrumento, state.digitacao);
     });
     return html + (grupo === null ? '' : '</div>');
   }

@@ -16,7 +16,7 @@
   var audio = window.IL.audio;
   var data = window.IL.data;
 
-  var state = { built: false, key: 'jonio', tonic: 'C', rot: 'graus', fromFret: 0, playing: null, exercises: [] };
+  var state = { built: false, key: 'jonio', tonic: 'C', rot: 'graus', fromFret: 0, playing: null, exercises: [], digitacao: {} };
 
   function $(id) { return document.getElementById(id); }
   function esc(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
@@ -62,6 +62,11 @@
     var act = b.getAttribute('data-act');
     if (act === 'rot') { state.rot = b.getAttribute('data-v'); render(); return; }
     if (act === 'casa') { state.fromFret = Number(b.getAttribute('data-v')); render(); return; }
+    if (act === 'digitacao') {
+      state.digitacao[b.getAttribute('data-i')] = Number(b.getAttribute('data-d'));
+      render();
+      return;
+    }
     if (act === 'ouvir-escala') { toggle(b, 'escala', escalaEvents()); return; }
     if (act === 'ouvir-ex') { toggle(b, 'ex' + b.getAttribute('data-i'), state.exercises[Number(b.getAttribute('data-i'))]); return; }
     if (act === 'ir-fraseados') {
@@ -148,11 +153,29 @@
     return '<p class="esc-notas"><span class="esc-notas-rot">Notas:</span> ' + linha + '</p>';
   }
 
-  function exercicioHTML(ex, i, instrument) {
+  /**
+   * O cartão de um exercício. Nos instrumentos de traste, a MESMA linha pode
+   * ser tocada em regiões diferentes do braço: as opções aparecem como botões
+   * ("6ª/8", "5ª/3"), e a escolha fica guardada por exercício. As notas e o
+   * áudio não mudam — muda onde a mão vai.
+   */
+  function exercicioHTML(ex, i, instrument, escolhidas) {
     var body;
     if (isFretted(instrument)) {
       var pr = notation.prepareForInstrument(ex.events, instrument);
-      body = '<pre class="tab-block">' + notation.renderTabText(pr.events, pr.tab, instrument) + '</pre>';
+      var ds = notation.digitacoes(pr.events, instrument, 3);
+      var qual = Math.min((escolhidas || {})[i] || 0, Math.max(0, ds.length - 1));
+      var tab = ds.length ? ds[qual].tab : pr.tab;
+      var botoes = ds.length > 1
+        ? '<div class="esc-dig"><span class="esc-dig-rot">Digitação:</span>' +
+          ds.map(function (d, k) {
+            return '<button class="view-btn' + (k === qual ? ' active' : '') +
+              '" data-act="digitacao" data-i="' + i + '" data-d="' + k + '" title="' +
+              esc(d.rotulo) + '">' + esc(d.curto) + '</button>';
+          }).join('') +
+          '<small class="esc-dig-dica">mesmas notas, outra região do braço</small></div>'
+        : '';
+      body = botoes + '<pre class="tab-block">' + notation.renderTabText(pr.events, tab, instrument) + '</pre>';
     } else {
       body = '<div class="staff-block lib-staff">' + notation.toRhythmStaffSVG(notation.centerForStaff(ex.events), { chords: ex.chords }) + '</div>';
     }
@@ -176,7 +199,7 @@
         html += '<div class="lib-lista">';
         grupoAtual = '';
       }
-      html += exercicioHTML(ex, i, instrument);
+      html += exercicioHTML(ex, i, instrument, state.digitacao);
     });
     return html + (grupoAtual === null ? '' : '</div>');
   }

@@ -446,7 +446,8 @@
    * Devolve { notes: [{string, fret, bendFret, token, pick}], dropped: [índices] }
    * — `dropped` são articulações impossíveis naquela digitação (removidas).
    */
-  function toTabEvents(events, instrument) {
+  function toTabEvents(events, instrument, opts) {
+    opts = opts || {};
     var strings = TUNINGS[instrument];
     if (!strings) return null;
     var notes = events.filter(function (e) { return !e.rest; });
@@ -472,6 +473,17 @@
       }
       return list;
     });
+
+    // Digitação escolhida: prende a PRIMEIRA nota numa corda/casa. O resto do
+    // caminho continua sendo decidido pelo custo da mão — é assim que o mesmo
+    // exercício sai na 6ª corda casa 8 e na 5ª corda casa 3 sem virar duas
+    // listas de posições escritas na mão.
+    if (opts.inicio) {
+      var presa = cands[0].filter(function (c) {
+        return c.s === opts.inicio.s && c.f === opts.inicio.f;
+      });
+      if (presa.length) cands[0] = presa;
+    }
 
     function cost(pc, cc, pe, ce) {
       var c = 0;
@@ -584,6 +596,59 @@
    * ouve é exatamente o que a tablatura mostra).
    * Devolve { events, tab } (tab = null em instrumentos sem traste).
    */
+  /** Nome da corda como o músico fala: 0 = a mais grave. */
+  var NOMES_CORDA = {
+    6: ['6ª (mi grave)', '5ª (lá)', '4ª (ré)', '3ª (sol)', '2ª (si)', '1ª (mi agudo)'],
+    4: ['4ª (mi)', '3ª (lá)', '2ª (ré)', '1ª (sol)']
+  };
+
+  /**
+   * As digitações possíveis da MESMA linha — o mesmo exercício tocado em
+   * regiões diferentes do braço.
+   *
+   * A ideia é simples: a primeira nota pode sair em mais de um lugar (um dó
+   * está na 6ª corda casa 8 e na 5ª corda casa 3), e cada lugar leva a mão
+   * por um caminho diferente. Para cada começo possível, roda o mesmo cálculo
+   * de digitação e guarda o resultado; os repetidos saem (dois começos podem
+   * convergir para o mesmo desenho) e sobram as regiões de verdade, da mais
+   * grave para a mais aguda.
+   *
+   * Devolve [{ corda, casa, rotulo, tab }], no máximo `limite` (3).
+   */
+  function digitacoes(events, instrument, limite) {
+    var strings = TUNINGS[instrument];
+    if (!strings) return [];
+    var notes = events.filter(function (e) { return !e.rest; });
+    if (!notes.length) return [];
+    var e0 = notes[0];
+    var midi0 = e0.art === 'b' && e0.bendFrom !== undefined ? e0.bendFrom : e0.midi;
+    var nomes = NOMES_CORDA[strings.length] || [];
+    var vistas = {}, saida = [];
+
+    strings.forEach(function (open, sIdx) {
+      var casa = midi0 - open;
+      if (casa < (SEM_CORDAS_SOLTAS ? 1 : 0) || casa > 20) return;
+      var tab = toTabEvents(events, instrument, { inicio: { s: sIdx, f: casa } });
+      if (!tab || !tab.notes.length) return;
+      if (tab.notes[0].string !== sIdx || tab.notes[0].fret !== casa) return;  // não coube
+      var assinatura = tab.notes.map(function (n) { return n.string + ':' + n.fret; }).join(' ');
+      if (vistas[assinatura]) return;
+      vistas[assinatura] = true;
+      var casas = tab.notes.map(function (n) { return n.fret; });
+      saida.push({
+        corda: sIdx, casa: casa, tab: tab,
+        rotulo: (nomes[sIdx] || 'corda ' + (sIdx + 1)) + ' · casa ' + casa,
+        curto: (strings.length - sIdx) + 'ª/' + casa,
+        maisAlta: Math.max.apply(null, casas)
+      });
+    });
+
+    // Da região mais grave para a mais aguda, e no máximo três: mais que isso
+    // é escolha demais para quem só quer estudar.
+    saida.sort(function (a, b) { return a.corda - b.corda || a.casa - b.casa; });
+    return saida.slice(0, limite || 3);
+  }
+
   function prepareForInstrument(events, instrument) {
     var notes = events.filter(function (e) { return !e.rest; });
     var shift = 0;
@@ -924,6 +989,7 @@
     centerForStaff: centerForStaff,
     realizeForInstrument: realizeForInstrument,
     toTab: toTab,
+    digitacoes: digitacoes,
     toStaffSVG: toStaffSVG,
     staffPosition: staffPosition,
     TUNINGS: TUNINGS

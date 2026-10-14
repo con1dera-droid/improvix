@@ -733,6 +733,12 @@ select, input[type="text"] {
 .esc-head-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .esc-diagrama-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin: 0.9rem 0 0.4rem; font-size: 0.9rem; color: var(--text); }
 .esc-toggle { display: inline-flex; gap: 0.25rem; flex-wrap: wrap; }
+/* Escolher a região do braço: botõezinhos acima da tablatura. */
+.esc-dig { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; margin: 0 0 0.45rem; }
+.esc-dig-rot { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.esc-dig .view-btn { font-size: 0.72rem; padding: 0.2rem 0.55rem; }
+.esc-dig .view-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.esc-dig-dica { color: var(--text-dim); font-size: 0.7rem; margin-left: 0.2rem; }
 .esc-toggle .view-btn { font-size: 0.72rem; padding: 0.18rem 0.5rem; }
 .esc-toggle .view-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 .esc-diagrama { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-elevated); padding: 0.6rem; }

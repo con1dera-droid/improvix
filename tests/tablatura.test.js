@@ -139,6 +139,35 @@ IL.library.styleList().forEach(function (st) {
 ok(ruinsF.length === 0, 'frases da biblioteca: ' + frases + ' frases, ' + ruinsF.length + ' casas erradas' +
   (ruinsF.length ? '\n   ' + ruinsF.slice(0, 5).join('\n   ') : ''));
 
+// --- 3b) TODAS as digitações, não só a que vem na tela ---
+// Cada exercício oferece duas ou três regiões do braço. A promessa da
+// tablatura vale para todas: se a segunda opção mandasse tocar outra nota, o
+// aluno que escolhesse ela estudaria errado — e ninguém perceberia.
+(function () {
+  var ruinsD = [], opcoes = 0, exs = 0;
+  ['violao', 'baixo'].forEach(function (inst) {
+    ['C', 'Eb', 'A'].forEach(function (tom) {
+      escalas.forEach(function (sk) {
+        IL.scales.exercisesFor(tom, sk).forEach(function (ex, i) {
+          var pr = nt.prepareForInstrument(ex.events, inst);
+          var ds = nt.digitacoes(pr.events, inst, 3);
+          exs++;
+          ds.forEach(function (d) {
+            opcoes++;
+            ruinsD = ruinsD.concat(conferir({ events: pr.events, tab: d.tab }, inst,
+              inst + ' ' + tom + ' ' + sk + ' ex' + (i + 1) + ' [' + d.curto + ']'));
+          });
+        });
+      });
+    });
+  });
+  ok(ruinsD.length === 0, 'digitações alternativas: ' + opcoes + ' opções em ' + exs +
+    ' exercícios, ' + ruinsD.length + ' casas erradas' +
+    (ruinsD.length ? '\n   ' + ruinsD.slice(0, 5).join('\n   ') : ''));
+  ok(opcoes >= exs * 1.5, 'e quase todo exercício tem mais de uma (' +
+    (opcoes / exs).toFixed(2) + ' opções por exercício, em média)');
+})();
+
 // --- 4) o caso exato que o dono do projeto encontrou ---
 (function () {
   var ex = IL.scales.exercisesFor('C', 'jonio')[0];

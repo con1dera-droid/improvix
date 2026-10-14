@@ -1598,6 +1598,39 @@ não aparece; quem está dentro manda e vê que chegou; a assinatura é a de
 verdade; outro aluno não enxerga a sugestão alheia; o admin vê a bolinha, lê,
 marca como lida (a bolinha some) e apaga; e no celular o ícone continua à mão.
 
+## Duas ou três digitações para a mesma tablatura — ✅ (2026-10-14)
+
+Pedido do dono do projeto, com o exemplo na mão: o dó do exercício começava
+sempre na 6ª corda casa 8, e ele queria também a opção da 5ª corda casa 3 —
+*"e se possível mais outra, quando tiver tablaturas"*.
+
+**A ideia que faz funcionar**: a primeira nota pode sair em mais de um lugar
+do braço, e cada lugar leva a mão por um caminho diferente. Então
+`notation.digitacoes()` prende a primeira nota em cada corda possível e roda
+o MESMO cálculo de digitação para cada começo. Não existe tabela de posições
+escrita à mão: as regiões aparecem sozinhas, com a mesma garantia de sempre
+(soa o que está escrito, sem corda solta, até a casa 20). Os começos que
+convergem para o mesmo desenho são descartados, e sobram no máximo três, da
+região mais grave para a mais aguda.
+
+Na tela, acima da tablatura: **DIGITAÇÃO: [6ª/8] [5ª/3]** com a dica
+*"mesmas notas, outra região do braço"*. A escolha é por exercício e vale no
+Início e na Biblioteca de Escalas (os dois usam o mesmo cartão). O áudio não
+muda — as notas são as mesmas; muda onde a mão vai.
+
+**Medido** em `tests/tablatura.test.js`, que passou a conferir **todas** as
+digitações e não só a que aparece: **11.459 opções em 5.640 exercícios**
+(2,03 por exercício em média), **zero** casas erradas. No total o teste
+confere agora mais de **1 milhão de posições**. É a parte que importa: se a
+segunda opção mandasse tocar outra nota, quem escolhesse ela estudaria
+errado sem ter como perceber.
+
+`tests/digitacoes.smoke.js` (novo) confere o resto na tela: aparecem pelo
+menos duas opções e elas são diferentes; trocar troca a tablatura; **as notas
+continuam as mesmas**; o rótulo do botão bate com a corda e a casa onde a
+tablatura começa; a escolha vale só para aquele exercício; e no teclado, que
+não tem tablatura, não aparece botão nenhum.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
