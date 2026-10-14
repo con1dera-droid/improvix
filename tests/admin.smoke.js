@@ -83,6 +83,12 @@ const COMUM = 'comum@teste.com';
 
   await page.click('[data-adm="salvar-sistema"]');
   await page.waitForTimeout(500);
+  // Volta para a lista de contas ANTES de sair: é assim que o admin costuma
+  // deixar a tela, e é o estado que vazava para a próxima pessoa que entrasse.
+  await page.click('[data-adm="aba"][data-v="contas"]');
+  await page.waitForTimeout(300);
+  ok((await page.$$eval('.adm-tabela tbody tr[data-uid]', (r) => r.length)) >= 1,
+    'o admin sai com a lista de contas aberta na tela');
   await sair(page);
 
   // 2) usuário comum
@@ -90,6 +96,23 @@ const COMUM = 'comum@teste.com';
   await page.waitForTimeout(600);
   ok(!!(await page.$('#btn-sair')), 'no cadastro livre a segunda conta entra direto');
   ok(!(await navVisivel()), 'usuário comum NÃO vê o item Administração');
+
+  // O admin acabou de ter a tela de Administração aberta. Ao trocar de conta,
+  // o HTML dela ficava no DOM — com e-mail, papel e último acesso de outras
+  // pessoas — e a tela seguia sendo a visível, só sem o item no menu. Era o
+  // que o dono viu no site publicado.
+  const vazou = await page.evaluate(() => {
+    const box = document.getElementById('admin-conteudo');
+    const vista = document.querySelector('.content.view[data-view="admin"]');
+    return {
+      texto: box ? box.textContent.trim() : '',
+      linhas: document.querySelectorAll('.adm-tabela tbody tr[data-uid]').length,
+      aberta: !!(vista && !vista.hidden)
+    };
+  });
+  ok(vazou.linhas === 0, 'ao trocar de conta, a tabela de contas NÃO fica na tela (sobraram ' + vazou.linhas + ' linhas)');
+  ok(!/@/.test(vazou.texto), 'nenhum e-mail de outra pessoa sobra desenhado na tela');
+  ok(!vazou.aberta, 'e a pessoa não fica parada na tela de Administração');
   await page.evaluate(() => { window.IL.ui.switchView('admin'); });
   await page.waitForTimeout(200);
   await page.evaluate(() => { document.querySelector('.nav-item[data-nav="admin"]').click(); });

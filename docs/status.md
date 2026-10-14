@@ -1763,6 +1763,70 @@ a conta fica na lista com o motivo, ela não entra, e o e-mail segue ocupado, o
 que impede o recadastro. A lixeira é para limpar de verdade: alguém que pediu
 para sair, ou uma conta de teste.
 
+## A tela de Administração vazava na troca de conta — ✅ (2026-10-14)
+
+Relato do dono, com foto do site publicado: *"essa tela tá aparecendo pro
+usuário básico"*. E estava mesmo — logado como `anjo-lex@hotmail.com`, sem o
+item Administração no menu, a tabela de contas aparecia no meio da tela, com o
+e-mail do administrador, o papel e o último acesso.
+
+**O que acontecia.** `renderAdminView()` sempre conferiu o papel: quem não é
+admin, ao abrir a tela, só vê "Esta tela é só para administradores". Mas essa
+conferência só roda quando alguém *abre* a tela. Quando o admin deixava a tela
+aberta e trocava de conta, o `syncAdminNav()` escondia o item do menu — e mais
+nada. O HTML já desenhado continuava no DOM, e a tela de Administração seguia
+sendo a visível. A pessoa que entrava depois caía dentro dela.
+
+**O que NÃO aconteceu**: o banco não entregou nada para quem não podia ver. As
+políticas do Postgres continuaram valendo; aqueles dados tinham sido lidos
+antes, pelo admin, e ficaram desenhados. É vazamento de tela, não de banco — e
+vazamento do mesmo jeito.
+
+**A correção**, no `syncAdminNav()`, que já roda em toda troca de sessão: para
+quem não é admin, apaga o conteúdo de `#admin-conteudo`, zera o `adminState`
+(lista, convites, sugestões, busca, aviso, aba) e, se a tela aberta for a de
+Administração, leva a pessoa para o Início clicando no item do menu — assim a
+tela troca e o menu fica marcado certo.
+
+**Medido, não achado**: o `tests/admin.smoke.js` passou a deixar o admin sair
+*com a lista de contas aberta* — que é como ele costuma sair, e era o estado
+que vazava — e, logo depois de entrar o usuário comum, exige três coisas:
+nenhuma linha de conta na tela, nenhum `@` desenhado, e a tela de Administração
+não sendo a visível. Antes da correção, as três falhavam.
+
+## Boas-vindas: uma tela, uma vez só — ✅ (2026-10-14)
+
+No mesmo pedido: *"deixe só uma msg de boas vindas q aparecerá uma vez apenas e
+não aparecerá mais, na msg mostra o ícone de sugestões para enviar pro
+administrador"*.
+
+Nova tela `#boasvindas-modal`: dá as boas-vindas, diz por onde começar (Início
+— treinar escalas) e destaca, numa caixa própria, o **💡** do alto da tela —
+que é por onde quem usa fala com quem administra. Um botão "Começar a
+improvisar" fecha.
+
+Quem vê: só quem está dentro de verdade (`podeUsar()`) e não administra. Quem
+está esperando liberação vê o portão, não isto; quem administra tem a tela de
+Administração. E some junto com a sessão: ao sair, fica escondida.
+
+**Onde mora o "já viu"**: no `localStorage` do navegador, por conta
+(`improvix:boas-vindas:<id>`). É um lembrete, não um dado do sistema — guardar
+no banco custaria uma coluna nova e mais um SQL para rodar. O preço, dito na
+cara: em outro navegador ou aparelho, a tela aparece uma vez lá também. E toda
+leitura/escrita está em `try/catch`: com armazenamento bloqueado (aba anônima),
+a tela reaparece em vez de a página quebrar.
+
+`tests/boasvindas.smoke.js` (novo) cobre: aparece na primeira vez do usuário
+comum; mostra o 💡 e diz que a sugestão vai para quem administra; o 💡 citado
+existe mesmo no alto da tela; fechando, some; no acesso seguinte da mesma
+pessoa não volta; outra conta no mesmo navegador tem a primeira vez dela; quem
+administra não vê; sem ninguém dentro fica escondida; e cabe em 390px.
+
+O ajudante compartilhado `tests/fake-supabase.js` passou a dispensar essa tela
+logo depois de entrar — ela cobre a página e engoliria os cliques dos outros 27
+smokes. Quem mede a própria tela de boas-vindas entra por um caminho próprio,
+sem o atalho.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
@@ -1793,7 +1857,7 @@ do escopo cobrado, mas vale registrar): leitura transposta de sax/trompete
 `tests/lessons.test.js`, `tests/library.test.js`, `tests/articulation.test.js`, `tests/fusion.smoke.js`, `tests/scaleinfo.test.js`, `tests/scaleinfo.smoke.js`, `tests/som.smoke.js`, `tests/patterns.test.js`, `tests/padroes.smoke.js`, `tests/escalas.test.js`, `tests/escalas.smoke.js`, `tests/ambiencia.smoke.js`, `tests/menu.smoke.js`, `tests/transcricao.test.js`, `tests/transcricao.smoke.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
 `tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`, `tests/etapa5.smoke.js`,
 `tests/etapa5.planos.smoke.js`, `tests/etapa5.laboratorio.smoke.js`,
-`tests/etapa5.aulas.smoke.js`, `tests/fraseados.smoke.js`, `tests/biblioteca.smoke.js`, `tests/screenshot*.js` (dev only),
+`tests/etapa5.aulas.smoke.js`, `tests/fraseados.smoke.js`, `tests/biblioteca.smoke.js`, `tests/boasvindas.smoke.js`, `tests/screenshot*.js` (dev only),
 `docs/PRD.md`, `docs/mapa-do-sistema.md`, `docs/matriz-rbac.md`,
 `docs/modulos.md`, `docs/status.md`, `docs/etapa4-supabase.md`,
 `docs/etapa5-planos.md`, `docs/fraseados-referencias.md`, `README.md`.

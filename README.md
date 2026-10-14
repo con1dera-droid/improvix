@@ -206,6 +206,7 @@ tests/ouvir.smoke.js   Confere a cor dos 80 botões de ouvir (azul parado, verme
 tests/sugestoes.smoke.js Caixa de ideias: quem usa manda, quem administra lê
 tests/tablatura.test.js Confere que a tablatura bate com as notas (1 milhão de casas, todas as digitações)
 tests/digitacoes.smoke.js As opções de digitação na tela (trocar a região sem mudar as notas)
+tests/boasvindas.smoke.js A tela de boas-vindas: aparece uma vez só, e aponta o 💡
 tests/screenshot*.js   Scripts opcionais de checagem visual com Playwright (dev only)
 email/                 Modelos dos e-mails do Supabase (confirmação, senha nova, convite) — ver docs/emails-supabase.md
 docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos, status e guias do Supabase/Planos
@@ -247,6 +248,7 @@ node tests/tablatura.test.js
 node tests/ouvir.smoke.js
 node tests/sugestoes.smoke.js
 node tests/digitacoes.smoke.js
+node tests/boasvindas.smoke.js
 ```
 
 `tests/celular.smoke.js` percorre o site em três tamanhos de telefone

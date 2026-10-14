@@ -755,6 +755,25 @@
   </div>
 </div>
 
+<!-- Boas-vindas: aparece UMA vez, no primeiro acesso de quem não administra.
+     Serve para dizer onde fica o 💡, que é por onde a pessoa fala com quem
+     administra — depois disso some e não volta. -->
+<div class="modal-overlay" id="boasvindas-modal" hidden>
+  <div class="modal bv-modal">
+    <button class="modal-close" id="bv-fechar">✕</button>
+    <h2>🎵 Seja bem-vindo ao IMPROVIX</h2>
+    <p class="bv-texto">Seu professor de improvisação. Comece pelo <strong>Início — treinar escalas</strong>,
+      no menu da esquerda, e vá descendo: exercícios de padrões, bibliotecas de escalas, fraseados e
+      acordes, análise de harmonia e transcrição.</p>
+    <div class="bv-dica">
+      <span class="bv-icone">💡</span>
+      <p>Achou que falta alguma coisa, achou um erro, pensou num exercício? Esse ícone fica
+        no alto da tela — clique nele e sua sugestão vai direto para quem administra o IMPROVIX.</p>
+    </div>
+    <button class="btn-primary" id="bv-comecar">Começar a improvisar</button>
+  </div>
+</div>
+
 <!-- Tela de entrada. Quando o sistema está configurado, ela vira o
      "portão": ninguém usa o IMPROVIX sem conta aprovada. Sem Supabase
      configurado, continua sendo o modal de login de sempre. -->

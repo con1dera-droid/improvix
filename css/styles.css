@@ -157,6 +157,17 @@ li { margin-bottom: 0.5rem; line-height: 1.4; }
 .sug-quando { color: var(--text-muted); font-size: 0.75rem; }
 .sug-texto { white-space: pre-wrap; line-height: 1.45; font-size: 0.9rem; margin: 0 0 0.5rem; }
 .sug-acoes { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+/* Boas-vindas: aparece uma vez só. O destaque é a caixa do 💡, porque é a
+   única coisa que a pessoa precisa guardar dessa tela. */
+.bv-modal { max-width: 520px; }
+.bv-texto { color: var(--text-muted); line-height: 1.55; margin: 0 0 1rem; }
+.bv-dica {
+  display: flex; gap: 0.7rem; align-items: flex-start;
+  border: 1px solid var(--ouvir); border-radius: 12px;
+  background: rgba(125, 211, 252, 0.08); padding: 0.8rem 0.9rem; margin: 0 0 1.1rem;
+}
+.bv-dica p { margin: 0; font-size: 0.88rem; line-height: 1.5; color: var(--text); }
+.bv-icone { font-size: 1.5rem; line-height: 1.2; flex: 0 0 auto; }
 .user { display: flex; align-items: center; gap: 0.6rem; }
 .avatar {
   width: 34px; height: 34px; border-radius: 50%;

@@ -290,6 +290,15 @@ async function entrar(page, email, criarConta, senha) {
   await page.fill('#auth-password', senha);
   await page.click('#auth-submit-btn');
   await page.waitForTimeout(500);
+  // Quem entra pela primeira vez recebe a tela de boas-vindas, que cobre a
+  // página inteira e engoliria os cliques do teste. Aqui ela é dispensada como
+  // a pessoa faria. Quem testa a PRÓPRIA tela de boas-vindas
+  // (tests/boasvindas.smoke.js) não usa este atalho para o caso que mede.
+  await page.evaluate(() => {
+    const m = document.getElementById('boasvindas-modal');
+    if (m && !m.hidden) document.getElementById('bv-comecar').click();
+  });
+  await page.waitForTimeout(120);
 }
 
 async function sair(page) {

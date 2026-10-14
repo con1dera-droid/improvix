@@ -102,6 +102,58 @@
     atualizarIconeSugestao();
   }
 
+  // ---------------- Boas-vindas (uma vez só) ----------------
+  // Quem entra pela primeira vez precisa saber duas coisas: por onde começar e
+  // como falar com quem administra. Isso cabe numa tela, mostrada UMA vez — na
+  // segunda visita só atrapalharia.
+  //
+  // A marca de "já viu" mora no navegador da pessoa (localStorage), por conta:
+  // é um lembrete, não um dado do sistema, e guardar isso no banco custaria
+  // uma coluna nova e mais um SQL para rodar. O preço honesto: em outro
+  // navegador ou outro aparelho, a tela aparece uma vez lá também. E se o
+  // navegador recusar o armazenamento (aba anônima, cookies bloqueados), o
+  // try/catch deixa a tela aparecer de novo em vez de quebrar a página.
+  function chaveBoasVindas() {
+    return 'improvix:boas-vindas:' + (currentUser ? currentUser.id : '');
+  }
+
+  function jaViuBoasVindas() {
+    try { return window.localStorage.getItem(chaveBoasVindas()) === '1'; }
+    catch (e) { return false; }
+  }
+
+  function marcarBoasVindas() {
+    try { window.localStorage.setItem(chaveBoasVindas(), '1'); } catch (e) { /* sem memória, paciência */ }
+  }
+
+  function fecharBoasVindas() {
+    var m = $('boasvindas-modal');
+    if (m) m.hidden = true;
+    marcarBoasVindas();
+  }
+
+  /** Mostra a tela de boas-vindas se for a primeira vez desta pessoa. */
+  function talvezBoasVindas() {
+    var m = $('boasvindas-modal');
+    if (!m) return;
+    // Só para quem já está dentro de verdade. Quem está esperando liberação
+    // vê o portão, não isto; e quem administra já tem a tela de Administração.
+    if (!currentUser || !podeUsar() || window.IL.account.isAdmin()) { m.hidden = true; return; }
+    if (jaViuBoasVindas()) { m.hidden = true; return; }
+    // Com o portão aberto na frente, a tela de boas-vindas ficaria escondida
+    // atrás dele; nesse caso ela espera a próxima verificação.
+    var portao = $('auth-modal');
+    if (portao && !portao.hidden) return;
+    m.hidden = false;
+  }
+
+  function setupBoasVindas() {
+    var fechar = $('bv-fechar');
+    var comecar = $('bv-comecar');
+    if (fechar) fechar.addEventListener('click', fecharBoasVindas);
+    if (comecar) comecar.addEventListener('click', fecharBoasVindas);
+  }
+
   /**
    * O 💡 do alto só existe para quem está dentro: sem conta liberada não há
    * para quem mandar sugestão, e um ícone que não funciona é pior que nenhum.
@@ -1043,9 +1095,38 @@
     });
   }
 
+  /**
+   * Esconder o item do menu não bastava. Ao trocar de conta, o HTML da tela
+   * de Administração continuava desenhado — com e-mail, papel e último acesso
+   * de outras pessoas — e a tela seguia sendo a visível: a pessoa que entrava
+   * depois caía direto nela. O banco nunca entregou esses dados para ela (foi
+   * o admin que os leu, antes), mas deixá-los na tela é vazamento do mesmo
+   * jeito. Então, para quem não é admin: apaga o que está desenhado, zera a
+   * memória da tela e tira a pessoa de lá.
+   */
   function syncAdminNav() {
     var item = $('nav-admin');
-    if (item) item.hidden = !window.IL.account.isAdmin();
+    var ehAdmin = window.IL.account.isAdmin();
+    if (item) item.hidden = !ehAdmin;
+    if (ehAdmin) return;
+
+    adminState.lista = [];
+    adminState.convites = [];
+    adminState.sugestoes = [];
+    adminState.busca = '';
+    adminState.aviso = '';
+    adminState.aba = 'contas';
+    adminState.editandoTelas = null;
+    adminState.carregando = false;
+    var box = $('admin-conteudo');
+    if (box) box.innerHTML = '';
+
+    var vista = document.querySelector('.content.view[data-view="admin"]');
+    if (vista && !vista.hidden) {
+      var inicio = document.querySelector('.nav-item[data-nav="inicio"]');
+      if (inicio) inicio.click();                       // troca a tela E marca o menu
+      else if (window.IL.ui && window.IL.ui.switchView) window.IL.ui.switchView('inicio');
+    }
   }
 
   function renderConfigView() {
@@ -1211,6 +1292,8 @@
       // conta que ficou aberta antes. O recado de erro/aviso não é apagado
       // aqui: é por ele que a pessoa bloqueada descobre o motivo.
       authMode = 'login';
+      var bv = $('boasvindas-modal');
+      if (bv) bv.hidden = true;                         // nada de boas-vindas sem ninguém dentro
       renderHeader();
       syncAdminNav();
       aplicarModulos();
@@ -1254,6 +1337,7 @@
       aplicarModulos();
       notifyAccountChange();
       atualizarPortao();
+      talvezBoasVindas();
     });
   }
 
@@ -1279,6 +1363,7 @@
     setupNavViews();
     setupMeusTabs();
     setupActionButtons();
+    setupBoasVindas();
 
     $('auth-modal-close').addEventListener('click', closeAuthModal);
     $('auth-modal').addEventListener('click', function (ev) {
