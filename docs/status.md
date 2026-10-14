@@ -1394,6 +1394,23 @@ escala (46 escalas × 4 tons × 3 instrumentos), os 91 padrões em dois tons e a
 frases da Biblioteca nos oito estilos: **512.067 casas conferidas, zero
 erradas**. Antes do conserto, as mesmas contas davam milhares de erros.
 
+## O menu na ordem do estudo — ✅ (2026-10-14)
+
+Ordem pedida pelo dono do projeto, e ela tem uma lógica clara: primeiro o
+que se **pratica** todo dia (Início, Padrões, Escalas, Fraseados), depois o
+que se **consulta** (Análise de Harmonia, Transcrição, Acordes), por fim o
+que é **da pessoa** (Meus Exercícios, Administração, Configurações).
+
+    Início — treinar escalas · Exercícios de Padrões · Biblioteca de Escalas ·
+    Biblioteca de Fraseados · Análise de Harmonia · Transcrição / Treino ·
+    Biblioteca de Acordes · Meus Exercícios · Administração · Configurações
+
+Mudou em três lugares, e os três têm de andar juntos: o menu em
+`index.html`, a lista `MODULOS` em `js/auth-ui.js` (as telas que o
+administrador liga e desliga para cada pessoa — agora na mesma ordem em que
+ela as vê, senão conferir vira caça ao tesouro) e `tests/menu.smoke.js`, que
+é a especificação da ordem e falha se alguém mexer sem querer.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

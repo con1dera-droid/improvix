@@ -229,14 +229,16 @@
   // O admin pode desligar módulos para todo mundo (configuração geral) ou
   // para uma pessoa só. Início e Configurações nunca somem — senão alguém
   // ficaria dentro do sistema sem lugar nenhum para ir.
+  // Mesma ordem do menu em index.html — o admin marca as telas na ordem em
+  // que a pessoa vai vê-las, senão a conferência vira caça ao tesouro.
   var MODULOS = [
     { nav: 'inicio', label: 'Início — treinar escalas', fixo: true },
-    { nav: 'harmonia', label: 'Análise de Harmonia' },
-    { nav: 'acordes', label: 'Biblioteca de Acordes' },
+    { nav: 'padroes', label: 'Exercícios de Padrões' },
     { nav: 'biblioteca-escalas', label: 'Biblioteca de Escalas' },
     { nav: 'biblioteca-fraseados', label: 'Biblioteca de Fraseados' },
-    { nav: 'padroes', label: 'Exercícios de Padrões' },
+    { nav: 'harmonia', label: 'Análise de Harmonia' },
     { nav: 'transcricao', label: 'Transcrição / Treino' },
+    { nav: 'acordes', label: 'Biblioteca de Acordes' },
     { nav: 'meus-exercicios', label: 'Meus Exercícios' },
     { nav: 'config', label: 'Configurações', fixo: true }
   ];

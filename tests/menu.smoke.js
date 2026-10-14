@@ -8,12 +8,14 @@ const { chromium } = require('playwright');
 const path = require('path');
 const { prepararSemLogin } = require('./fake-supabase.js');
 
+// A ordem pedida pelo dono do projeto em 14/10/2026: primeiro o que se
+// pratica, depois o que se consulta, por fim o que é da pessoa.
 const ESPERADO = [
   ['inicio', '🏠 Início'],
-  ['harmonia', '🎹 Análise de Harmonia'],
+  ['padroes', '📘 Exercícios de Padrões'],
   ['biblioteca-escalas', '📚 Biblioteca de Escalas'],
   ['biblioteca-fraseados', '🎼 Biblioteca de Fraseados'],
-  ['padroes', '📘 Exercícios de Padrões'],
+  ['harmonia', '🎹 Análise de Harmonia'],
   ['transcricao', '🎤 Transcrição / Treino'],
   ['acordes', '🎹 Biblioteca de Acordes'],
   ['meus-exercicios', '📋 Meus Exercícios'],
