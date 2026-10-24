@@ -41,12 +41,13 @@ values (:'comum_id', 'C', 'maior', 'C | G', 'teclado', 'intermediario'),
 
 do $checagens$
 declare
-  admin_id uuid; comum_id uuid; alvo_id uuid;
+  admin_id uuid; comum_id uuid; alvo_id uuid; convidado_id uuid;
   n int; txt text; b boolean; b2 boolean;
 begin
   select id into admin_id from public.profiles where email = 'admin@teste';
   select id into comum_id from public.profiles where email = 'comum@teste';
   select id into alvo_id  from public.profiles where email = 'alvo@teste';
+  select id into convidado_id from public.profiles where email = 'convidado@teste';
 
   -- ================= o sistema fechado: quem entra ==================
   select papel = 'admin' and aprovado into b from public.profiles where email = 'admin@teste';
@@ -300,6 +301,86 @@ begin
   set local role postgres;
   select count(*) into n from public.sugestoes;
   insert into resultado values (n = 0, 'e o admin apaga quando resolve');
+
+  -- ===================== progresso (execução dos exercícios) =====================
+  -- O que o site grava quando a pessoa acompanha o exercício inteiro. A soma
+  -- é do banco, não do navegador, e ninguém escreve direto na tabela — nem
+  -- para si mesmo. É o que impede "marquei os 21 como feitos".
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', alvo_id::text, true);
+  perform public.registrar_voltas('treino:jonio:1', 1, 80);
+  set local role postgres;
+  select voltas into n from public.progresso where user_id = alvo_id and chave = 'treino:jonio:1';
+  insert into resultado values (n = 1, 'uma volta inteira é registrada (ficou ' || n || ')');
+  select feito_em is null into b from public.progresso where user_id = alvo_id and chave = 'treino:jonio:1';
+  insert into resultado values (b, 'com uma volta só, o exercício ainda NÃO está feito');
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', alvo_id::text, true);
+  perform public.registrar_voltas('treino:jonio:1', 1, 92);
+  set local role postgres;
+  select voltas into n from public.progresso where user_id = alvo_id and chave = 'treino:jonio:1';
+  insert into resultado values (n = 2, 'as voltas se somam no banco (ficou ' || n || ')');
+  select feito_em is not null into b from public.progresso where user_id = alvo_id and chave = 'treino:jonio:1';
+  insert into resultado values (b, 'na segunda volta inteira, o exercício fica feito');
+  select bpm_max into n from public.progresso where user_id = alvo_id and chave = 'treino:jonio:1';
+  insert into resultado values (n = 92, 'e guarda o andamento mais rápido que a pessoa aguentou (' || n || ' bpm)');
+
+  -- o teto por chamada: relógio bagunçado ou brincadeira no Console não infla
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', alvo_id::text, true);
+  perform public.registrar_voltas('treino:jonio:2', 9999, 80);
+  set local role postgres;
+  select voltas into n from public.progresso where user_id = alvo_id and chave = 'treino:jonio:2';
+  insert into resultado values (n = 20, 'uma chamada não registra mais que 20 voltas (ficou ' || n || ')');
+
+  -- escrever direto na tabela não passa, nem para a própria linha
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', alvo_id::text, true);
+  begin
+    insert into public.progresso (user_id, chave, voltas, feito_em)
+      values (alvo_id, 'treino:jonio:9', 99, now());
+  exception when others then null;
+  end;
+  begin
+    update public.progresso set voltas = 99, feito_em = now() where user_id = alvo_id;
+  exception when others then null;
+  end;
+  set local role postgres;
+  select count(*) into n from public.progresso where chave = 'treino:jonio:9';
+  insert into resultado values (n = 0, 'ninguém insere progresso direto na tabela (viu ' || n || ')');
+  select count(*) into n from public.progresso where voltas > 20;
+  insert into resultado values (n = 0, 'nem muda as voltas na mão (viu ' || n || ')');
+
+  -- quem está esperando liberação não registra nada. (A essa altura do teste
+  -- a conta `comum` já foi liberada lá atrás, então aqui ela volta a esperar
+  -- só para esta conferência, e é restaurada logo em seguida.)
+  set local role postgres;
+  select aprovado into b2 from public.profiles where id = comum_id;
+  update public.profiles set aprovado = false where id = comum_id;
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', comum_id::text, true);
+  begin
+    perform public.registrar_voltas('treino:jonio:1', 1, 80);
+  exception when others then null;
+  end;
+  set local role postgres;
+  select count(*) into n from public.progresso where user_id = comum_id;
+  insert into resultado values (n = 0, 'quem está esperando liberação NÃO registra progresso (viu ' || n || ')');
+  update public.profiles set aprovado = b2 where id = comum_id;
+
+  -- cada um vê o seu; o admin vê o de todo mundo
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', alvo_id::text, true);
+  select count(*) into n from public.progresso;
+  insert into resultado values (n = 2, 'a pessoa enxerga o próprio progresso (viu ' || n || ')');
+  perform set_config('request.jwt.claim.sub', convidado_id::text, true);
+  select count(*) into n from public.progresso;
+  insert into resultado values (n = 0, 'outra pessoa NÃO enxerga o progresso alheio (viu ' || n || ')');
+  perform set_config('request.jwt.claim.sub', admin_id::text, true);
+  select count(*) into n from public.progresso;
+  insert into resultado values (n = 2, 'o admin enxerga o progresso de todos (viu ' || n || ')');
+  set local role postgres;
 
   -- ===================== excluir conta =====================
   -- A exclusão é a ação mais perigosa da tela: a regra tem de estar aqui, e

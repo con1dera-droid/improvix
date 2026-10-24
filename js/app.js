@@ -660,16 +660,26 @@
   // "Testar este exemplo", que reaproveita o mesmo fluxo do Laboratório
   // (preenche tonalidade/progressão e roda a análise).
 
+  // A lista é agrupada e numerada: com 28 lições, uma pilha lisa de cartões
+  // não diz onde a pessoa está nem quanto falta. O grupo vem de `bloco` (as
+  // lições do zero) ou, para as antigas, da própria `categoria`.
   function renderAulasList() {
     var wrap = document.getElementById('lista-aulas');
     if (!wrap || !lessonsMod) return;
     wrap.innerHTML = '';
-    lessonsMod.LESSONS.forEach(function (l) {
+    var grupoAtual = null;
+    lessonsMod.LESSONS.forEach(function (l, i) {
+      var grupo = l.bloco || l.categoria;
+      if (grupo !== grupoAtual) {
+        grupoAtual = grupo;
+        var cab = el('div', 'aula-bloco');
+        cab.textContent = grupo;
+        wrap.appendChild(cab);
+      }
       var item = el('div', 'aula-item' + (l.id === state.selectedLessonId ? ' active' : ''));
       item.setAttribute('data-lesson-id', l.id);
       item.innerHTML =
-        '<div class="aula-categoria">' + l.categoria + '</div>' +
-        '<div class="aula-titulo">' + l.titulo + '</div>' +
+        '<div class="aula-titulo"><span class="aula-num">' + (i + 1) + '</span>' + l.titulo + '</div>' +
         '<div class="aula-resumo">' + l.resumo + '</div>';
       wrap.appendChild(item);
     });
@@ -685,11 +695,21 @@
     }
 
     var html =
-      '<div class="aula-detalhe-categoria">' + lesson.categoria + '</div>' +
+      '<div class="aula-detalhe-categoria">' + (lesson.bloco || lesson.categoria) + '</div>' +
       '<h3 class="aula-detalhe-titulo">' + lesson.titulo + '</h3>';
     lesson.corpo.forEach(function (paragrafo) {
       html += '<p class="aula-paragrafo">' + paragrafo + '</p>';
     });
+    // O que uma apostila não faz: a lição soa. Cada item vira um botão que
+    // toca a sequência no instrumento escolhido lá embaixo, no rodapé.
+    if (lesson.ouvir && lesson.ouvir.length) {
+      html += '<div class="aula-ouvir"><div class="aula-ouvir-label">Ouça no seu instrumento</div>';
+      lesson.ouvir.forEach(function (o, i) {
+        html += '<button class="btn-ouvir aula-ouvir-btn" data-ouvir="' + i + '">' +
+          '🔊 ' + o.rotulo + '</button>';
+      });
+      html += '</div>';
+    }
     if (lesson.exemplo) {
       html +=
         '<div class="aula-exemplo">' +
@@ -699,6 +719,22 @@
         '</div>';
     }
     wrap.innerHTML = html;
+
+    wrap.querySelectorAll('[data-ouvir]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var item = lesson.ouvir[parseInt(b.getAttribute('data-ouvir'), 10)];
+        if (!item) return;
+        if (b.classList.contains('playing')) { audio.stopAll(); pararOuvirAula(); return; }
+        pararOuvirAula();
+        b.classList.add('playing');
+        var instrumento = document.getElementById('input-instrumento').value;
+        var eventos = item.notas.map(function (n, i) {
+          return { name: n, onset: i * 0.5, dur: 0.5, vel: 0.85 };
+        });
+        audio.playEvents(eventos, instrumento, { bpm: 92, humanize: true, acentos: false },
+          function () { pararOuvirAula(); });
+      });
+    });
 
     var btn = document.getElementById('btn-aula-testar');
     if (btn) {
@@ -710,6 +746,13 @@
         runAnalysis();
       });
     }
+  }
+
+  /** Devolve todos os botões de ouvir da lição ao estado parado. */
+  function pararOuvirAula() {
+    document.querySelectorAll('.aula-ouvir-btn.playing').forEach(function (x) {
+      x.classList.remove('playing');
+    });
   }
 
   function renderAulasView() {

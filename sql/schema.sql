@@ -152,6 +152,7 @@ begin
   delete from public.analises where user_id = alvo;
   delete from public.favoritos where user_id = alvo;
   delete from public.exercicios where user_id = alvo;
+  delete from public.progresso where user_id = alvo;
   -- o convite volta a valer: o e-mail pode ser convidado de novo
   delete from public.convites
    where lower(email) = (select lower(email) from public.profiles where id = alvo);
@@ -276,6 +277,91 @@ drop policy if exists "so admin apaga sugestao" on public.sugestoes;
 create policy "so admin apaga sugestao"
   on public.sugestoes for delete
   using (public.eh_admin());
+
+
+-- ============================================================
+-- 1e) progresso — o que a pessoa de fato executou
+-- ============================================================
+-- Uma linha por exercício por pessoa. "Volta" é uma execução inteira do
+-- exercício acompanhando o áudio, do começo ao fim, sem parar no meio: o site
+-- conta pelo relógio quantos ciclos completos couberam no tempo tocado, então
+-- quem para na metade não leva volta nenhuma.
+--
+-- O que isto mede, dito com honestidade: que a pessoa ficou ali tocando junto
+-- o exercício inteiro, e em que andamento. NÃO mede que ela tocou as notas
+-- certas — para isso seria preciso ouvir o instrumento dela (o motor de
+-- transcrição já existe no site, mas essa é outra história).
+create table if not exists public.progresso (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  chave text not null,                       -- ex.: 'treino:jonio:3'
+  voltas int not null default 0,             -- execuções inteiras acumuladas
+  bpm_max int,                               -- o andamento mais rápido que ela aguentou
+  feito_em timestamptz,                      -- quando bateu a meta de voltas
+  atualizado_em timestamptz not null default now(),
+  primary key (user_id, chave)
+);
+alter table public.progresso enable row level security;
+create index if not exists progresso_user_idx on public.progresso(user_id);
+
+-- A gravação passa por esta função, não por um insert solto: assim a soma das
+-- voltas é feita pelo banco (nada de o navegador mandar "já fiz 500"), o dono
+-- da linha é sempre quem está logado, e a meta mora num lugar só.
+--
+-- META_VOLTAS = 2: duas execuções inteiras marcam o exercício como feito.
+-- Os parâmetros levam prefixo p_ de propósito: chamados de `chave` e `voltas`
+-- eles colidiriam com as colunas de mesmo nome, e o `on conflict (user_id,
+-- chave)` abaixo vira "column reference is ambiguous" na hora de rodar.
+create or replace function public.registrar_voltas(p_chave text, p_voltas int, p_bpm int)
+returns public.progresso
+language plpgsql security definer set search_path = public
+as $$
+declare
+  META constant int := 2;
+  n_voltas int := p_voltas;
+  linha public.progresso;
+begin
+  if not public.pode_usar() then
+    raise exception 'conta sem acesso liberado';
+  end if;
+  if n_voltas is null or n_voltas < 1 then
+    raise exception 'volta inválida';
+  end if;
+  -- Teto por chamada: uma sessão de estudo honesta não rende 50 voltas de um
+  -- exercício de uma vez, e isso impede que um relógio bagunçado (ou alguém
+  -- brincando no Console) infle o número.
+  if n_voltas > 20 then
+    n_voltas := 20;
+  end if;
+
+  insert into public.progresso as p (user_id, chave, voltas, bpm_max, atualizado_em)
+  values (auth.uid(), p_chave, n_voltas, p_bpm, now())
+  on conflict (user_id, chave) do update
+    set voltas = p.voltas + excluded.voltas,
+        bpm_max = greatest(coalesce(p.bpm_max, 0), coalesce(excluded.bpm_max, 0)),
+        atualizado_em = now()
+  returning * into linha;
+
+  if linha.feito_em is null and linha.voltas >= META then
+    update public.progresso set feito_em = now()
+     where user_id = linha.user_id and chave = linha.chave
+     returning * into linha;
+  end if;
+
+  return linha;
+end;
+$$;
+
+revoke all on function public.registrar_voltas(text, int, int) from public;
+grant execute on function public.registrar_voltas(text, int, int) to authenticated;
+
+drop policy if exists "cada um ve o proprio progresso e o admin ve todos" on public.progresso;
+create policy "cada um ve o proprio progresso e o admin ve todos"
+  on public.progresso for select
+  using (public.eh_admin() or (auth.uid() = user_id and public.pode_usar()));
+
+-- Escrever é só pela função acima (ela é security definer e passa por cima da
+-- RLS). Sem política de insert/update/delete, ninguém grava direto na tabela —
+-- nem para si mesmo, nem para outro. É o que impede "marquei tudo como feito".
 
 
 drop policy if exists "usuario ve o proprio perfil" on public.profiles;

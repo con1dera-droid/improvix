@@ -112,6 +112,9 @@ const FAKE_SUPABASE = `
       if (!souAdmin) filtrado = podeUsar ? filtrado.filter(function (r) { return r.user_id === eu; }) : [];
     } else if (nome === 'convites') {
       if (!souAdmin) filtrado = [];
+    } else if (nome === 'progresso') {
+      // cada um vê o seu; o admin vê o de todo mundo (é como ele acompanha a turma)
+      if (!souAdmin) filtrado = podeUsar ? filtrado.filter(function (r) { return r.user_id === eu; }) : [];
     } else if (!podeUsar) {
       filtrado = [];
     } else {
@@ -119,6 +122,11 @@ const FAKE_SUPABASE = `
     }
 
     if (this._op === 'insert') {
+      // progresso não tem política de escrita: só a função registrar_voltas()
+      // grava lá. É o que impede "marquei os 21 como feitos" pelo Console.
+      if (nome === 'progresso') {
+        resolve({ data: null, error: { message: 'new row violates row-level security policy' } }); return;
+      }
       if (nome === 'convites' && !souAdmin) {
         resolve({ data: null, error: { message: 'new row violates row-level security policy' } }); return;
       }
@@ -139,6 +147,9 @@ const FAKE_SUPABASE = `
       return;
     }
 
+    if (this._op === 'update' && nome === 'progresso') {
+      resolve({ data: null, error: { message: 'row-level security' } }); return;
+    }
     if (this._op === 'update') {
       var patch = this._data;
       if (nome === 'config_sistema' && !souAdmin) { resolve({ data: null, error: null }); return; }
@@ -184,6 +195,7 @@ const FAKE_SUPABASE = `
       profiles: [],
       convites: [],
       sugestoes: [],
+      progresso: [],
       config_sistema: [{ id: 1, cadastro: 'aprovacao', mensagem_login: null, modulos: {} }]
     };
     this.emailsEnviados = [];
@@ -215,7 +227,7 @@ const FAKE_SUPABASE = `
     var p = this.store.profiles.filter(function (x) { return x.id === alvo; })[0];
     if (!p) return Promise.resolve({ data: false, error: null });
     var store = this.store;
-    ['analises', 'favoritos', 'exercicios'].forEach(function (t) {
+    ['analises', 'favoritos', 'exercicios', 'progresso'].forEach(function (t) {
       store[t] = (store[t] || []).filter(function (r) { return r.user_id !== alvo; });
     });
     store.convites = (store.convites || []).filter(function (c) {
@@ -225,9 +237,35 @@ const FAKE_SUPABASE = `
     return Promise.resolve({ data: true, error: null });
   };
   FakeClient.prototype.from = function (n) { return new FakeTable(this, n); };
-  /** As funções do banco (rpc). Hoje só registrar_acesso(). */
+  /**
+   * registrar_voltas(): as mesmas regras do banco — quem soma é daqui, não
+   * quem chama; há teto por chamada; e quem não está liberado não grava.
+   */
+  FakeClient.prototype._registrarVoltas = function (chave, voltas, bpm) {
+    var eu = this.auth.currentUser ? this.auth.currentUser.id : null;
+    var meu = this.store.profiles.filter(function (p) { return p.id === eu; })[0];
+    var liberado = !!(meu && meu.aprovado && !meu.bloqueado);
+    if (!liberado) return Promise.resolve({ data: null, error: { message: 'conta sem acesso liberado' } });
+    if (!(voltas >= 1)) return Promise.resolve({ data: null, error: { message: 'volta inválida' } });
+    if (voltas > 20) voltas = 20;
+    var linha = this.store.progresso.filter(function (r) { return r.user_id === eu && r.chave === chave; })[0];
+    if (!linha) {
+      linha = { user_id: eu, chave: chave, voltas: 0, bpm_max: null, feito_em: null };
+      this.store.progresso.push(linha);
+    }
+    linha.voltas += voltas;
+    linha.bpm_max = Math.max(linha.bpm_max || 0, bpm || 0);
+    linha.atualizado_em = new Date().toISOString();
+    if (!linha.feito_em && linha.voltas >= 2) linha.feito_em = new Date().toISOString();
+    return Promise.resolve({ data: Object.assign({}, linha), error: null });
+  };
+
+  /** As funções do banco (rpc). */
   FakeClient.prototype.rpc = function (nome, args) {
     if (nome === 'excluir_conta') return this._excluirConta(args && args.alvo);
+    if (nome === 'registrar_voltas') {
+      return this._registrarVoltas(args && args.p_chave, args && args.p_voltas, args && args.p_bpm);
+    }
     if (nome !== 'registrar_acesso') return Promise.resolve({ data: null, error: { message: 'função desconhecida' } });
     var eu = this.auth.currentUser ? this.auth.currentUser.id : null;
     if (!eu) return Promise.resolve({ data: null, error: null });

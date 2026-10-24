@@ -79,6 +79,64 @@ test('categorias usadas fazem sentido (não vazias, texto curto)', function () {
   });
 });
 
+// --------------------------------------------------------------------
+// Teoria do zero (24/10/2026): as 18 lições para quem não sabe nada.
+// --------------------------------------------------------------------
+
+var BLOCOS = ['O som', 'A escrita', 'As distâncias', 'Os acordes'];
+
+test('a trilha do zero tem 18 lições, nos quatro blocos e na ordem certa', function () {
+  var zero = lessons.LESSONS.filter(function (l) { return l.nivel === 'zero'; });
+  assert.strictEqual(zero.length, 18, 'esperava 18 lições do zero, achei ' + zero.length);
+  // elas vêm primeiro: quem chega do zero não pode cair no meio do intermediário
+  lessons.LESSONS.slice(0, 18).forEach(function (l, i) {
+    assert.strictEqual(l.nivel, 'zero', 'a lição ' + (i + 1) + ' deveria ser da trilha do zero');
+  });
+  // os blocos aparecem inteiros e na ordem — nada de pular do som para os acordes
+  var ordem = [];
+  zero.forEach(function (l) {
+    assert.ok(BLOCOS.indexOf(l.bloco) >= 0, 'bloco desconhecido em ' + l.id + ': ' + l.bloco);
+    if (ordem[ordem.length - 1] !== l.bloco) ordem.push(l.bloco);
+  });
+  assert.deepStrictEqual(ordem, BLOCOS, 'os blocos saíram fora de ordem: ' + ordem.join(' > '));
+});
+
+test('a trilha do zero encosta nas lições antigas sem degrau', function () {
+  var ultima = lessons.LESSONS[17];
+  var primeiraAntiga = lessons.LESSONS[18];
+  assert.ok(/ii.?v.?i|fun[cç]/i.test(ultima.id), 'a 18ª deveria fechar em funções/ii-V-I (é ' + ultima.id + ')');
+  assert.ok(primeiraAntiga && primeiraAntiga.nivel !== 'zero', 'depois da 18ª vêm as lições antigas');
+});
+
+test('os exemplos sonoros são tocáveis: nomes de nota válidos e sequência de tamanho útil', function () {
+  var total = 0;
+  lessons.LESSONS.forEach(function (l) {
+    if (!l.ouvir) return;
+    assert.ok(l.ouvir.length <= 3, 'lição ' + l.id + ': exemplos sonoros demais');
+    l.ouvir.forEach(function (o) {
+      total++;
+      assert.ok(o.rotulo && o.rotulo.length <= 70, 'lição ' + l.id + ': rótulo ausente ou longo demais');
+      assert.ok(Array.isArray(o.notas) && o.notas.length >= 2 && o.notas.length <= 16,
+        'lição ' + l.id + ': a sequência "' + o.rotulo + '" tem ' + (o.notas || []).length + ' notas');
+      o.notas.forEach(function (n) {
+        assert.ok(/^[A-G](#|b)?$/.test(n), 'lição ' + l.id + ': nota inválida "' + n + '"');
+      });
+    });
+  });
+  assert.ok(total >= 30, 'esperava pelo menos 30 exemplos sonoros na trilha, achei ' + total);
+});
+
+test('o texto das lições do zero é prosa, não HTML nem lista', function () {
+  lessons.LESSONS.filter(function (l) { return l.nivel === 'zero'; }).forEach(function (l) {
+    assert.ok(l.corpo.length >= 3 && l.corpo.length <= 6, 'lição ' + l.id + ': ' + l.corpo.length + ' parágrafos');
+    assert.ok(l.resumo.length <= 90, 'lição ' + l.id + ': resumo com ' + l.resumo.length + ' caracteres');
+    l.corpo.forEach(function (par) {
+      assert.ok(par.trim().length > 40, 'lição ' + l.id + ': parágrafo curto demais');
+      assert.ok(par.indexOf('<') < 0, 'lição ' + l.id + ': HTML no corpo');
+    });
+  });
+});
+
 console.log('\n' + passed + ' teste(s) passaram.');
 if (process.exitCode) {
   console.log('ALGUM TESTE FALHOU.');

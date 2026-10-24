@@ -93,7 +93,7 @@ async function irPara(p, nav) {
     });
     ok(aberto.dentro, 'MENU: o ☰ abre a gaveta');
     ok(aberto.overlay, 'MENU: o fundo escurece enquanto a gaveta está aberta');
-    ok(aberto.itens === 9, 'MENU: os 9 itens continuam lá (' + aberto.itens + ')');
+    ok(aberto.itens === 10, 'MENU: os 10 itens continuam lá (' + aberto.itens + ')');
 
     // a gaveta cobre 80% da largura: o toque "fora" é na faixa que sobra
     await p.mouse.click(t.w - 8, Math.round(t.h / 2));

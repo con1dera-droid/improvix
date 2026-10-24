@@ -221,6 +221,15 @@ const COMUM = 'comum@teste.com';
   // A diferença entre bloquear e excluir tem de estar escrita na tela, não só
   // na cabeça de quem administra: excluir não apaga o login no Supabase, logo
   // o e-mail fica ocupado e a pessoa não se recadastra.
+  // A coluna "Treino": é por ela que o admin vê quem está estudando de fato.
+  const treino = await page.evaluate(() => {
+    const cab = Array.from(document.querySelectorAll('.adm-tabela thead th')).map((t) => t.textContent);
+    const cel = document.querySelector('.adm-tabela tbody tr[data-uid] td:nth-child(4)');
+    return { cab: cab, texto: cel ? cel.textContent.trim() : '', colunas: cab.length };
+  });
+  ok(treino.cab.indexOf('Treino') === 3, 'a tabela de contas tem a coluna Treino (cabeçalho: ' + treino.cab.join(', ') + ')');
+  ok(/nada ainda|exerc/.test(treino.texto), 'e ela diz o que a pessoa executou ("' + treino.texto + '")');
+
   const legendasContas = await page.$$eval('#admin-conteudo .si-legend', (l) => l.map((x) => x.textContent).join(' '));
   ok(/Bloquear/.test(legendasContas) && /Excluir/.test(legendasContas), 'a aba Contas explica a diferença entre bloquear e excluir');
   ok(/ocupado/.test(legendasContas) && /Users/.test(legendasContas), 'e avisa que o e-mail fica ocupado, com o caminho no painel do Supabase');

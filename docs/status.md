@@ -1827,6 +1827,121 @@ logo depois de entrar — ela cobre a página e engoliria os cliques dos outros 
 smokes. Quem mede a própria tela de boas-vindas entra por um caminho próprio,
 sem o atalho.
 
+## "Inicie aqui", e a Teoria Musical do zero — ✅ (2026-10-24)
+
+Dois pedidos do dono na mesma mensagem: trocar o nome do primeiro item do
+menu, e *"implemente logo a parte de teoria musical completa"*.
+
+**O nome.** "Início — treinar escalas" virou **"Inicie aqui — treinar
+escalas"**. Parece detalhe e não é: "Início" é onde o site começa; "Inicie
+aqui" é uma instrução, e o problema relatado dois dias antes era justamente
+que os alunos entram e não sabem por onde começar. O rótulo mudou no menu, na
+lista de telas da Administração e na tela de boas-vindas.
+
+**A teoria.** Metade já existia e estava invisível: a tela de Aulas, com 10
+lições, continuava no `index.html` e no `js/lessons.js`, mas tinha ficado fora
+do menu na reordenação de 14/10/2026 — ninguém conseguia chegar nela. Voltou
+como **🎓 Teoria Musical — do zero**, segundo item do menu, logo depois do
+"Inicie aqui".
+
+E ganhou o degrau que faltava: **18 lições novas**, escritas do zero, em
+quatro blocos — *O som* (propriedades, as sete notas e a oitava, tom e
+semitom, onde as notas moram no braço e no teclado), *A escrita* (pauta e
+claves, figuras e pausas, compasso, ligadura e dinâmica), *As distâncias*
+(intervalos, consonância, a escala maior e sua fórmula, armadura e ciclo de
+quintas, a menor natural e a relativa) e *Os acordes* (tríades, cifras,
+tétrades, campo harmônico, funções e o ii–V–I). A 18ª termina exatamente onde
+a antiga "campo harmônico e funções" começa, sem degrau. São 28 lições no
+total, agrupadas e numeradas na lista.
+
+**O que uma apostila não faz**: 41 exemplos sonoros. O formato da lição ganhou
+um campo `ouvir` — uma lista de `{ rotulo, notas }` — e cada item vira um botão
+que toca a sequência no instrumento escolhido no rodapé. Quando a lição diz
+que um semitom é a menor distância, dá para ouvir Dó e Dó sustenido; quando
+diz que a escala maior é T-T-st-T-T-T-st, dá para ouvir a fórmula funcionando
+e, logo depois, quebrada.
+
+**O direito autoral, outra vez**: as lições foram escritas do zero. Os quatro
+PDFs enviados em 24/10 (ver `docs/teoria-fontes.md`) serviram de mapa para
+conferir que nenhum assunto ficou de fora — e um deles, a apostila do CBMMA, é
+do próprio dono.
+
+**Um defeito achado no caminho, e ele era antigo.** O primeiro exemplo sonoro
+derrubou a reprodução inteira com *"The provided float value is non-finite"*.
+Causa: `playEvents` repassava o array de MIDI dos eventos para
+`realizeForInstrument`, e quem mandava só os nomes das notas produzia um array
+do mesmo tamanho cheio de `undefined` — a conferência de tamanho lá dentro dava
+verdadeiro, e a frequência virava NaN. Qualquer tela que tocasse só por nome
+teria o mesmo problema. Corrigido na raiz, em `js/audio.js`: o array só é
+repassado quando **todos** os eventos trazem MIDI. `tests/audio.smoke.js` passou
+a tocar uma sequência só com nomes, para o caso não voltar.
+
+Testes: `tests/lessons.test.js` foi de 6 para 10 (a trilha tem 18 lições, nos
+quatro blocos e na ordem; encosta nas antigas sem degrau; os exemplos sonoros
+são tocáveis; o texto é prosa, não HTML) e `tests/teoria.smoke.js` (novo, 16
+checagens) confere a tela no navegador, inclusive que clicar no exemplo manda
+as notas para o áudio.
+
+## Medir quem fez o exercício: "tocou junto até o fim" — ✅ (2026-10-24)
+
+Pedido do dono, escolhido entre três níveis de medição que eu tinha proposto:
+*"o sistema já toca o exercício; dá para exigir que a pessoa tenha acompanhado
+a execução inteira, no andamento combinado, duas ou três vezes, sem pular no
+meio"*.
+
+**O que isto mede, dito com honestidade** — e está escrito no schema, no
+código e na tela: que a pessoa **ficou ali tocando junto o exercício inteiro**,
+e em que andamento. **Não** mede que ela tocou as notas certas. Para isso seria
+preciso ouvir o instrumento dela, e o motor para isso já existe no site (o da
+tela de Transcrição) — é o nível seguinte, e fica para quando o dono pedir.
+
+**Como a volta é contada.** Ao apertar Ouvir, o site anota o relógio e calcula
+quanto dura uma execução inteira naquele andamento (o ciclo fecha no compasso,
+igual ao motor de áudio). Ao parar — ou ao acabar sozinho —, divide o tempo
+tocado pela duração da volta e arredonda para baixo. Quem para na metade leva
+zero. Foi preciso contar pelo tempo, e não pelo aviso de "acabou", porque com
+o 🔁 ligado o motor emenda as voltas e nunca avisa o fim; medir as duas coisas
+com a mesma régua só dá certo assim.
+
+**Duas voltas inteiras marcam o exercício como feito.** O número mora num lugar
+só (`META` em `registrar_voltas()`, espelhado em `META_VOLTAS` no
+`js/treino-ui.js`).
+
+**A regra está no banco, não na tela.** Nova tabela `public.progresso`
+(user_id + chave, voltas, bpm_max, feito_em), com RLS: cada um lê o seu, o
+admin lê o de todos — e **ninguém tem política de escrita**. Gravar passa
+obrigatoriamente por `registrar_voltas()`, que é `security definer`, soma no
+banco (o navegador manda quantas voltas couberam nesta sessão, não o total),
+tem teto de 20 por chamada e recusa quem não está liberado. Sem isso, bastava
+o Console do navegador para "fazer" os 21 exercícios sem tocar nada.
+
+**Na tela de Início**: uma barra com "x de 21 exercícios feitos nesta escala",
+✓ em cada exercício fechado, "1 de 2 voltas" nos que estão no meio do caminho,
+e o próximo destacado com **continue daqui**. Quem não entrou vê, no lugar da
+barra, o convite para entrar — o site não finge que guarda o que não vai
+guardar. A Biblioteca de Escalas continua sem carimbo nenhum: lá é consulta,
+não treino.
+
+**No painel**: a aba Contas ganhou a coluna **Treino**, com quantos exercícios
+a pessoa fechou e até que andamento chegou. É o que responde "ela está
+estudando ou só passeando?" sem precisar perguntar — e sem o admin ver
+histórico, favoritos ou exercícios salvos de ninguém, que o banco continua não
+entregando.
+
+**Medido, não achado**: `tests/rls.sql` foi de 59 para **71 checagens** contra
+um PostgreSQL de verdade (a volta é registrada, as voltas se somam, a segunda
+fecha o exercício, o andamento fica guardado, o teto de 20 vale, ninguém
+insere nem atualiza direto na tabela, quem espera liberação não grava, cada um
+vê o seu e o admin vê todos). E `tests/progresso.smoke.js` (novo, 18
+checagens) mede no navegador **com o tempo passando de verdade**: parar na
+metade não conta, uma execução inteira conta uma, a segunda fecha o exercício
+com ✓ e barra, o "continue daqui" anda, a trapaça pelo Console é recusada, e
+trocar de conta não deixa o progresso da pessoa anterior na tela.
+
+**O que o dono precisa fazer**: rodar o `sql/schema.sql` outra vez no SQL
+Editor do Supabase. A tabela e a função são novas; sem isso, a tela funciona e
+simplesmente não guarda nada.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
@@ -1857,7 +1972,8 @@ do escopo cobrado, mas vale registrar): leitura transposta de sax/trompete
 `tests/lessons.test.js`, `tests/library.test.js`, `tests/articulation.test.js`, `tests/fusion.smoke.js`, `tests/scaleinfo.test.js`, `tests/scaleinfo.smoke.js`, `tests/som.smoke.js`, `tests/patterns.test.js`, `tests/padroes.smoke.js`, `tests/escalas.test.js`, `tests/escalas.smoke.js`, `tests/ambiencia.smoke.js`, `tests/menu.smoke.js`, `tests/transcricao.test.js`, `tests/transcricao.smoke.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
 `tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`, `tests/etapa5.smoke.js`,
 `tests/etapa5.planos.smoke.js`, `tests/etapa5.laboratorio.smoke.js`,
-`tests/etapa5.aulas.smoke.js`, `tests/fraseados.smoke.js`, `tests/biblioteca.smoke.js`, `tests/boasvindas.smoke.js`, `tests/screenshot*.js` (dev only),
+`tests/etapa5.aulas.smoke.js`, `tests/fraseados.smoke.js`, `tests/biblioteca.smoke.js`, `tests/boasvindas.smoke.js`,
+`tests/teoria.smoke.js`, `tests/progresso.smoke.js`, `tests/screenshot*.js` (dev only),
 `docs/PRD.md`, `docs/mapa-do-sistema.md`, `docs/matriz-rbac.md`,
 `docs/modulos.md`, `docs/status.md`, `docs/etapa4-supabase.md`,
 `docs/etapa5-planos.md`, `docs/fraseados-referencias.md`, `README.md`.

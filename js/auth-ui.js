@@ -341,7 +341,8 @@
   // Mesma ordem do menu em index.html — o admin marca as telas na ordem em
   // que a pessoa vai vê-las, senão a conferência vira caça ao tesouro.
   var MODULOS = [
-    { nav: 'inicio', label: 'Início — treinar escalas', fixo: true },
+    { nav: 'inicio', label: 'Inicie aqui — treinar escalas', fixo: true },
+    { nav: 'aulas', label: 'Teoria Musical — do zero' },
     { nav: 'padroes', label: 'Exercícios de Padrões' },
     { nav: 'biblioteca-escalas', label: 'Biblioteca de Escalas' },
     { nav: 'biblioteca-fraseados', label: 'Biblioteca de Fraseados' },
@@ -602,7 +603,7 @@
   // botões não terão efeito nenhum. A tela é conveniência para quem PODE.
 
   var adminState = {
-    aba: 'contas', lista: [], convites: [], sugestoes: [], busca: '',
+    aba: 'contas', lista: [], convites: [], sugestoes: [], progresso: {}, busca: '',
     carregando: false, aviso: '', editandoTelas: null
   };
 
@@ -635,7 +636,8 @@
     adminState.carregando = true;
     if (adminState.lista.length) desenharAdmin();        // mantém a tabela na tela
     else $('admin-conteudo').innerHTML = '<p class="muted-note">Carregando…</p>';
-    Promise.all([db.listProfiles(), db.listConvites(), db.getConfig(), db.listSugestoes()].map(function (x) {
+    Promise.all([db.listProfiles(), db.listConvites(), db.getConfig(), db.listSugestoes(),
+                 db.listProgresso ? db.listProgresso() : { data: [] }].map(function (x) {
       return Promise.resolve(x).catch(function (e) { return { error: e }; });
     })).then(function (res) {
       adminState.carregando = false;
@@ -647,6 +649,19 @@
       adminState.convites = (res[1] && res[1].data) || [];
       if (res[2] && res[2].data) configSistema = res[2].data;
       adminState.sugestoes = (res[3] && res[3].data) || [];
+      // Quantos exercícios cada pessoa fechou, e em que andamento chegou. É o
+      // que responde "ela está estudando ou só passeando?" sem precisar
+      // perguntar — e sem o admin ver o histórico, os favoritos ou os
+      // exercícios salvos de ninguém (o banco não dá esse acesso).
+      adminState.progresso = {};
+      ((res[4] && res[4].data) || []).forEach(function (r) {
+        var p = adminState.progresso[r.user_id] || { feitos: 0, voltas: 0, bpm: 0, ultimo: null };
+        if (r.feito_em) p.feitos++;
+        p.voltas += r.voltas || 0;
+        p.bpm = Math.max(p.bpm, r.bpm_max || 0);
+        if (!p.ultimo || (r.atualizado_em && r.atualizado_em > p.ultimo)) p.ultimo = r.atualizado_em;
+        adminState.progresso[r.user_id] = p;
+      });
       atualizarContaSugestoes();
       desenharAdmin();
     });
@@ -705,6 +720,20 @@
     }).join('') + '</div>';
   }
 
+  /**
+   * A coluna "Treino": quantos exercícios a pessoa fechou de verdade e até que
+   * andamento chegou. O que isto diz, com honestidade: que ela acompanhou o
+   * exercício inteiro, do começo ao fim, duas vezes. NÃO diz que ela tocou as
+   * notas certas — para isso o sistema teria de ouvir o instrumento dela.
+   */
+  function treinoHTML(id) {
+    var p = adminState.progresso[id];
+    if (!p || (!p.feitos && !p.voltas)) return '<span class="muted-note">nada ainda</span>';
+    return '<span class="adm-treino' + (p.feitos ? ' adm-treino-ok' : '') + '" title="' +
+      p.voltas + ' execuções inteiras no total">' + p.feitos + ' exercício' + (p.feitos === 1 ? '' : 's') +
+      '</span>' + (p.bpm ? '<small class="adm-desde">até ' + p.bpm + ' bpm</small>' : '');
+  }
+
   function desenharContas() {
     var termo = adminState.busca.trim().toLowerCase();
     var lista = adminState.lista.filter(function (p) {
@@ -753,13 +782,14 @@
           return '<span class="' + a.classe + '"' + (a.exato ? ' title="' + escHtml(a.exato) + '"' : '') +
             '>' + a.txt + '</span>';
         })() + '</td>' +
+        '<td>' + treinoHTML(p.id) + '</td>' +
         '<td>' + (ehAdmin ? '<span class="adm-papel">👑 admin</span>' : '<span class="muted-note">usuário</span>') + '</td>' +
         '<td>' + (p.modulos && Object.keys(p.modulos).length
           ? '<small>só as marcadas</small>' : '<small class="muted-note">as do sistema</small>') + '</td>' +
         '<td class="adm-acoes">' + acoes + '</td></tr>';
 
       if (editando) {
-        linha += '<tr class="adm-editor"><td colspan="6">' +
+        linha += '<tr class="adm-editor"><td colspan="7">' +
           '<strong>Telas liberadas para ' + escHtml(p.email) + '</strong>' +
           telasHTML(p.modulos || (configSistema && configSistema.modulos) || {}, 'u') +
           '<div class="acd-forma-acoes">' +
@@ -778,9 +808,9 @@
       '<button class="view-btn" data-adm="recarregar">↻ Atualizar</button>' +
       '</div>' +
       '<div class="adm-tabela-wrap"><table class="theory-table adm-tabela"><thead><tr>' +
-      '<th>Conta</th><th>Situação</th><th>Último acesso</th><th>Papel</th><th>Telas</th><th>Ações</th>' +
+      '<th>Conta</th><th>Situação</th><th>Último acesso</th><th>Treino</th><th>Papel</th><th>Telas</th><th>Ações</th>' +
       '</tr></thead><tbody>' +
-      (linhas || '<tr><td colspan="6"><p class="muted-note">Ninguém encontrado com esse e-mail.</p></td></tr>') +
+      (linhas || '<tr><td colspan="7"><p class="muted-note">Ninguém encontrado com esse e-mail.</p></td></tr>') +
       '</tbody></table></div>' +
       '<p class="si-legend">Liberar e bloquear valem na hora: quem perde o acesso é desconectado assim que abrir ou voltar ' +
       'para a aba, e os dados ficam inacessíveis mesmo por fora do site — quem recusa é o banco, não a tela.</p>' +
@@ -1113,6 +1143,7 @@
     adminState.lista = [];
     adminState.convites = [];
     adminState.sugestoes = [];
+    adminState.progresso = {};
     adminState.busca = '';
     adminState.aviso = '';
     adminState.aba = 'contas';
@@ -1232,6 +1263,11 @@
     // mudarem.
     if (window.IL.ui && typeof window.IL.ui.onAccountChange === 'function') {
       window.IL.ui.onAccountChange();
+    }
+    // O progresso dos exercícios é de quem está logado: ao trocar de conta (ou
+    // sair), o da pessoa anterior sai da tela e o da nova é relido.
+    if (window.IL.ui && typeof window.IL.ui.resetTreinoProgresso === 'function') {
+      window.IL.ui.resetTreinoProgresso();
     }
     // Se "Meus Exercícios" está aberto, recarrega a aba atual: quem acabou de
     // entrar vê a lista na hora, sem precisar navegar de novo.

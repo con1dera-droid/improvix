@@ -11,7 +11,8 @@ const { prepararSemLogin } = require('./fake-supabase.js');
 // A ordem pedida pelo dono do projeto em 14/10/2026: primeiro o que se
 // pratica, depois o que se consulta, por fim o que é da pessoa.
 const ESPERADO = [
-  ['inicio', '🏠 Início'],
+  ['inicio', '🏠 Inicie aqui'],
+  ['aulas', '🎓 Teoria Musical'],
   ['padroes', '📘 Exercícios de Padrões'],
   ['biblioteca-escalas', '📚 Biblioteca de Escalas'],
   ['biblioteca-fraseados', '🎼 Biblioteca de Fraseados'],
@@ -50,7 +51,9 @@ const ESPERADO = [
 
   // Os itens que saíram
   const saiu = await page.$$eval('.nav .nav-item:not([hidden])', (a) => a.map((x) => x.getAttribute('data-nav')));
-  ['nova-analise', 'favoritos', 'historico', 'biblioteca-fusion', 'aulas'].forEach((n) => {
+  // 'aulas' voltou ao menu em 24/10/2026, agora como Teoria Musical — do zero:
+  // a tela sempre existiu, tinha é ficado fora da lista na reordenação.
+  ['nova-analise', 'favoritos', 'historico', 'biblioteca-fusion'].forEach((n) => {
     check(saiu.indexOf(n) < 0, 'o item "' + n + '" saiu do menu');
   });
 

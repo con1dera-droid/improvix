@@ -57,6 +57,19 @@ const { prepararSemLogin } = require('./fake-supabase.js');
   const phraseAudioLabelStopped = await page.$eval('.view-btn[data-view="audio"]', (b) => b.textContent);
   console.log('Rótulo do botão de áudio do fraseado após parar:', phraseAudioLabelStopped);
 
+  // Tocar a partir SÓ dos nomes das notas, sem MIDI — é o que a tela de
+  // Teoria Musical faz nos exemplos sonoros. Isso derrubava a passada inteira
+  // com "non-finite": o array de midi vinha do mesmo tamanho, cheio de
+  // undefined, e passava pela conferência de tamanho lá dentro.
+  errors.length = 0;
+  await page.evaluate(() => {
+    const ev = ['C', 'Eb', 'G', 'Bb'].map((n, i) => ({ name: n, onset: i * 0.5, dur: 0.5, vel: 0.85 }));
+    window.IL.audio.playEvents(ev, 'teclado', { bpm: 92, humanize: true, acentos: false });
+  });
+  await page.waitForTimeout(900);
+  console.log('Tocar só com nomes de nota (sem midi) — erros:', JSON.stringify(errors));
+  if (errors.length) { console.log('FALHA: tocar só com nomes de nota quebrou o áudio'); process.exitCode = 1; }
+
   console.log('Console/page errors:', JSON.stringify(errors, null, 2));
   await browser.close();
 })();

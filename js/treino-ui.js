@@ -26,7 +26,148 @@
     { key: 'blues_menor', label: 'Pentablues (pentatônica menor + b5)' }
   ];
 
-  var state = { built: false, key: 'jonio', tonic: 'C', playing: null, exercises: [], digitacao: {} };
+  var state = {
+    built: false, key: 'jonio', tonic: 'C', playing: null, exercises: [], digitacao: {},
+    // progresso: { 'treino:jonio:3': { voltas, feito } } — o que esta pessoa já
+    // executou inteiro. Carregado uma vez por visita; atualizado na hora.
+    progresso: {}, progressoLido: false, tocandoDesde: 0, cicloSeg: 0, tocandoIdx: -1
+  };
+
+  var META_VOLTAS = 2;      // o mesmo número está em registrar_voltas(), no schema
+
+  function chaveDe(i) { return 'treino:' + state.key + ':' + i; }
+
+  /**
+   * Quantos segundos dura UMA execução inteira do exercício, no andamento da
+   * barra. O áculo é o mesmo do motor de áudio: o ciclo fecha no compasso, e
+   * não na última nota — senão a conta erraria por uma fração de compasso e a
+   * volta inteira não seria contada.
+   */
+  function duracaoDaVolta(eventos, bpm) {
+    var fim = 0;
+    eventos.forEach(function (e) { fim = Math.max(fim, e.onset + e.dur); });
+    var beats = Math.max(4, Math.ceil((fim - 1e-6) / 4) * 4);
+    return beats * 60 / (bpm || 80);
+  }
+
+  /** Lê o progresso desta pessoa (uma vez por visita). */
+  function carregarProgresso(aoTerminar) {
+    var db = window.IL.db;
+    if (state.progressoLido || !db || !db.listProgresso ||
+        !window.IL.account || !window.IL.account.canUse()) {
+      if (aoTerminar) aoTerminar();
+      return;
+    }
+    state.progressoLido = true;
+    Promise.resolve(db.listProgresso()).then(function (res) {
+      (res && res.data ? res.data : []).forEach(function (p) {
+        state.progresso[p.chave] = { voltas: p.voltas, feito: !!p.feito_em };
+      });
+      if (aoTerminar) aoTerminar();
+    }).catch(function () { if (aoTerminar) aoTerminar(); });
+  }
+
+  /**
+   * Fecha a conta de uma execução: quantas voltas INTEIRAS couberam no tempo
+   * que ficou tocando. Quem para na metade não leva volta nenhuma — é isso que
+   * separa "acompanhou o exercício" de "deu play e foi embora".
+   */
+  function fecharVoltas() {
+    if (!state.tocandoDesde || !state.cicloSeg) return;
+    var decorrido = (Date.now() - state.tocandoDesde) / 1000;
+    var idx = state.tocandoIdx;
+    state.tocandoDesde = 0;
+    state.tocandoIdx = -1;
+    var voltas = Math.floor(decorrido / state.cicloSeg + 0.05);
+    if (voltas < 1 || idx < 0) return;
+
+    var chave = chaveDe(idx);
+    var bpm = andamentoAtual();
+    var atual = state.progresso[chave] || { voltas: 0, feito: false };
+    // A tela responde na hora; o banco confirma depois. Se a gravação falhar
+    // (sem conta, sem internet), o número da tela continua valendo para esta
+    // visita — e some ao recarregar, que é o honesto: o que não foi gravado
+    // não aconteceu.
+    state.progresso[chave] = {
+      voltas: atual.voltas + voltas,
+      feito: atual.feito || (atual.voltas + voltas) >= META_VOLTAS
+    };
+    var db = window.IL.db;
+    if (db && db.registrarVoltas) {
+      Promise.resolve(db.registrarVoltas(chave, voltas, bpm)).then(function (res) {
+        var linha = res && res.data;
+        if (linha && typeof linha.voltas === 'number') {
+          state.progresso[chave] = { voltas: linha.voltas, feito: !!linha.feito_em };
+          atualizarMarcas();
+        }
+      });
+    }
+    atualizarMarcas();
+  }
+
+  function andamentoAtual() {
+    var t = window.IL.ui.transportOpts ? window.IL.ui.transportOpts('treino') : null;
+    return (t && t.bpm) || 80;
+  }
+
+  /** Qual é o próximo exercício a fazer: o primeiro que ainda não está feito. */
+  function indiceDoProximo() {
+    for (var i = 0; i < state.exercises.length; i++) {
+      var p = state.progresso[chaveDe(i)];
+      if (!p || !p.feito) return i;
+    }
+    return -1;
+  }
+
+  function marcaDe(i) {
+    var p = state.progresso[chaveDe(i)] || { voltas: 0, feito: false };
+    return { voltas: p.voltas, feito: p.feito, proximo: i === indiceDoProximo() };
+  }
+
+  /** Redesenha só os selos e o resumo, sem remontar partituras e tablaturas. */
+  function atualizarMarcas() {
+    var caixa = $('tre-conteudo');
+    if (!caixa) return;
+    var feitos = 0;
+    state.exercises.forEach(function (ex, i) { if ((state.progresso[chaveDe(i)] || {}).feito) feitos++; });
+    var resumo = $('tre-progresso');
+    if (resumo) resumo.innerHTML = resumoHTML(feitos);
+    var prox = indiceDoProximo();
+    caixa.querySelectorAll('.esc-ex').forEach(function (card, i) {
+      var p = state.progresso[chaveDe(i)] || { voltas: 0, feito: false };
+      card.classList.toggle('esc-ex-feito', !!p.feito);
+      card.classList.toggle('esc-ex-proximo', i === prox);
+      var titulo = card.querySelector('.lib-card-title');
+      if (!titulo) return;
+      var velho = titulo.querySelector('.esc-feito, .esc-andando');
+      if (velho) velho.parentNode.removeChild(velho);
+      var seloProx = titulo.querySelector('.esc-proximo-selo');
+      if (seloProx) seloProx.parentNode.removeChild(seloProx);
+      if (p.feito) {
+        titulo.insertAdjacentHTML('beforeend',
+          '<span class="esc-feito" title="Você tocou este do começo ao fim duas vezes">✓ feito</span>');
+      } else if (p.voltas) {
+        titulo.insertAdjacentHTML('beforeend',
+          '<span class="esc-andando" title="Execuções inteiras até agora">' + p.voltas + ' de ' + META_VOLTAS + ' voltas</span>');
+      }
+      if (i === prox) {
+        titulo.insertAdjacentHTML('beforeend', '<span class="esc-proximo-selo">continue daqui</span>');
+      }
+    });
+  }
+
+  function resumoHTML(feitos) {
+    var total = state.exercises.length;
+    if (!window.IL.account || !window.IL.account.canUse()) {
+      return '<span class="tre-prog-aviso">Entre na sua conta para o IMPROVIX guardar o que você já treinou.</span>';
+    }
+    var pct = total ? Math.round(feitos * 100 / total) : 0;
+    return '<div class="tre-prog-barra"><i style="width:' + pct + '%"></i></div>' +
+      '<span class="tre-prog-texto"><strong>' + feitos + ' de ' + total + '</strong> exercícios feitos nesta escala' +
+      (feitos < total ? ' — um exercício conta como feito quando você acompanha ele inteiro ' + META_VOLTAS +
+        ' vezes, sem parar no meio.' : ' — escala fechada. Troque o tom ou a escala lá em cima.') +
+      '</span>';
+  }
 
   function $(id) { return document.getElementById(id); }
   function esc(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
@@ -79,6 +220,7 @@
 
   function parar() {
     if (audio) audio.stopAll();
+    fecharVoltas();                       // conta o que foi tocado inteiro até aqui
     state.playing = null;
     document.querySelectorAll('#tre-conteudo .playing').forEach(function (b) {
       b.classList.remove('playing');
@@ -96,6 +238,13 @@
     btn.classList.add('playing');
     btn.textContent = '⏸ Parar';
     var t = window.IL.ui.transportOpts ? window.IL.ui.transportOpts('treino') : { bpm: 80 };
+    // Marca o relógio: é por ele que se sabe, na hora de parar, quantas
+    // execuções INTEIRAS couberam. Com o 🔁 ligado o motor de áudio nunca
+    // avisa o fim (ele emenda as voltas), então contar pelo tempo é o único
+    // jeito de medir as duas coisas com a mesma régua.
+    state.cicloSeg = duracaoDaVolta(prep.events, t.bpm);
+    state.tocandoDesde = Date.now();
+    state.tocandoIdx = state.exercises.indexOf(ex);
     audio.playEvents(prep.events, instrumento, {
       bpm: t.bpm, metronome: t.metronome, loop: t.loop, humanize: true, chords: ex.chords || []
     }, function () {
@@ -132,6 +281,7 @@
       '</div>' +
 
       '<h3 class="esc-sub">Exercícios para treinar</h3>' +
+      '<div class="tre-prog" id="tre-progresso"></div>' +
       '<p class="si-legend">' + state.exercises.length + ' exercícios, todos subindo e descendo duas oitavas. ' +
       'Ponha o metrônomo devagar e só acelere quando sair limpo.</p>' +
       '<p class="dica-rolar">↔ no celular, deslize a partitura/tablatura para o lado</p>' +
@@ -139,6 +289,10 @@
 
     $('tre-conteudo').innerHTML = html;
     if (window.IL.ui.setupTransportBars) window.IL.ui.setupTransportBars();
+    atualizarMarcas();
+    // O progresso vem do banco; enquanto não chega, a tela já está inteira e
+    // apenas sem os selos. Quando chegar, só os selos são redesenhados.
+    carregarProgresso(atualizarMarcas);
   }
 
   /** Os exercícios, separados pelos mesmos grupos da Biblioteca de Escalas. */
@@ -155,7 +309,7 @@
         html += '<div class="lib-lista">';
         grupo = '';
       }
-      html += card(ex, i, instrumento, state.digitacao);
+      html += card(ex, i, instrumento, state.digitacao, marcaDe(i));
     });
     return html + (grupo === null ? '' : '</div>');
   }
@@ -173,5 +327,11 @@
 
   window.IL.ui = window.IL.ui || {};
   window.IL.ui.renderTreinoView = renderTreinoView;
+  // Trocou de conta: o progresso da pessoa anterior não pode ficar na tela.
+  window.IL.ui.resetTreinoProgresso = function () {
+    state.progresso = {};
+    state.progressoLido = false;
+    if ($('tre-progresso')) { atualizarMarcas(); carregarProgresso(atualizarMarcas); }
+  };
   window.IL.ui.TREINO_ESCALAS = ESCALAS;
 })();

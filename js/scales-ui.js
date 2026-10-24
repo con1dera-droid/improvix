@@ -159,7 +159,12 @@
    * ("6ª/8", "5ª/3"), e a escolha fica guardada por exercício. As notas e o
    * áudio não mudam — muda onde a mão vai.
    */
-  function exercicioHTML(ex, i, instrument, escolhidas) {
+  /**
+   * `marca` (opcional) é o progresso daquele exercício, no formato
+   * { voltas, feito }. Só a tela de Início manda — a Biblioteca de Escalas é
+   * consulta livre, e carimbar "feito" ali confundiria as duas coisas.
+   */
+  function exercicioHTML(ex, i, instrument, escolhidas, marca) {
     var body;
     if (isFretted(instrument)) {
       var pr = notation.prepareForInstrument(ex.events, instrument);
@@ -179,8 +184,17 @@
     } else {
       body = '<div class="staff-block lib-staff">' + notation.toRhythmStaffSVG(notation.centerForStaff(ex.events), { chords: ex.chords }) + '</div>';
     }
-    return '<div class="lib-card esc-ex">' +
-      '<div class="lib-card-head"><div class="lib-card-title">' + (i + 1) + '. ' + esc(ex.title) + '</div>' +
+    var selo = '';
+    if (marca) {
+      selo = marca.feito
+        ? '<span class="esc-feito" title="Você tocou este do começo ao fim duas vezes">✓ feito</span>'
+        : (marca.voltas ? '<span class="esc-andando" title="Execuções inteiras até agora">' +
+            marca.voltas + ' de 2 voltas</span>' : '');
+    }
+    return '<div class="lib-card esc-ex' + (marca && marca.feito ? ' esc-ex-feito' : '') +
+      (marca && marca.proximo ? ' esc-ex-proximo' : '') + '">' +
+      '<div class="lib-card-head"><div class="lib-card-title">' + (i + 1) + '. ' + esc(ex.title) + selo +
+      (marca && marca.proximo ? '<span class="esc-proximo-selo">continue daqui</span>' : '') + '</div>' +
       '<div class="lib-card-actions"><button class="view-btn btn-ouvir" data-act="ouvir-ex" data-i="' + i + '" data-label="🔊 Ouvir">🔊 Ouvir</button></div></div>' +
       '<p class="si-legend">' + esc(ex.dica) + '</p>' +
       '<div class="lib-card-body">' + body + notasHTML(ex) + '</div></div>';

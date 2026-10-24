@@ -177,6 +177,36 @@
     return c.from('profiles').update(patch).eq('id', id).select().single();
   }
 
+  // ---------------- Progresso dos exercícios ----------------
+
+  /**
+   * Registra voltas inteiras de um exercício. "Volta" é uma execução do
+   * começo ao fim acompanhando o áudio — quem para no meio não leva nenhuma.
+   *
+   * Quem soma é o banco (registrar_voltas, em sql/schema.sql): daqui vai
+   * quantas voltas couberam nesta sessão, e lá dentro elas são somadas ao que
+   * já havia, com teto por chamada. A tabela não aceita escrita direta, nem
+   * do dono da linha — senão bastaria o Console do navegador para "fazer" os
+   * 21 exercícios sem tocar nada.
+   *
+   * Os parâmetros vão com prefixo p_ porque é assim que a função os declara
+   * (os nomes sem prefixo colidiriam com as colunas da tabela).
+   */
+  function registrarVoltas(chave, voltas, bpm) {
+    var c = getClient();
+    if (!c || !c.rpc) return Promise.resolve({ data: null, error: null });
+    return Promise.resolve(c.rpc('registrar_voltas', { p_chave: chave, p_voltas: voltas, p_bpm: bpm }))
+      .catch(function () { return { data: null, error: null }; });
+  }
+
+  /** O progresso de quem está logado (ou de todo mundo, se for admin). */
+  function listProgresso() {
+    var c = getClient();
+    if (!c) return Promise.resolve({ data: [], error: null });
+    return Promise.resolve(c.from('progresso').select('*'))
+      .catch(function () { return { data: [], error: null }; });
+  }
+
   // ---------------- Sugestões ----------------
   // Quem assina é o banco: o trigger carimba autor, e-mail e data, então o
   // navegador só precisa mandar o texto (ver sql/schema.sql).
@@ -314,6 +344,8 @@
     onAuthStateChange: onAuthStateChange,
     getProfile: getProfile,
     registrarAcesso: registrarAcesso,
+    registrarVoltas: registrarVoltas,
+    listProgresso: listProgresso,
     listProfiles: listProfiles,
     updateProfile: updateProfile,
     excluirConta: excluirConta,

@@ -589,8 +589,17 @@
       activeNodes.push(master, comp);
 
       var noteEvents = events.filter(function (e) { return !e.rest; });
+      // O MIDI só é passado adiante quando TODOS os eventos o trazem. Quem
+      // manda só os nomes ('C', 'Eb') produzia um array do mesmo tamanho cheio
+      // de undefined — e `midi.length === noteNames.length` dava verdadeiro lá
+      // dentro, virando NaN na frequência e derrubando a passada inteira com
+      // "non-finite". Sem o array, a oitava é escolhida pela condução de voz.
+      var midiDosEventos = noteEvents.map(function (e) { return e.midi; });
+      var temTodos = midiDosEventos.length > 0 && midiDosEventos.every(function (m) {
+        return typeof m === 'number' && isFinite(m);
+      });
       var realized = notation.realizeForInstrument(noteEvents.map(function (e) { return e.name; }), instrument,
-        noteEvents.map(function (e) { return e.midi; }));
+        temTodos ? midiDosEventos : null);
       var midis = realized.map(function (r) { return r.midi; });
       var timbre = TIMBRES[instrument] || TIMBRES.teclado;
       // As opções que mudam o TOQUE (não a música): respiro por família e
