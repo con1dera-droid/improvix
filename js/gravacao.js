@@ -121,6 +121,7 @@
     var porTempo = 60 / (opts.bpm || 80);
     var duracao = (batidas + CONTAGEM_COMPASSOS * 4) * porTempo + RABICHO_SEG;
     var contagemSeg = CONTAGEM_COMPASSOS * 4 * porTempo;
+    var interrompido = false;
 
     aviso('preparando o detector de notas', 0.02);
     return carregarMotor(function (t) { aviso(t, 0.05); }).then(function () {
@@ -129,11 +130,27 @@
     }).then(function (stream) {
       return new Promise(function (resolve) {
         aviso('gravando — toque junto com a contagem', 0.15);
-        gravarPor(stream, duracao, resolve);
+        var cancelar = gravarPor(stream, duracao, resolve);
+        // Quem aperta PAUSE interrompe esta gravação. Não é pausa-e-continua:
+        // a gravação anda colada ao acompanhamento, e retomar do meio
+        // compararia o trecho errado com o exercício inteiro. Então o botão
+        // encerra a tomada, e a pessoa recomeça quando quiser — o que ela
+        // perde é a tentativa, não o progresso.
+        opts.aoInterromper = function () {
+          interrompido = true;
+          audio().stopAll();
+          cancelar();
+        };
+        if (opts.registrarCancelamento) opts.registrarCancelamento(opts.aoInterromper);
         tocarAcompanhamento(opts);
       });
     }).then(function (blob) {
       audio().stopAll();
+      if (interrompido) {
+        var e = new Error('Gravação interrompida.');
+        e.interrompido = true;
+        throw e;
+      }
       aviso('ouvindo o que você tocou', 0.45);
       return paraBuffer(blob);
     }).then(function (buffer) {

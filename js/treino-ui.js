@@ -312,8 +312,14 @@
     cx.innerHTML = html;
   }
 
+  var pararGravacao = null;          // preenchido enquanto uma gravação corre
+
   function gravarExercicio(botao, i) {
-    if (gravandoAgora) return;
+    // Clicar de novo enquanto grava é o PAUSE: encerra esta tomada.
+    if (gravandoAgora) {
+      if (pararGravacao) pararGravacao();
+      return;
+    }
     var ex = state.exercises[i];
     if (!ex || !window.IL.gravacao || !window.IL.avaliar) return;
     parar();                                   // nada tocando por cima da gravação
@@ -323,9 +329,13 @@
     var cartao = $('tre-conteudo').querySelectorAll('.esc-ex')[i];
     var alvo = $('tre-conteudo').querySelector('.btn-gravar[data-i="' + i + '"]') || botao;
     gravandoAgora = true;
+    pararGravacao = null;
     if (cartao) cartao.classList.add('esc-ex-gravando');
     alvo.classList.add('gravando');
-    alvo.textContent = '● gravando…';
+    // O símbolo da gravação e a palavra PAUSE no mesmo botão, como o dono
+    // pediu: enquanto grava, é por ele que se interrompe.
+    alvo.innerHTML = '<span class="grv-ponto"></span> PAUSE';
+    alvo.title = 'Interromper esta gravação (a tentativa é descartada)';
     botao = alvo;
 
     var t = window.IL.ui.transportOpts ? window.IL.ui.transportOpts('treino') : { bpm: 80 };
@@ -349,7 +359,8 @@
 
     window.IL.gravacao.rodar({
       eventos: prep.events, chords: ex.chords || [], instrumento: $('tre-instrumento').value,
-      bpm: t.bpm, comAcompanhamento: comAcomp, onEstado: estado
+      bpm: t.bpm, comAcompanhamento: comAcomp, onEstado: estado,
+      registrarCancelamento: function (fn) { pararGravacao = fn; }
     }).then(function (r) {
       var acerto = Math.round(r.nota * 100);
       var passou = r.nota >= window.IL.avaliar.PASSA;
@@ -358,6 +369,16 @@
       registrarGravacao(i, acerto, passou);
     }).catch(function (e) {
       terminarGravacao(botao);
+      if (e && e.interrompido) {
+        mostrarNaCaixa(i,
+          '<p class="grv-nota grv-nota-quase">Gravação interrompida.</p>' +
+          '<p class="grv-dica">Esta tentativa foi descartada — o que você já tinha conquistado continua lá. ' +
+          'Comece de novo quando estiver pronto.</p>' +
+          '<button class="view-btn" data-act="gravar-ex" data-i="' + i + '" data-label="🎙 Gravar e liberar">' +
+          '🎙 Gravar de novo</button>' +
+          '<button class="view-btn" data-act="fechar-gravacao">Fechar</button>', 'grv-quase');
+        return;
+      }
       var msg = (e && e.message) || 'não deu certo';
       mostrarNaCaixa(i,
         '<p class="grv-erro">Não consegui gravar: ' + esc(msg) + '</p>' +
@@ -369,12 +390,15 @@
 
   function terminarGravacao(botao) {
     gravandoAgora = false;
+    pararGravacao = null;
     $('tre-conteudo').querySelectorAll('.esc-ex-gravando').forEach(function (c) {
       c.classList.remove('esc-ex-gravando');
     });
     if (botao && botao.isConnected) {
       botao.classList.remove('gravando');
       botao.textContent = botao.getAttribute('data-label') || '🎙 Gravar e liberar';
+      botao.title = 'Toque o exercício; o IMPROVIX ouve pelo microfone, compara com as notas e, ' +
+        'acertando 80%, libera o próximo';
     }
   }
 

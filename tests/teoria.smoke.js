@@ -49,10 +49,10 @@ function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!c
     primeiroTitulo: document.querySelector('#lista-aulas .aula-item .aula-titulo').textContent
   }));
   ok(lista.licoes === 28, 'as 28 lições aparecem na lista (' + lista.licoes + ')');
-  ok(lista.blocos.slice(0, 4).join(' > ') === 'O som > A escrita > As distâncias > Os acordes',
+  ok(lista.blocos.slice(0, 4).join(' > ') === 'As notas > A escala e os acordes > O braço e as distâncias > A escrita',
     'os quatro blocos do zero abrem a lista, na ordem: ' + lista.blocos.slice(0, 4).join(' > '));
   ok(lista.primeiroNum === '1', 'as lições são numeradas');
-  ok(/propriedades do som/i.test(lista.primeiroTitulo), 'a primeira é a das propriedades do som');
+  ok(/o que é uma nota/i.test(lista.primeiroTitulo), 'a primeira é a do que é uma nota ("' + lista.primeiroTitulo + '")');
 
   // 3) a lição aberta traz o texto e os botões de ouvir
   const detalhe = await page.evaluate(() => ({
@@ -81,11 +81,16 @@ function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!c
   await page.click('#lista-aulas .aula-item:nth-of-type(3)');
   await page.waitForTimeout(300);
   const titulo2 = await page.$eval('#aula-detalhe .aula-detalhe-titulo', (h) => h.textContent);
-  ok(titulo2 && !/propriedades do som/i.test(titulo2), 'clicar em outra lição troca o conteúdo ("' + titulo2 + '")');
+  ok(titulo2 && !/o que é uma nota/i.test(titulo2), 'clicar em outra lição troca o conteúdo ("' + titulo2 + '")');
 
-  // 6) a última lição do zero fecha em funções/ii-V-I, encostando nas antigas
+  // 6) a trilha do zero encosta nas antigas sem degrau: ela fecha na escrita
+  // musical, mas campo harmônico e funções/ii-V-I já foram dados antes, que é
+  // justamente por onde a primeira lição antiga abre.
   const titulos = await page.$$eval('#lista-aulas .aula-item .aula-titulo', (t) => t.map((x) => x.textContent));
-  ok(/ii.?V.?I|Fun[cç]/i.test(titulos[17]), 'a 18ª fecha em funções e ii–V–I ("' + titulos[17] + '")');
+  const zero = titulos.slice(0, 18).join(' | ');
+  ok(/Campo harm/i.test(zero), 'a trilha do zero ensina campo harmônico antes das antigas');
+  ok(/ii.?V.?I|Fun[cç]/i.test(zero), 'a trilha do zero ensina funções e ii–V–I antes das antigas');
+  ok(/Campo harm/i.test(titulos[18] || ''), 'a 19ª é a primeira antiga, campo harmônico e funções ("' + titulos[18] + '")');
 
   // 7) no telefone
   await page.setViewportSize({ width: 390, height: 844 });

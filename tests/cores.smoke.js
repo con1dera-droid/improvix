@@ -149,6 +149,22 @@ async function medirTudo(page, tema) {
   ok(await page.evaluate(() => document.documentElement.getAttribute('data-tema') === null),
     'quem escolheu escuro continua no escuro depois de recarregar');
 
+  // ---------- o recado do administrador na tela de entrada ----------
+  // É o único lugar onde quem administra fala com quem ainda não entrou, e
+  // estava cinza sobre cinza. Agora tem cor de destaque e texto cheio.
+  const recado = await page.evaluate(() => {
+    const el = document.getElementById('auth-mensagem');
+    if (!el) return null;
+    el.hidden = false;
+    el.textContent = 'Aula na quinta, 19h.';
+    const cs = getComputedStyle(el);
+    return { cor: cs.color, borda: cs.borderLeftColor, fundo: cs.backgroundColor, contraste: window.__contraste('#auth-mensagem') };
+  });
+  ok(recado && recado.contraste >= MINIMO,
+    'o recado da tela de entrada lê bem (' + (recado && recado.contraste) + ' para 1)');
+  ok(recado && /125, 211, 252/.test(recado.borda),
+    'e tem a borda na cor de destaque, para não passar batido (' + (recado && recado.borda) + ')');
+
   // ---------- os dois botões do topo têm nome, não só ícone ----------
   const rotulos = await page.evaluate(() => ({
     tema: (document.querySelector('#btn-tema .bell-rot') || {}).textContent || '',

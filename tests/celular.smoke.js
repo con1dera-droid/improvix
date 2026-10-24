@@ -125,8 +125,17 @@ async function irPara(p, nav) {
     await p.click('#btn-analisar');
     await p.waitForTimeout(1400);
     ok(await estouro(p, t.w) === 0, 'HARMONIA: a análise cabe' + (await estouro(p, t.w) ? ' — ' + await culpados(p, t.w) : ''));
-    ok(await p.$eval('.dica-rolar', e => getComputedStyle(e).display !== 'none'),
-      'HARMONIA: avisa que a tabela rola para o lado');
+    // Desde 24/10/2026 quem avisa não é mais uma frase solta no alto da tela:
+    // é a própria caixa que rola, com seta, etiqueta e barra à mostra — e só
+    // quando ela de fato transborda (ver js/rolagem.js).
+    const avisoRolagem = await p.evaluate(() => ({
+      ativos: document.querySelectorAll('.rolavel-ativo').length,
+      setas: Array.from(document.querySelectorAll('.rolavel-ativo .rolavel-seta'))
+        .filter((b) => getComputedStyle(b).display !== 'none').length
+    }));
+    ok(avisoRolagem.ativos >= 1 && avisoRolagem.setas >= 2,
+      'HARMONIA: a caixa que rola avisa, com seta (' + avisoRolagem.ativos + ' caixa(s), ' +
+      avisoRolagem.setas + ' setas)');
     const tabRola = await p.$eval('#tabela-visao-geral', e => e.scrollWidth > e.clientWidth + 1 && getComputedStyle(e).overflowX !== 'visible');
     ok(tabRola, 'HARMONIA: a tabela de 5 colunas rola dentro da própria caixa');
 

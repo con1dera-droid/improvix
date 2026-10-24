@@ -203,7 +203,7 @@
     if (marca && marca.trancado) {
       return '<div class="lib-card esc-ex esc-ex-trancado">' +
         '<div class="lib-card-head"><div class="lib-card-title">' + (i + 1) + '. ' + esc(ex.title) +
-        '<span class="esc-trancado-selo">🔒 trancado</span></div></div>' +
+        '<span class="esc-trancado-selo">🔒 Trancado</span></div></div>' +
         '<p class="si-legend esc-trancado-dica">Para abrir este, grave o exercício <strong>' + marca.trancado +
         '</strong> e acerte pelo menos 80% das notas. O botão está lá em cima, no cartão dele.</p>' +
         '</div>';

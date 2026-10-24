@@ -55,6 +55,7 @@
      senão verde-limão sobre branco não se lê. */
   --ok: #4ade80;
   --aviso: #fbbf24;
+  --sobre-aviso: #3a2a05;   /* tinta escura por cima do amarelo claro */
   --erro: #f87171;
   /* A faixa do alto da tela de Início. Era um degradê fixo e ficava escura
      no tema claro, com o título escuro por cima: ilegível. */
@@ -102,6 +103,7 @@
   --braco-mudo: #94a3b8;
   --ok: #15803d;
   --aviso: #a16207;
+  --sobre-aviso: #ffffff;   /* o amarelo do tema claro é escuro: tinta branca */
   --erro: #b91c1c;
   --hero-1: #e8eefb;
   --hero-2: #f3f6fd;
@@ -692,6 +694,72 @@ select, input[type="text"] {
 .esc-ex-feito { opacity: 0.72; }
 .esc-ex-proximo { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
 
+/* ------------------- "tem mais para o lado" -------------------------------
+   Partitura, tablatura, braço e tabela larga rolam na horizontal. No Mac e no
+   celular a barra fica invisível até alguém rolar, e a pessoa olha um compasso
+   cortado achando que o exercício acaba ali. Aqui o aviso é explícito: barra
+   sempre visível, sombra na borda onde há mais conteúdo, setas clicáveis e,
+   enquanto ninguém rolou, um aviso escrito. Ver js/rolagem.js. */
+/* O envelope é coluna para o aviso caber ACIMA da caixa, em vez de flutuar
+   por cima do conteúdo — uma etiqueta que tapa a tablatura resolve um
+   problema criando outro. */
+.rolavel { position: relative; display: flex; flex-direction: column; min-width: 0; max-width: 100%; }
+/* Quando a caixa que rola era ITEM de uma linha flexível (os diagramas de
+   acorde e o teclado), o envelope precisa herdar o papel dela na linha —
+   senão ele cresce com o conteúdo e empurra a página para fora da tela. */
+.acd-grade > .rolavel, .acd-teclados > .rolavel { flex: 1 1 100%; }
+.acd-grade > .rolavel > .acd-forma, .acd-teclados > .rolavel > .acd-teclado { width: 100%; }
+.rolavel > *:first-child {
+  scrollbar-width: thin;                      /* Firefox */
+  scrollbar-color: var(--accent) var(--bg-elevated);
+}
+/* Barra sempre à mostra (no Mac ela se esconde sozinha, e é justamente isso
+   que faz a pessoa não perceber que dá para rolar). */
+.rolavel > *:first-child::-webkit-scrollbar { height: 10px; }
+.rolavel > *:first-child::-webkit-scrollbar-track {
+  background: var(--bg-elevated); border-radius: 999px;
+}
+.rolavel > *:first-child::-webkit-scrollbar-thumb {
+  background: var(--accent); border-radius: 999px; border: 2px solid var(--bg-elevated);
+}
+.rolavel > *:first-child::-webkit-scrollbar-thumb:hover { filter: brightness(1.15); }
+
+/* Sombra na borda: só do lado em que ainda há conteúdo. */
+.rolavel-ativo::before, .rolavel-ativo::after {
+  content: ''; position: absolute; top: 0; bottom: 10px; width: 28px;
+  pointer-events: none; opacity: 1; transition: opacity 0.2s;
+}
+.rolavel-ativo::before {
+  left: 0; background: linear-gradient(to right, var(--bg-card), rgba(0, 0, 0, 0));
+}
+.rolavel-ativo::after {
+  right: 0; background: linear-gradient(to left, var(--bg-card), rgba(0, 0, 0, 0));
+}
+.rolavel-inicio::before, .rolavel-fim::after { opacity: 0; }
+
+.rolavel-seta {
+  position: absolute; top: 50%; transform: translateY(-60%);
+  width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+  border: 1px solid var(--accent); background: var(--bg-card); color: var(--accent);
+  font-size: 1.1rem; line-height: 1; font-weight: 700; display: none;
+  align-items: center; justify-content: center; padding: 0; z-index: 2;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
+}
+.rolavel-seta:hover { background: var(--accent); color: #fff; }
+.rolavel-esq { left: 2px; }
+.rolavel-dir { right: 2px; }
+.rolavel-ativo .rolavel-seta { display: inline-flex; }
+.rolavel-inicio .rolavel-esq, .rolavel-fim .rolavel-dir { opacity: 0.25; }
+
+.rolavel-aviso {
+  order: -1; align-self: flex-start; margin: 0 0 0.3rem;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.02em;
+  color: var(--ouvir-ink); background: var(--ouvir);
+  border-radius: 999px; padding: 0.12rem 0.55rem; pointer-events: none;
+  display: none;
+}
+.rolavel-ativo.rolavel-virgem .rolavel-aviso { display: inline-block; }
+
 /* Gravar o exercício: o botão, a caixa de resultado e a trava do seguinte. */
 .tre-prog-regra {
   font-size: 0.78rem; line-height: 1.5; color: var(--text-muted);
@@ -704,7 +772,19 @@ select, input[type="text"] {
 .tre-opcao input { margin-top: 0.15rem; flex: 0 0 auto; }
 .btn-gravar { background: var(--bg-elevated); border-color: var(--accent); color: var(--text); font-weight: 600; }
 .btn-gravar:hover { background: var(--accent); color: #fff; }
-.btn-gravar.gravando { background: var(--parar); border-color: var(--parar); color: #fff; }
+.btn-gravar.gravando { background: var(--parar); border-color: var(--parar); color: #fff; font-weight: 700; letter-spacing: 0.04em; }
+/* O ponto vermelho piscando: o símbolo universal de "está gravando". Fica
+   branco sobre o botão vermelho, com um halo que pulsa. */
+.grv-ponto {
+  display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+  background: #fff; margin-right: 0.1rem; vertical-align: middle;
+  animation: grv-pisca 1.1s ease-in-out infinite;
+}
+@keyframes grv-pisca {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+  50% { opacity: 0.45; box-shadow: 0 0 0 5px rgba(255, 255, 255, 0); }
+}
+@media (prefers-reduced-motion: reduce) { .grv-ponto { animation: none; } }
 .esc-gravacao {
   border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 10px;
   background: var(--bg-elevated); padding: 0.8rem 0.9rem; margin: 0.2rem 0 0.8rem;
@@ -725,12 +805,18 @@ select, input[type="text"] {
 .esc-gravacao .view-btn { margin-right: 0.4rem; }
 /* O exercício trancado não mostra partitura nem tablatura: mostrar o conteúdo
    e dizer "não pode" seria provocação. Mostra o que fazer para abrir. */
-.esc-ex-trancado { opacity: 0.85; border-style: dashed; }
+.esc-ex-trancado { border-style: dashed; border-color: var(--aviso); }
+/* O cadeado e a palavra TRANCADO em destaque, a pedido do dono: é a
+   informação mais importante do cartão, e em cinza ela passava batida. */
 .esc-trancado-selo {
-  margin-left: 0.5rem; font-size: 0.7rem; font-weight: 700; color: var(--text-muted);
-  border: 1px solid var(--border); border-radius: 999px; padding: 0.05rem 0.45rem; vertical-align: middle;
+  margin-left: 0.5rem; font-size: 0.72rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--sobre-aviso); background: var(--aviso);
+  border-radius: 999px; padding: 0.12rem 0.6rem; vertical-align: middle;
+  white-space: nowrap;
 }
 .esc-trancado-dica { margin: 0.2rem 0 0; }
+.esc-trancado-dica strong { color: var(--aviso); }
 
 .aula-bloco {
   font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700;
@@ -1119,10 +1205,19 @@ select, input[type="text"] {
 .auth-marca-icone { font-size: 2rem; }
 .auth-marca-nome { font-weight: 700; font-size: 1.25rem; letter-spacing: 0.02em; }
 .auth-marca-sub { font-size: 0.74rem; color: var(--text-muted); }
+/* O recado do administrador na tela de entrada. Era cinza sobre cinza e
+   passava batido — e é justamente o único lugar onde quem administra fala com
+   quem ainda não entrou. Agora tem a cor do destaque (a mesma dos botões de
+   ouvir), um 📣 na frente e texto cheio, não esmaecido. */
 .auth-mensagem {
-  background: var(--bg-elevated); border: 1px solid var(--border); border-left: 3px solid var(--accent);
-  border-radius: 8px; padding: 0.7rem 0.85rem; font-size: 0.86rem; line-height: 1.5;
-  color: var(--text-muted); margin: 0 0 1rem; white-space: pre-wrap;
+  background: rgba(125, 211, 252, 0.12); border: 1px solid var(--ouvir);
+  border-left: 4px solid var(--ouvir);
+  border-radius: 8px; padding: 0.7rem 0.85rem 0.7rem 2.2rem; font-size: 0.88rem; line-height: 1.5;
+  color: var(--text); font-weight: 500; margin: 0 0 1rem; white-space: pre-wrap;
+  position: relative;
+}
+.auth-mensagem::before {
+  content: '📣'; position: absolute; left: 0.7rem; top: 0.62rem; font-size: 1rem;
 }
 .auth-esqueci { margin-top: 0.4rem; font-size: 0.78rem; }
 .auth-estado-txt { font-size: 0.9rem; line-height: 1.55; color: var(--text-muted); margin: 0 0 1rem; }
@@ -1223,7 +1318,9 @@ body.sistema-travado .modal-close { display: none; }
   /* Tabelas largas rolam dentro da própria caixa, sem arrastar a página. */
   .theory-table { display: block; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
   .theory-table th, .theory-table td { padding: 0.55rem 0.6rem; }
-  .dica-rolar { display: block; margin: 0 0 0.4rem; font-size: 0.74rem; color: var(--text-dim); }
+  /* A dica genérica saiu em 24/10/2026: quem avisa agora é a própria caixa
+     que rola, com seta e etiqueta, e só quando ela de fato transborda. */
+  .dica-rolar { display: none; }
 
   /* Tablatura, partitura e desenho do braço: rolagem horizontal própria.
      A partitura é um SVG com largura 100% e altura fixa — espremido numa

@@ -113,12 +113,38 @@ const DUBLE = (quanto) => {
   const quantasNotas = await page.evaluate(() => window.__exercicioAtual.length);
   ok(quantasNotas > 8, 'o exercício 1 tem ' + quantasNotas + ' notas para comparar');
 
+  // ---------- o PAUSE: clicar de novo interrompe a tomada ----------
+  await page.evaluate(DUBLE, 1);
+  await page.click('#tre-conteudo [data-act="gravar-ex"]');
+  await page.waitForTimeout(900);
+  const gravando = await page.evaluate(() => {
+    const b = document.querySelector('#tre-conteudo .btn-gravar');
+    return { txt: b.textContent.trim(), ponto: !!b.querySelector('.grv-ponto'), titulo: b.title };
+  });
+  ok(/PAUSE/.test(gravando.txt), 'enquanto grava, o botão vira PAUSE ("' + gravando.txt + '")');
+  ok(gravando.ponto, 'com o símbolo de gravação ao lado');
+  ok(/Interromper/i.test(gravando.titulo), 'e o título diz o que o clique faz');
+
+  await page.click('#tre-conteudo .btn-gravar');          // o PAUSE
+  await page.waitForTimeout(1500);
+  const interrompido = await page.evaluate(() => ({
+    caixa: (document.querySelector('.esc-gravacao') || {}).textContent || '',
+    gravando: !!document.querySelector('.esc-ex-gravando'),
+    linhas: window.__fake.store.progresso.length,
+    botao: (document.querySelector('#tre-conteudo .btn-gravar') || {}).textContent || ''
+  }));
+  ok(/interrompida/i.test(interrompido.caixa), 'clicar no PAUSE interrompe e diz isso ("' +
+    interrompido.caixa.trim().slice(0, 40) + '")');
+  ok(!interrompido.gravando, 'e a gravação para de verdade');
+  ok(interrompido.linhas === 0, 'a tentativa interrompida NÃO vai para o banco (' + interrompido.linhas + ' linhas)');
+  ok(/Gravar e liberar/.test(interrompido.botao), 'e o botão volta a ser "Gravar e liberar"');
+
   // ---------- gravação que NÃO passa (60% certas) ----------
   await page.evaluate(DUBLE, 0.6);
   await page.click('#tre-conteudo [data-act="gravar-ex"]');
   await page.waitForTimeout(1200);
-  const gravandoAgora = await page.$eval('#tre-conteudo [data-act="gravar-ex"]', (b) => b.textContent);
-  ok(/gravando/i.test(gravandoAgora), 'enquanto grava, o botão diz que está gravando');
+  const gravandoAgora = await page.$eval('#tre-conteudo .btn-gravar', (b) => b.textContent);
+  ok(/PAUSE/.test(gravandoAgora), 'enquanto grava, o botão é o PAUSE ("' + gravandoAgora.trim() + '")');
   await page.waitForFunction(() => !document.querySelector('.esc-ex-gravando'), { timeout: 90000 });
   await page.waitForTimeout(400);
 

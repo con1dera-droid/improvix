@@ -213,6 +213,7 @@ tests/cores.smoke.js   Mede o contraste do texto nos dois temas (claro e escuro)
 tests/avaliar.test.js  A conta que decide se a gravação do aluno passa
 tests/gravacao.smoke.js Gravar e liberar o próximo: a trava e o fluxo na tela
 tests/gravacao.e2e.js  A rede neural DE VERDADE lendo um exercício (lento, ~1 min)
+tests/rolagem.smoke.js Os avisos de "tem mais para o lado" nas caixas que rolam
 tests/screenshot*.js   Scripts opcionais de checagem visual com Playwright (dev only)
 email/                 Modelos dos e-mails do Supabase (confirmação, senha nova, convite) — ver docs/emails-supabase.md
 docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos, status e guias do Supabase/Planos
@@ -260,6 +261,7 @@ node tests/progresso.smoke.js
 node tests/cores.smoke.js
 node tests/avaliar.test.js
 node tests/gravacao.smoke.js
+node tests/rolagem.smoke.js
 node tests/gravacao.e2e.js   # lento: roda a rede neural de verdade
 ```
 

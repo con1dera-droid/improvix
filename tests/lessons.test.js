@@ -83,7 +83,11 @@ test('categorias usadas fazem sentido (não vazias, texto curto)', function () {
 // Teoria do zero (24/10/2026): as 18 lições para quem não sabe nada.
 // --------------------------------------------------------------------
 
-var BLOCOS = ['O som', 'A escrita', 'As distâncias', 'Os acordes'];
+// A ordem foi refeita em 24/10/2026 a pedido do dono: nota, cifra, tom e
+// semitom, cromática, escala maior, tríades e campo harmônico vêm antes de
+// qualquer coisa de leitura — numa plataforma de improvisação, som e
+// harmonia vêm antes de escrita.
+var BLOCOS = ['As notas', 'A escala e os acordes', 'O braço e as distâncias', 'A escrita'];
 
 test('a trilha do zero tem 18 lições, nos quatro blocos e na ordem certa', function () {
   var zero = lessons.LESSONS.filter(function (l) { return l.nivel === 'zero'; });
@@ -102,10 +106,52 @@ test('a trilha do zero tem 18 lições, nos quatro blocos e na ordem certa', fun
 });
 
 test('a trilha do zero encosta nas lições antigas sem degrau', function () {
-  var ultima = lessons.LESSONS[17];
-  var primeiraAntiga = lessons.LESSONS[18];
-  assert.ok(/ii.?v.?i|fun[cç]/i.test(ultima.id), 'a 18ª deveria fechar em funções/ii-V-I (é ' + ultima.id + ')');
+  var zero = lessons.LESSONS.slice(0, 18);
+  var antigas = lessons.LESSONS.slice(18);
+  var primeiraAntiga = antigas[0];
   assert.ok(primeiraAntiga && primeiraAntiga.nivel !== 'zero', 'depois da 18ª vêm as lições antigas');
+  assert.ok(!antigas.some(function (l) { return l.nivel === 'zero'; }), 'nenhuma lição do zero sobrou no meio das antigas');
+  // A trilha do zero não termina mais em funções/ii-V-I (ela fecha na
+  // escrita musical), mas o degrau continua proibido: a primeira antiga
+  // abre em campo harmônico e funções, então as duas coisas precisam estar
+  // ensinadas em algum ponto do zero.
+  assert.strictEqual(primeiraAntiga.id, 'campo-harmonico',
+    'a primeira lição antiga deveria ser campo-harmonico (é ' + primeiraAntiga.id + ')');
+  var ids = zero.map(function (l) { return l.id; }).join(' ');
+  assert.ok(/campo-harmonico/.test(ids), 'a trilha do zero precisa ensinar campo harmônico antes das antigas');
+  assert.ok(/fun[cç]|ii.?v.?i/i.test(ids), 'a trilha do zero precisa ensinar funções/ii-V-I antes das antigas');
+  // e o essencial de harmonia fica junto, num bloco só, antes da escrita
+  var harmonia = zero.filter(function (l) { return /campo-harmonico|fun[cç]|triades|tetrades|escala-maior/.test(l.id); });
+  harmonia.forEach(function (l) {
+    assert.strictEqual(l.bloco, 'A escala e os acordes', 'a lição ' + l.id + ' deveria estar no bloco da escala e dos acordes');
+  });
+});
+
+test('nenhuma lição do zero usa um conceito que só é explicado depois dela', function () {
+  var zero = lessons.LESSONS.slice(0, 18);
+  var pos = {};
+  zero.forEach(function (l, i) { pos[l.id] = i; });
+  // pré-requisitos reais da sequência pedida pelo dono
+  var exige = {
+    'escala-maior': ['tom-semitom-e-acidentes', 'escala-cromatica'],
+    'triades': ['escala-maior'],
+    'campo-harmonico-maior-do-zero': ['triades'],
+    'tetrades-e-as-setimas': ['campo-harmonico-maior-do-zero'],
+    'funcoes-e-ii-v-i': ['tetrades-e-as-setimas'],
+    'intervalos-numero-e-qualidade': ['tom-semitom-e-acidentes'],
+    'melodico-harmonico-consonancia': ['intervalos-numero-e-qualidade'],
+    'escala-menor-natural-e-relativa': ['escala-maior'],
+    'armadura-e-ciclo-de-quintas': ['pauta-claves-e-linhas', 'intervalos-numero-e-qualidade'],
+    'compasso-e-formula': ['figuras-e-pausas'],
+    'ligadura-ponto-andamento-dinamica': ['figuras-e-pausas', 'compasso-e-formula']
+  };
+  Object.keys(exige).forEach(function (id) {
+    assert.ok(typeof pos[id] === 'number', 'lição esperada não existe: ' + id);
+    exige[id].forEach(function (req) {
+      assert.ok(typeof pos[req] === 'number', 'pré-requisito inexistente: ' + req);
+      assert.ok(pos[req] < pos[id], id + ' vem antes do seu pré-requisito ' + req);
+    });
+  });
 });
 
 test('os exemplos sonoros são tocáveis: nomes de nota válidos e sequência de tamanho útil', function () {

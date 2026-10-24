@@ -2079,6 +2079,82 @@ máquina erra: som sujo, distorção pesada, instrumento longe do microfone e
 acorde tocado junto pioram a leitura. Por isso o aluno pode tentar quantas
 vezes quiser, e a melhor nota é a que vale.
 
+## A ordem do professor, a rolagem visível e o PAUSE — ✅ (2026-10-24)
+
+Quatro pedidos do dono numa tacada.
+
+**1. A trilha de teoria na ordem dele.** O dono é professor, e o método é dele:
+nota → cifra → tom e semitom → escala cromática → escala maior → tríades →
+campo harmônico. Reorganizada, e parte reescrita para caber nessa sequência:
+
+| # | lição | bloco |
+|---|---|---|
+| 1 | O que é uma nota, e quais são | As notas |
+| 2 | Cifras: a letra que dá nome à nota | As notas |
+| 3 | Tom, semitom e os acidentes | As notas |
+| 4 | A escala cromática | As notas |
+| 5 | A escala maior e os graus | A escala e os acordes |
+| 6 | Tríades: maior, menor, aumentada, diminuta | A escala e os acordes |
+| 7 | Campo harmônico maior | A escala e os acordes |
+| 8–9 | Tétrades e as sétimas · Funções e o ii–V–I | A escala e os acordes |
+| 10–13 | Onde as notas moram · Intervalos · Melódico e harmônico · Menor natural e relativa | O braço e as distâncias |
+| 14–18 | Pauta e claves · Armadura e ciclo de quintas · Figuras · Compasso · Ligadura e dinâmica | A escrita |
+
+Duas decisões que valem registro, porque não são óbvias:
+
+* **"Cifras" na posição 2 é a letra que nomeia a NOTA**, não o acorde. Vindo
+  logo depois de "o que é uma nota", é isso que faz sentido: A B C D E F G são
+  Lá Si Dó Ré Mi Fá Sol, e é assim que a pessoa lê qualquer songbook. Os
+  sufixos de acorde (C, Cm, C+, C°) migraram para a lição 6, onde o acorde
+  finalmente existe.
+* **A escrita musical foi para o fim.** Numa plataforma de improvisação, som e
+  harmonia vêm antes de leitura. Nenhuma lição usa conceito que só aparece
+  depois dela — isso virou teste.
+
+Lições novas ou reescritas: 1 (fusão de "propriedades do som" com "as sete
+notas"), 2, 4 (a cromática, que não existia), 5 (a fórmula T-T-st-T-T-T-st
+aplicada **passo a passo andando pela cromática**, e os graus), 6 (os acordes
+saindo de **1-3-5** e **1-b3-5**, com o b3 explicado como a terça abaixada meio
+tom), 7 e 8.
+
+**2. "Tem mais para o lado".** Partitura, tablatura, braço e tabela larga rolam
+na horizontal — e no Mac e no celular a barra de rolagem fica invisível até
+alguém rolar. A pessoa olha um compasso cortado e conclui que o exercício acaba
+ali. Novo `js/rolagem.js`: barra de rolagem com cor própria (sempre à mostra),
+sombra na borda onde há mais conteúdo, setas **‹ ›** clicáveis e a etiqueta
+**"↔ tem mais para o lado"**, que some assim que a pessoa rola — já cumpriu o
+papel.
+
+A regra tem duas metades, e as duas estão em teste: aparece quando a caixa
+**transborda de verdade**, e **não aparece** quando ela cabe. Aviso em coisa
+que já cabe é ruído, e ruído a pessoa aprende a ignorar. A frase genérica que
+existia antes ("no celular, deslize para o lado") saiu: quem avisa agora é a
+própria caixa que rola. Um susto no caminho: embrulhar os diagramas de acorde
+quebrou o layout do celular em 219px, porque eles eram itens de uma linha
+flexível e o envelope não herdava esse papel — `tests/celular.smoke.js` pegou.
+
+**3. O PAUSE.** Enquanto grava, o botão mostra o ponto vermelho piscando e a
+palavra **PAUSE**; clicar nele encerra a tomada. É interrupção, não
+pausa-e-continua, e isso está escrito no código e no título do botão: a
+gravação anda colada ao acompanhamento, e retomar do meio compararia o trecho
+errado com o exercício inteiro. A tentativa interrompida é descartada e **não
+vai para o banco** — o que já estava conquistado continua lá.
+
+**4. Duas coisas que passavam batidas, agora em destaque.** O selo dos
+exercícios trancados virou **🔒 TRANCADO** em amarelo cheio (8,3 de contraste
+no escuro, 4,9 no claro) em vez de cinza; e o **recado do administrador na tela
+de entrada** — o único lugar onde quem administra fala com quem ainda não
+entrou — ganhou fundo azul-claro, borda de destaque, um 📣 e texto cheio no
+lugar do cinza esmaecido (de ilegível para 13,9 de contraste).
+
+Testes: `tests/rolagem.smoke.js` (novo, 13 checagens, incluindo que a seta rola
+de verdade e que o aviso se apaga sozinho ao alargar a janela),
+`tests/gravacao.smoke.js` foi a 23 checagens (o PAUSE inteiro),
+`tests/cores.smoke.js` passou a medir o recado da tela de entrada, e
+`tests/lessons.test.js` ganhou uma conferência de **pré-requisitos lição por
+lição**. Bateria inteira: 13 testes de unidade, 35 smokes e 80 regras de
+acesso, sem erro de página.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
@@ -2105,14 +2181,15 @@ do escopo cobrado, mas vale registrar): leitura transposta de sax/trompete
 `index.html`, `css/styles.css`, `js/data.js`, `js/theory.js`, `js/phrases.js`,
 `js/notation.js`, `js/audio.js`, `js/articulation.js`, `js/scale-info.js`, `js/patterns.js`, `js/patterns-ui.js`, `js/scales.js`, `js/scales-ui.js`, `js/transcribe.js`, `js/transcribe-ui.js`, `vendor/*` (+ `vendor/CREDITOS.md`), `sounds/*.js` (+ `sounds/CREDITOS.md`), `js/lab.js`, `js/lessons.js`, `js/library.js`, `js/app.js`, `js/library-ui.js`,
 `js/config.js`, `js/supabaseClient.js`, `js/auth-ui.js`, `js/avaliar.js`,
-`js/gravacao.js`, `sql/schema.sql`,
+`js/gravacao.js`, `js/rolagem.js`, `sql/schema.sql`,
 `tests/theory.test.js`, `tests/phrases.test.js`, `tests/lab.test.js`,
 `tests/lessons.test.js`, `tests/library.test.js`, `tests/articulation.test.js`, `tests/fusion.smoke.js`, `tests/scaleinfo.test.js`, `tests/scaleinfo.smoke.js`, `tests/som.smoke.js`, `tests/patterns.test.js`, `tests/padroes.smoke.js`, `tests/escalas.test.js`, `tests/escalas.smoke.js`, `tests/ambiencia.smoke.js`, `tests/menu.smoke.js`, `tests/transcricao.test.js`, `tests/transcricao.smoke.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
 `tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`, `tests/etapa5.smoke.js`,
 `tests/etapa5.planos.smoke.js`, `tests/etapa5.laboratorio.smoke.js`,
 `tests/etapa5.aulas.smoke.js`, `tests/fraseados.smoke.js`, `tests/biblioteca.smoke.js`, `tests/boasvindas.smoke.js`,
 `tests/teoria.smoke.js`, `tests/progresso.smoke.js`, `tests/cores.smoke.js`,
-`tests/avaliar.test.js`, `tests/gravacao.smoke.js`, `tests/gravacao.e2e.js`, `tests/screenshot*.js` (dev only),
+`tests/avaliar.test.js`, `tests/gravacao.smoke.js`, `tests/gravacao.e2e.js`,
+`tests/rolagem.smoke.js`, `tests/screenshot*.js` (dev only),
 `docs/PRD.md`, `docs/mapa-do-sistema.md`, `docs/matriz-rbac.md`,
 `docs/modulos.md`, `docs/status.md`, `docs/etapa4-supabase.md`,
 `docs/etapa5-planos.md`, `docs/fraseados-referencias.md`, `README.md`.
