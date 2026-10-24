@@ -20,8 +20,10 @@ const path = require('path');
 const { prepararSemLogin } = require('./fake-supabase.js');
 
 const URL = 'file://' + path.resolve(__dirname, '../index.html');
-const AZUL = 'rgb(125, 211, 252)';     // --ouvir
-const VERMELHO = 'rgb(220, 38, 38)';   // --parar
+const AZUL = 'rgb(125, 211, 252)';     // --ouvir — igual nos dois temas, de propósito
+// O vermelho de parar escurece no tema claro (senão não lê sobre branco), então
+// os dois valores valem. O contraste de cada um é medido em tests/cores.smoke.js.
+const VERMELHOS = ['rgb(220, 38, 38)', 'rgb(185, 28, 28)'];   // --parar escuro / claro
 
 let falhas = 0;
 function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!cond) falhas++; }
@@ -109,7 +111,7 @@ const BOTOES = () => {
     };
   });
   ok(tocando.playing, 'ao apertar, o botão entra em modo "tocando"');
-  ok(tocando.fundo === VERMELHO, 'e fica vermelho (' + tocando.fundo + ')');
+  ok(VERMELHOS.indexOf(tocando.fundo) >= 0, 'e fica vermelho (' + tocando.fundo + ')');
   ok(tocando.letra === 'rgb(255, 255, 255)', 'com letra branca (' + tocando.letra + ')');
   ok(/parar/i.test(tocando.txt), 'e diz o que o clique faz agora: "' + tocando.txt + '"');
 

@@ -1,12 +1,26 @@
+/* ---------------------------------------------------------------------------
+   As cores do IMPROVIX, em dois temas.
+   
+   A régua aqui não é gosto: é contraste medido (razão entre o texto e o fundo
+   atrás dele). O mínimo para leitura corrida é 4,5. Em 24/10/2026 o cinza do
+   texto estava em 3,1 — abaixo do piso — logo depois de o site ganhar 28
+   lições de teoria para ler; subiu para 4,9. A borda estava em 1,26, quase
+   invisível, o que fazia as telas virarem um paredão sem divisão; subiu para
+   1,97. tests/cores.smoke.js mede isso no navegador e quebra se alguém baixar.
+   
+   O tema claro existe porque estudar instrumento costuma ser de luz acesa —
+   estante, sala iluminada, celular apoiado, às vezes de dia na janela — e aí
+   um site escuro é o pior caso de leitura. A pessoa escolhe no ☀/☾ do alto.
+   --------------------------------------------------------------------------- */
 :root {
   --bg: #0b1220;
   --bg-panel: #111a2c;
   --bg-card: #141f35;
   --bg-elevated: #1a2740;
-  --border: #223052;
+  --border: #374d7d;
   --text: #e7ecf7;
   --text-muted: #94a3c4;
-  --text-dim: #5c6c8f;
+  --text-dim: #7b8cb3;
   --accent: #3b82f6;
   --accent-2: #22c55e;
   /* Ouvir: azul claro parado, vermelho tocando. São os botões que mais se
@@ -19,8 +33,78 @@
   --tonica-relativa: #2563eb;
   --subdominante: #7c3aed;
   --dominante: #d97706;
+  /* Partitura, tablatura, braço e teclado. Estavam presos no desenho (em
+     js/notation.js e js/chords.js), o que deixaria tudo invisível no tema
+     claro — nota branca sobre papel branco. Agora moram aqui. */
+  --staff-line: #5c6c8f;
+  --staff-note: #e7ecf7;
+  --staff-label: #94a3c4;
+  --tecla-branca: #f4f6fb;
+  --tecla-branca-apagada: #e8ecf6;
+  --tecla-preta: #0f172a;
+  --tecla-preta-acesa: #1e293b;
+  --tecla-borda: #2b3a5e;
+  --corda: #44557f;
+  --corda-grossa: #cbd5f5;
+  --braco-nota: #cbd5f5;
+  --braco-marca: #94a3c4;
+  --braco-apagado: #64748b;
+  --braco-mudo: #475569;
+  --sobre-cor: #fff;            /* texto escrito por cima de bolinha colorida */
+  /* Os três recados: deu certo, atenção, deu errado. Em claro eles escurecem,
+     senão verde-limão sobre branco não se lê. */
+  --ok: #4ade80;
+  --aviso: #fbbf24;
+  --erro: #f87171;
+  /* A faixa do alto da tela de Início. Era um degradê fixo e ficava escura
+     no tema claro, com o título escuro por cima: ilegível. */
+  --hero-1: #16213b;
+  --hero-2: #0e1830;
+
   --radius: 12px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* --------------------------- tema claro ---------------------------------
+   Mesma identidade, outro fundo: o azul continua sendo o azul do IMPROVIX, só
+   escurecido o bastante para ler sobre branco (6,7 contra 1 em vez de 4,5).
+   O botão de Ouvir não muda de cor em tema nenhum — é azul claro com tinta
+   escura, e lê nos dois (9,1). Todos os valores abaixo foram medidos. */
+:root[data-tema="claro"] {
+  --bg: #f7f9fc;
+  --bg-panel: #ffffff;
+  --bg-card: #ffffff;
+  --bg-elevated: #eef2f9;
+  --border: #b3c1da;
+  --text: #0f1b2e;
+  --text-muted: #46597c;
+  --text-dim: #5b6b8e;
+  --accent: #1d4ed8;
+  --accent-2: #15803d;
+  --parar: #b91c1c;
+  --tonica: #15803d;
+  --tonica-relativa: #1d4ed8;
+  --subdominante: #6d28d9;
+  --dominante: #b45309;
+  --staff-line: #8795b5;
+  --staff-note: #0f1b2e;
+  --staff-label: #46597c;
+  --tecla-branca: #ffffff;
+  --tecla-branca-apagada: #eef2f9;
+  --tecla-preta: #1e293b;
+  --tecla-preta-acesa: #334155;
+  --tecla-borda: #94a3b8;
+  --corda: #94a3b8;
+  --corda-grossa: #475569;
+  --braco-nota: #334155;
+  --braco-marca: #475569;
+  --braco-apagado: #64748b;
+  --braco-mudo: #94a3b8;
+  --ok: #15803d;
+  --aviso: #a16207;
+  --erro: #b91c1c;
+  --hero-1: #e8eefb;
+  --hero-2: #f3f6fd;
 }
 
 * { box-sizing: border-box; }
@@ -188,7 +272,7 @@ li { margin-bottom: 0.5rem; line-height: 1.4; }
 }
 
 /* Hero */
-.hero { margin-bottom: 1.25rem; background: linear-gradient(135deg, #16213b, #0e1830); }
+.hero { margin-bottom: 1.25rem; background: linear-gradient(135deg, var(--hero-1), var(--hero-2)); }
 .hero-text h1 { margin: 0 0 0.4rem; font-size: 1.5rem; }
 .hero-text p { margin: 0 0 1.1rem; color: var(--text-muted); font-size: 0.9rem; }
 
@@ -285,7 +369,7 @@ select, input[type="text"] {
 }
 .form-error {
   margin-top: 0.6rem;
-  color: #f87171;
+  color: var(--erro);
   font-size: 0.8rem;
   background: rgba(248,113,113,0.08);
   border: 1px solid rgba(248,113,113,0.35);
@@ -484,7 +568,7 @@ select, input[type="text"] {
 }
 .btn-chip-action:hover:not(:disabled) { border-color: var(--accent); }
 .btn-chip-action:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn-chip-action.btn-danger { color: #f87171; }
+.btn-chip-action.btn-danger { color: var(--erro); }
 /* "Outra ideia" é o botão mais usado desta aba: fica azul, para achar de longe. */
 #btn-outra-ideia {
   background: var(--accent); border-color: var(--accent); color: #fff;
@@ -588,7 +672,7 @@ select, input[type="text"] {
 .tre-prog-texto strong { color: var(--text); }
 .tre-prog-aviso { font-size: 0.78rem; color: var(--text-dim); font-style: italic; }
 .esc-feito {
-  margin-left: 0.5rem; font-size: 0.7rem; font-weight: 700; color: #4ade80;
+  margin-left: 0.5rem; font-size: 0.7rem; font-weight: 700; color: var(--ok);
   border: 1px solid rgba(74, 222, 128, 0.5); border-radius: 999px; padding: 0.05rem 0.45rem; vertical-align: middle;
 }
 .esc-andando {
@@ -663,7 +747,7 @@ select, input[type="text"] {
   background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px;
   padding: 0.6rem 0.8rem; font-size: 0.8rem; margin-bottom: 1rem; color: var(--text-muted);
 }
-.auth-modal-msg.is-error { border-color: rgba(248,113,113,0.4); color: #f87171; background: rgba(248,113,113,0.08); }
+.auth-modal-msg.is-error { border-color: rgba(248,113,113,0.4); color: var(--erro); background: rgba(248,113,113,0.08); }
 .auth-toggle { text-align: center; font-size: 0.82rem; color: var(--text-muted); margin: 1rem 0 0; }
 .auth-toggle a { color: var(--accent); font-weight: 600; }
 
@@ -727,7 +811,7 @@ select, input[type="text"] {
 }
 .si-chip.si-hl { border-color: var(--dominante); background: rgba(217, 119, 6, 0.14); }
 .si-deg { font-size: 1.1rem; font-weight: 700; color: var(--text); }
-.si-chip.si-hl .si-deg { color: #fbbf24; }
+.si-chip.si-hl .si-deg { color: var(--aviso); }
 .si-int { font-size: 0.75rem; color: var(--text-muted); }
 .si-note { font-size: 0.75rem; color: var(--accent); margin-top: 0.1rem; }
 .si-rows { display: grid; gap: 0.3rem; margin-bottom: 0.4rem; font-size: 0.9rem; color: var(--text-muted); }
@@ -748,10 +832,10 @@ select, input[type="text"] {
 .pad-info-title { font-weight: 700; margin-bottom: 0.4rem; }
 .pad-formula { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.5rem 0 0.2rem; }
 .pad-f { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 0.3rem 0.55rem; font-size: 0.9rem; }
-.pad-f code { color: #fbbf24; font-size: 0.9rem; }
+.pad-f code { color: var(--aviso); font-size: 0.9rem; }
 .pad-arrow { color: var(--text-dim); }
 .pad-custom input { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 0.55rem 0.7rem; font-size: 0.95rem; }
-.pad-erro { color: #f87171; font-size: 0.88rem; margin: 0.3rem 0; }
+.pad-erro { color: var(--erro); font-size: 0.88rem; margin: 0.3rem 0; }
 .pad-line.is-playing { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
 
 /* Notas que formam cada acorde, ao lado/embaixo da cifra */
@@ -879,7 +963,7 @@ select, input[type="text"] {
 }
 .tra-nota:hover { border-color: var(--accent); color: var(--text); }
 .tra-nota.sel { background: var(--accent); border-color: var(--accent); color: #fff; }
-.tra-nota.corrigida { border-color: #22c55e; color: #86efac; }
+.tra-nota.corrigida { border-color: #22c55e; color: var(--ok); }
 .tra-nota.corrigida.sel { background: #16a34a; border-color: #16a34a; color: #fff; }
 .tra-editor {
   display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;
@@ -901,22 +985,22 @@ select, input[type="text"] {
 .adm-email { font-weight: 600; }
 .adm-desde { color: var(--text-dim); font-size: 0.74rem; }
 .adm-eu { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); border: 1px solid var(--accent); border-radius: 6px; padding: 0 0.3rem; }
-.adm-papel { color: #fbbf24; font-weight: 600; font-size: 0.82rem; }
-.adm-status-ok { color: #4ade80; font-weight: 600; font-size: 0.82rem; }
-.adm-status-bloq { color: #f87171; font-weight: 600; font-size: 0.82rem; }
+.adm-papel { color: var(--aviso); font-weight: 600; font-size: 0.82rem; }
+.adm-status-ok { color: var(--ok); font-weight: 600; font-size: 0.82rem; }
+.adm-status-bloq { color: var(--erro); font-weight: 600; font-size: 0.82rem; }
 .adm-bloqueado { background: rgba(248, 113, 113, 0.06); }
 /* Último acesso: a cor diz, de relance, quem está sumindo. Até uma semana
    claro, até um mês apagado, mais que isso alaranjado, e "nunca entrou"
    escrito como aviso — é o que o admin procura na lista. */
 .adm-acesso-perto { color: var(--text); font-size: 0.82rem; }
 .adm-acesso-longe { color: var(--text-muted); font-size: 0.82rem; }
-.adm-acesso-sumiu { color: #fbbf24; font-size: 0.82rem; }
+.adm-acesso-sumiu { color: var(--aviso); font-size: 0.82rem; }
 .adm-acesso-nunca { color: var(--text-dim); font-size: 0.82rem; font-style: italic; }
 .adm-treino { display: block; font-size: 0.82rem; color: var(--text-muted); }
-.adm-treino-ok { color: #4ade80; font-weight: 600; }
+.adm-treino-ok { color: var(--ok); font-weight: 600; }
 .adm-acoes { white-space: nowrap; }
 .adm-acoes .view-btn { margin: 0 0.25rem 0.25rem 0; }
-.adm-acoes .view-btn.adm-perigo { color: #f87171; border-color: rgba(248, 113, 113, 0.5); }
+.adm-acoes .view-btn.adm-perigo { color: var(--erro); border-color: rgba(248, 113, 113, 0.5); }
 /* A lixeira é só o ícone: ocupa pouco e não compete com as ações do dia a
    dia, mas fica vermelha ao passar o mouse, como as outras de perigo. */
 .adm-acoes .view-btn.adm-lixeira { padding: 0.4rem 0.55rem; font-size: 0.9rem; line-height: 1; }

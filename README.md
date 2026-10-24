@@ -209,6 +209,7 @@ tests/digitacoes.smoke.js As opções de digitação na tela (trocar a região s
 tests/boasvindas.smoke.js A tela de boas-vindas: aparece uma vez só, e aponta o 💡
 tests/teoria.smoke.js  A tela de Teoria Musical: 28 lições, blocos e exemplos que tocam
 tests/progresso.smoke.js Mede a execução dos exercícios (tocou junto até o fim)
+tests/cores.smoke.js   Mede o contraste do texto nos dois temas (claro e escuro)
 tests/screenshot*.js   Scripts opcionais de checagem visual com Playwright (dev only)
 email/                 Modelos dos e-mails do Supabase (confirmação, senha nova, convite) — ver docs/emails-supabase.md
 docs/                  PRD, mapa do sistema, matriz RBAC, catálogo de módulos, status e guias do Supabase/Planos
@@ -253,6 +254,7 @@ node tests/digitacoes.smoke.js
 node tests/boasvindas.smoke.js
 node tests/teoria.smoke.js
 node tests/progresso.smoke.js
+node tests/cores.smoke.js
 ```
 
 `tests/celular.smoke.js` percorre o site em três tamanhos de telefone

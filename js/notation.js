@@ -744,7 +744,7 @@
         if (!n) continue;
         var cx = left + (f === 0 ? 0.5 * fw - 12 : (f + 0.5) * fw - fw / 2);
         out += '<circle cx="' + cx + '" cy="' + y + '" r="9.5" fill="' + (n.root ? 'var(--accent-2, #22c55e)' : 'var(--accent, #3b82f6)') + '" opacity="' + (n.root ? 1 : 0.85) + '"/>';
-        out += '<text x="' + cx + '" y="' + (y + 3.5) + '" font-size="9.5" font-weight="700" text-anchor="middle" fill="#fff">' + n.label + '</text>';
+        out += '<text x="' + cx + '" y="' + (y + 3.5) + '" font-size="9.5" font-weight="700" text-anchor="middle" fill="var(--sobre-cor, #fff)">' + n.label + '</text>';
       }
     });
     out += '<text x="' + left + '" y="14" font-size="11" fill="' + label + '">' + (opts.title || '') + '</text>';
@@ -773,10 +773,10 @@
         var x = (o * 7 + i) * ww + 1;
         var pc = WHITE[i];
         var n = byPc[pc];
-        out += '<rect x="' + x + '" y="' + top + '" width="' + (ww - 1) + '" height="' + wh + '" rx="3" fill="#f4f6fb" stroke="#2b3a5e"/>';
+        out += '<rect x="' + x + '" y="' + top + '" width="' + (ww - 1) + '" height="' + wh + '" rx="3" fill="var(--tecla-branca, #f4f6fb)" stroke="var(--tecla-borda, #2b3a5e)"/>';
         if (n) {
           out += '<circle cx="' + (x + ww / 2 - 0.5) + '" cy="' + (top + wh - 20) + '" r="10" fill="' + (n.root ? 'var(--accent-2, #22c55e)' : 'var(--accent, #3b82f6)') + '"/>';
-          out += '<text x="' + (x + ww / 2 - 0.5) + '" y="' + (top + wh - 16.5) + '" font-size="9.5" font-weight="700" text-anchor="middle" fill="#fff">' + n.label + '</text>';
+          out += '<text x="' + (x + ww / 2 - 0.5) + '" y="' + (top + wh - 16.5) + '" font-size="9.5" font-weight="700" text-anchor="middle" fill="var(--sobre-cor, #fff)">' + n.label + '</text>';
         }
       }
     }
@@ -785,11 +785,11 @@
         var pcb = Number(pcStr);
         var wi = BLACK[pcb];
         var bx = (o * 7 + wi) * ww + ww - bw / 2 + 1;
-        out += '<rect x="' + bx + '" y="' + top + '" width="' + bw + '" height="' + bh + '" rx="2.5" fill="#0f172a" stroke="#2b3a5e"/>';
+        out += '<rect x="' + bx + '" y="' + top + '" width="' + bw + '" height="' + bh + '" rx="2.5" fill="var(--tecla-preta, #0f172a)" stroke="var(--tecla-borda, #2b3a5e)"/>';
         var nb = byPc[pcb];
         if (nb) {
           out += '<circle cx="' + (bx + bw / 2) + '" cy="' + (top + bh - 14) + '" r="8.5" fill="' + (nb.root ? 'var(--accent-2, #22c55e)' : 'var(--accent, #3b82f6)') + '"/>';
-          out += '<text x="' + (bx + bw / 2) + '" y="' + (top + bh - 10.5) + '" font-size="8.5" font-weight="700" text-anchor="middle" fill="#fff">' + nb.label + '</text>';
+          out += '<text x="' + (bx + bw / 2) + '" y="' + (top + bh - 10.5) + '" font-size="8.5" font-weight="700" text-anchor="middle" fill="var(--sobre-cor, #fff)">' + nb.label + '</text>';
         }
       });
     }
@@ -832,18 +832,18 @@
       var y = topo + f * ca;
       var grossa = (f === 0 && pestanaAberta);
       out += '<line x1="' + esq + '" y1="' + y + '" x2="' + (esq + (nC - 1) * ce) + '" y2="' + y +
-        '" stroke="' + (grossa ? '#cbd5f5' : '#44557f') + '" stroke-width="' + (grossa ? 5 : 1.6) + '" stroke-linecap="round"/>';
+        '" stroke="' + (grossa ? 'var(--corda-grossa, #cbd5f5)' : 'var(--corda, #44557f)') + '" stroke-width="' + (grossa ? 5 : 1.6) + '" stroke-linecap="round"/>';
     }
     // cordas (linhas verticais)
     for (var c = 0; c < nC; c++) {
       var x = esq + c * ce;
       out += '<line x1="' + x + '" y1="' + topo + '" x2="' + x + '" y2="' + (topo + JANELA * ca) +
-        '" stroke="#44557f" stroke-width="1.6"/>';
+        '" stroke="var(--corda, #44557f)" stroke-width="1.6"/>';
     }
     // número da casa, quando o desenho não começa na pestana
     if (!pestanaAberta) {
       out += '<text x="' + (esq - 10) + '" y="' + (topo + ca * 0.72) + '" font-size="14" font-weight="700" ' +
-        'text-anchor="end" fill="#94a3c4">' + primeira + 'ª</text>';
+        'text-anchor="end" fill="var(--braco-marca, #94a3c4)">' + primeira + 'ª</text>';
     }
 
     // pestana: um retângulo arredondado ligando as cordas
@@ -861,17 +861,17 @@
     casas.forEach(function (ff, i) {
       var cx = esq + i * ce;
       if (ff === null) {
-        out += '<text x="' + cx + '" y="' + (topo - 10) + '" font-size="15" font-weight="700" text-anchor="middle" fill="#64748b">✕</text>';
+        out += '<text x="' + cx + '" y="' + (topo - 10) + '" font-size="15" font-weight="700" text-anchor="middle" fill="var(--braco-apagado, #64748b)">✕</text>';
         return;
       }
       if (ff === 0) {
-        out += '<circle cx="' + cx + '" cy="' + (topo - 15) + '" r="6" fill="none" stroke="#94a3c4" stroke-width="2"/>';
+        out += '<circle cx="' + cx + '" cy="' + (topo - 15) + '" r="6" fill="none" stroke="var(--braco-marca, #94a3c4)" stroke-width="2"/>';
         return;
       }
       var cy = topo + (ff - primeira + 0.5) * ca;
       out += '<circle cx="' + cx + '" cy="' + cy + '" r="9.5" fill="var(--accent, #3b82f6)"/>';
       if (dedos[i]) {
-        out += '<text x="' + cx + '" y="' + (cy + 4.5) + '" font-size="12" font-weight="700" text-anchor="middle" fill="#fff">' + dedos[i] + '</text>';
+        out += '<text x="' + cx + '" y="' + (cy + 4.5) + '" font-size="12" font-weight="700" text-anchor="middle" fill="var(--sobre-cor, #fff)">' + dedos[i] + '</text>';
       }
     });
 
@@ -884,13 +884,13 @@
         var cx = esq + i * ce;
         var yy = topo + JANELA * ca + 20;
         if (!n) {
-          out += '<text x="' + cx + '" y="' + yy + '" font-size="11" text-anchor="middle" fill="#475569">–</text>';
+          out += '<text x="' + cx + '" y="' + yy + '" font-size="11" text-anchor="middle" fill="var(--braco-mudo, #475569)">–</text>';
           return;
         }
         var raiz = n.grau === '1';
         out += '<text x="' + cx + '" y="' + yy + '" font-size="11.5" font-weight="700" text-anchor="middle" fill="' +
-          (raiz ? 'var(--accent-2, #22c55e)' : '#cbd5f5') + '">' + n.name + '</text>';
-        out += '<text x="' + cx + '" y="' + (yy + 12) + '" font-size="9.5" text-anchor="middle" fill="#64748b">' + (n.grau || '') + '</text>';
+          (raiz ? 'var(--accent-2, #22c55e)' : 'var(--braco-nota, #cbd5f5)') + '">' + n.name + '</text>';
+        out += '<text x="' + cx + '" y="' + (yy + 12) + '" font-size="9.5" text-anchor="middle" fill="var(--braco-apagado, #64748b)">' + (n.grau || '') + '</text>';
       });
     }
 
@@ -936,7 +936,7 @@
       if (!t) return '';
       var cor = t.raiz ? 'var(--accent-2, #22c55e)' : (COR[t.mao] || COR.d);
       return '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="' + cor + '"/>' +
-        '<text x="' + x + '" y="' + (y + 3.4) + '" font-size="' + tamanho + '" font-weight="700" text-anchor="middle" fill="#fff">' + (t.label || '') + '</text>';
+        '<text x="' + x + '" y="' + (y + 3.4) + '" font-size="' + tamanho + '" font-weight="700" text-anchor="middle" fill="var(--sobre-cor, #fff)">' + (t.label || '') + '</text>';
     }
 
     for (var o = 0; o < oitavas; o++) {
@@ -945,7 +945,8 @@
         var midi = de + o * 12 + BRANCAS[i];
         var usada = !!marc[midi];
         out += '<rect x="' + x + '" y="' + topo + '" width="' + (ww - 1) + '" height="' + wh + '" rx="3" fill="' +
-          (usada ? '#ffffff' : '#e8ecf6') + '" stroke="#2b3a5e"/>';
+          (usada ? 'var(--tecla-branca, #ffffff)' : 'var(--tecla-branca-apagada, #e8ecf6)') +
+          '" stroke="var(--tecla-borda, #2b3a5e)"/>';
         out += pinta(midi, x + ww / 2 - 0.5, topo + wh - 18, 9.5, 9);
       }
     }
@@ -957,7 +958,8 @@
           var bx = (oo * 7 + PRETAS[pcb]) * ww + ww - bw / 2 + 1;
           var m = de + oo * 12 + pcb;
           out += '<rect x="' + bx + '" y="' + topo + '" width="' + bw + '" height="' + bh + '" rx="2.5" fill="' +
-            (marc[m] ? '#1e293b' : '#0f172a') + '" stroke="#2b3a5e"/>';
+            (marc[m] ? 'var(--tecla-preta-acesa, #1e293b)' : 'var(--tecla-preta, #0f172a)') +
+            '" stroke="var(--tecla-borda, #2b3a5e)"/>';
           out += pinta(m, bx + bw / 2, topo + bh - 13, 8, 8);
         });
       })(o);

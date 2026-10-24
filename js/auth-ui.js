@@ -147,6 +147,39 @@
     m.hidden = false;
   }
 
+  // ---------------- Tema claro / escuro ----------------
+  // A escolha fica no navegador da pessoa, não na conta: é preferência de
+  // leitura daquele aparelho (o celular na estante de dia, o computador à
+  // noite), e não algo que faça sentido seguir a pessoa de máquina em máquina.
+  // Quem nunca escolheu segue o que o próprio aparelho pede — isso é aplicado
+  // no <head>, antes de a página desenhar, para não haver lampejo.
+
+  function temaAtual() {
+    return document.documentElement.getAttribute('data-tema') === 'claro' ? 'claro' : 'escuro';
+  }
+
+  function aplicarTema(tema) {
+    if (tema === 'claro') document.documentElement.setAttribute('data-tema', 'claro');
+    else document.documentElement.removeAttribute('data-tema');
+    try { window.localStorage.setItem('improvix:tema', tema); } catch (e) { /* sem memória, vale só esta visita */ }
+    var b = $('btn-tema');
+    if (b) {
+      var claro = tema === 'claro';
+      b.textContent = claro ? '☀' : '☾';
+      b.setAttribute('aria-pressed', claro ? 'true' : 'false');
+      b.title = claro ? 'Tema claro — clique para o escuro' : 'Tema escuro — clique para o claro';
+    }
+    // A cor da barra do navegador no celular acompanha o fundo do site.
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', tema === 'claro' ? '#f7f9fc' : '#0f172a');
+  }
+
+  function setupTema() {
+    var b = $('btn-tema');
+    aplicarTema(temaAtual());
+    if (b) b.addEventListener('click', function () { aplicarTema(temaAtual() === 'claro' ? 'escuro' : 'claro'); });
+  }
+
   function setupBoasVindas() {
     var fechar = $('bv-fechar');
     var comecar = $('bv-comecar');
@@ -1400,6 +1433,7 @@
     setupMeusTabs();
     setupActionButtons();
     setupBoasVindas();
+    setupTema();
 
     $('auth-modal-close').addEventListener('click', closeAuthModal);
     $('auth-modal').addEventListener('click', function (ev) {

@@ -1942,6 +1942,66 @@ trocar de conta não deixa o progresso da pessoa anterior na tela.
 Editor do Supabase. A tabela e a função são novas; sem isso, a tela funciona e
 simplesmente não guarda nada.
 
+## A cor, medida: contraste no piso e um tema claro — ✅ (2026-10-24)
+
+Pergunta do dono: *"o que você acha da cor? ela ajuda a pessoa a usar mais o
+sistema?"*.
+
+**A resposta honesta à segunda pergunta é não.** Cor não cria hábito; o que faz
+alguém voltar é saber por onde continuar, e isso foi o trabalho das horas
+anteriores (o "continue daqui", o x de 21, a trilha de teoria). Repintar o site
+não teria mudado o comportamento de ninguém.
+
+**Mas a primeira pergunta tinha resposta medida, e ela não era boa.** A régua é
+a razão de contraste entre o texto e o fundo atrás dele; o piso para leitura
+corrida é 4,5 para 1. Medindo a paleta:
+
+| onde | antes | depois |
+|---|---|---|
+| corpo das lições e legendas (`--text-dim`) | **3,13** | **4,89** |
+| bordas dos cartões (`--border`) | **1,26** | **1,97** |
+| botões de Ouvir | 9,86 | 9,86 (intocado) |
+| ✓ verde / vermelho de parar | 7,2 / 3,4 | iguais no escuro, mais escuros no claro |
+
+O cinza do texto estava abaixo do piso justamente no dia em que o site ganhou
+28 lições de teoria para ler — num módulo em que um iniciante passa vinte
+minutos lendo, muitas vezes no celular. E a borda quase invisível era o que
+fazia cada tela parecer um paredão sem divisão, o que conversa direto com a
+queixa dos alunos de "tem muita coisa, eu me perco". Nenhum dos dois é questão
+de gosto.
+
+**O tema claro** entrou porque estudar instrumento costuma ser de luz acesa —
+estante, sala iluminada, celular apoiado, às vezes de dia na janela — e aí um
+site escuro é o pior caso de leitura que existe. O ☀/☾ fica no alto, ao lado do
+💡. A escolha mora no `localStorage` (é preferência daquele aparelho, não da
+conta: o celular na estante de dia e o computador à noite pedem coisas
+diferentes), e quem nunca escolheu segue o que o próprio aparelho pede
+(`prefers-color-scheme`). O tema é aplicado por seis linhas no `<head>`, antes
+de a página desenhar — se fosse junto com o resto do JavaScript, quem escolheu
+claro veria um lampejo escuro a cada carregamento.
+
+**O que precisou sair do desenho para o tema.** Partitura, tablatura, braço e
+teclado eram desenhados com cor fixa dentro do `js/notation.js`: no tema claro
+isso daria nota branca sobre papel branco. Viraram variáveis
+(`--staff-line`, `--staff-note`, `--tecla-branca`, `--corda`, `--braco-nota`
+e companhia), com o valor antigo como reserva. O mesmo valeu para os três
+recados do sistema (`--ok`, `--aviso`, `--erro`): verde-limão e amarelo não
+leem sobre branco, então eles escurecem no claro. E a faixa do alto da tela de
+Início, que era um degradê fixo, virou `--hero-1`/`--hero-2` — sem isso ela
+ficava escura com o título escuro por cima, ilegível.
+
+**O que NÃO mudou, de propósito**: o botão de Ouvir continua azul claro com
+tinta escura nos dois temas (9,1 no claro) — foi escolha do dono e funciona
+nos dois; e as cores das funções harmônicas (tônica, subdominante, dominante)
+continuam as mesmas famílias, só escurecidas o bastante no tema claro.
+
+**Medido, não achado**: `tests/cores.smoke.js` (novo, 18 checagens) calcula o
+contraste no próprio navegador — resolvendo variáveis, herança e fundos
+transparentes — nos **dois** temas, e quebra se alguém baixar de novo. Confere
+também que a partitura não some no claro, que o tema sobrevive a recarregar sem
+lampejo, e que quem nunca escolheu nada abre no tema que o aparelho pede.
+`tests/ouvir.smoke.js` passou a aceitar os dois vermelhos de parar.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
@@ -1973,7 +2033,7 @@ do escopo cobrado, mas vale registrar): leitura transposta de sax/trompete
 `tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`, `tests/etapa5.smoke.js`,
 `tests/etapa5.planos.smoke.js`, `tests/etapa5.laboratorio.smoke.js`,
 `tests/etapa5.aulas.smoke.js`, `tests/fraseados.smoke.js`, `tests/biblioteca.smoke.js`, `tests/boasvindas.smoke.js`,
-`tests/teoria.smoke.js`, `tests/progresso.smoke.js`, `tests/screenshot*.js` (dev only),
+`tests/teoria.smoke.js`, `tests/progresso.smoke.js`, `tests/cores.smoke.js`, `tests/screenshot*.js` (dev only),
 `docs/PRD.md`, `docs/mapa-do-sistema.md`, `docs/matriz-rbac.md`,
 `docs/modulos.md`, `docs/status.md`, `docs/etapa4-supabase.md`,
 `docs/etapa5-planos.md`, `docs/fraseados-referencias.md`, `README.md`.
