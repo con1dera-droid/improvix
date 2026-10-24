@@ -300,6 +300,11 @@ create table if not exists public.progresso (
   atualizado_em timestamptz not null default now(),
   primary key (user_id, chave)
 );
+-- Colunas da gravação (24/10/2026). Em projeto que já existia elas entram
+-- aqui, sem perder o que já estava gravado.
+alter table public.progresso add column if not exists gravado_em timestamptz;
+alter table public.progresso add column if not exists acerto int;      -- 0..100
+alter table public.progresso add column if not exists tentativas int not null default 0;
 alter table public.progresso enable row level security;
 create index if not exists progresso_user_idx on public.progresso(user_id);
 
@@ -353,6 +358,55 @@ $$;
 
 revoke all on function public.registrar_voltas(text, int, int) from public;
 grant execute on function public.registrar_voltas(text, int, int) to authenticated;
+
+-- A gravação do aluno: ele toca, o site ouve pelo microfone, compara com as
+-- notas do exercício e manda para cá a porcentagem de acerto. Passando do
+-- piso, o exercício fica GRAVADO — e é isso que libera o seguinte.
+--
+-- Por que a conta vem do navegador e não daqui: a comparação depende de ouvir
+-- o áudio, e o áudio não sai do computador da pessoa (é uma decisão de
+-- privacidade que vem desde a tela de Transcrição). O banco não tem como
+-- refazer a conta. O que ele faz é o que dá para fazer com honestidade:
+-- guardar cada tentativa, limitar o valor a 0–100, e exigir o piso antes de
+-- carimbar. Quem quiser trapacear chamando a função direto consegue — e vai
+-- estar trapaceando a si mesmo, num estudo que ninguém é obrigado a fazer.
+-- O admin vê as tentativas e o acerto de cada um na tela de Administração.
+create or replace function public.registrar_gravacao(p_chave text, p_acerto int)
+returns public.progresso
+language plpgsql security definer set search_path = public
+as $$
+declare
+  PISO constant int := 80;
+  n int := p_acerto;
+  linha public.progresso;
+begin
+  if not public.pode_usar() then
+    raise exception 'conta sem acesso liberado';
+  end if;
+  if n is null then n := 0; end if;
+  if n < 0 then n := 0; end if;
+  if n > 100 then n := 100; end if;
+
+  insert into public.progresso as p (user_id, chave, acerto, tentativas, atualizado_em)
+  values (auth.uid(), p_chave, n, 1, now())
+  on conflict (user_id, chave) do update
+    set acerto = greatest(coalesce(p.acerto, 0), n),
+        tentativas = p.tentativas + 1,
+        atualizado_em = now()
+  returning * into linha;
+
+  if linha.gravado_em is null and n >= PISO then
+    update public.progresso set gravado_em = now()
+     where user_id = linha.user_id and chave = linha.chave
+     returning * into linha;
+  end if;
+
+  return linha;
+end;
+$$;
+
+revoke all on function public.registrar_gravacao(text, int) from public;
+grant execute on function public.registrar_gravacao(text, int) to authenticated;
 
 drop policy if exists "cada um ve o proprio progresso e o admin ve todos" on public.progresso;
 create policy "cada um ve o proprio progresso e o admin ve todos"

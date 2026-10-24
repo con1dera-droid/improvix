@@ -382,6 +382,60 @@ begin
   insert into resultado values (n = 2, 'o admin enxerga o progresso de todos (viu ' || n || ')');
   set local role postgres;
 
+  -- ===================== gravação (o que libera o próximo) =====================
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', alvo_id::text, true);
+  perform public.registrar_gravacao('treino:jonio:0', 55);
+  set local role postgres;
+  select acerto into n from public.progresso where user_id = alvo_id and chave = 'treino:jonio:0';
+  insert into resultado values (n = 55, 'a tentativa fica guardada com a nota (ficou ' || n || ')');
+  select gravado_em is null into b from public.progresso where user_id = alvo_id and chave = 'treino:jonio:0';
+  insert into resultado values (b, 'com 55% o exercício NÃO fica gravado (não libera o próximo)');
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', alvo_id::text, true);
+  perform public.registrar_gravacao('treino:jonio:0', 86);
+  set local role postgres;
+  select gravado_em is not null into b from public.progresso where user_id = alvo_id and chave = 'treino:jonio:0';
+  insert into resultado values (b, 'com 86% fica gravado, e aí sim libera');
+  select acerto into n from public.progresso where user_id = alvo_id and chave = 'treino:jonio:0';
+  insert into resultado values (n = 86, 'guarda a MELHOR nota, não a última (ficou ' || n || ')');
+  select tentativas into n from public.progresso where user_id = alvo_id and chave = 'treino:jonio:0';
+  insert into resultado values (n = 2, 'e conta as tentativas (' || n || ')');
+
+  -- uma nota pior depois não tira o que já foi conquistado
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', alvo_id::text, true);
+  perform public.registrar_gravacao('treino:jonio:0', 10);
+  set local role postgres;
+  select acerto into n from public.progresso where user_id = alvo_id and chave = 'treino:jonio:0';
+  insert into resultado values (n = 86, 'uma tentativa pior depois NÃO rebaixa a nota (ficou ' || n || ')');
+  select gravado_em is not null into b from public.progresso where user_id = alvo_id and chave = 'treino:jonio:0';
+  insert into resultado values (b, 'nem destrava o que já estava liberado');
+
+  -- valor fora da faixa é aparado
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', alvo_id::text, true);
+  perform public.registrar_gravacao('treino:jonio:4', 999);
+  set local role postgres;
+  select acerto into n from public.progresso where user_id = alvo_id and chave = 'treino:jonio:4';
+  insert into resultado values (n = 100, 'nota acima de 100 é aparada em 100 (ficou ' || n || ')');
+
+  -- quem está esperando liberação não grava
+  set local role postgres;
+  select aprovado into b2 from public.profiles where id = comum_id;
+  update public.profiles set aprovado = false where id = comum_id;
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', comum_id::text, true);
+  begin
+    perform public.registrar_gravacao('treino:jonio:0', 100);
+  exception when others then null;
+  end;
+  set local role postgres;
+  select count(*) into n from public.progresso where user_id = comum_id;
+  insert into resultado values (n = 0, 'quem espera liberação NÃO registra gravação (viu ' || n || ')');
+  update public.profiles set aprovado = b2 where id = comum_id;
+
   -- ===================== excluir conta =====================
   -- A exclusão é a ação mais perigosa da tela: a regra tem de estar aqui, e
   -- não no botão. Quem não é admin não apaga ninguém, nem a si mesmo; o admin

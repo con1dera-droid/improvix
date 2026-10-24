@@ -50,9 +50,24 @@ function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!c
     'e sai nota a nota como o método pede: ' + notas1);
 
   // --- duas oitavas em todos ---
-  const ambitos = await page.$$eval('#tre-conteudo .esc-ex .esc-notas', (ps) => ps.map((p) => p.querySelectorAll('.esc-nota').length));
+  // Desde 24/10/2026 a tela de Início mostra um exercício de cada vez (os
+  // outros ficam trancados até a pessoa gravar), então a conferência de que
+  // TODOS são longos se faz na Biblioteca de Escalas, que é consulta livre e
+  // monta os mesmos 21 exercícios.
+  const abertos = await page.$$eval('#tre-conteudo .esc-ex .esc-notas', (ps) => ps.map((p) => p.querySelectorAll('.esc-nota').length));
+  ok(abertos.length >= 1 && abertos[0] >= 20,
+    'o exercício aberto tem o tamanho de duas oitavas (' + abertos[0] + ' notas)');
+  const trancados = await page.$$eval('#tre-conteudo .esc-ex-trancado', (e) => e.length);
+  ok(trancados >= 15, 'e os outros ' + trancados + ' estão trancados, esperando a gravação');
+
+  await page.click('.nav-item[data-nav="biblioteca-escalas"]');
+  await page.waitForTimeout(900);
+  const ambitos = await page.$$eval('#esc-conteudo .esc-ex .esc-notas', (ps) => ps.map((p) => p.querySelectorAll('.esc-nota').length));
   var longos = ambitos.filter(function (n) { return n >= 20; }).length;
-  ok(longos >= 15, 'os exercícios ficaram longos como duas oitavas pedem (' + longos + ' de ' + ambitos.length + ' com 20+ notas)');
+  ok(longos >= 15, 'na Biblioteca, os exercícios ficaram longos como duas oitavas pedem (' +
+    longos + ' de ' + ambitos.length + ' com 20+ notas)');
+  await page.click('.nav-item[data-nav="inicio"]');
+  await page.waitForTimeout(700);
   ok(Math.min.apply(null, ambitos) >= 9, 'e nenhum ficou curto demais (menor: ' + Math.min.apply(null, ambitos) + ' notas)');
 
   // --- trocar escala e tom redesenha ---

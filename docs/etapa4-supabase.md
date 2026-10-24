@@ -221,10 +221,12 @@ a pessoa de volta. Com o campo errado, os e-mails mandam para
 
 O `sql/schema.sql` é **idempotente**: dá para rodar de novo no SQL Editor
 sem perder nada (e é preciso rodar de novo a cada novidade do banco — a
-última foi a tabela **`progresso`**, em 24/10/2026, que guarda os exercícios
-que cada pessoa executou do começo ao fim: sem rodar, a tela de Início mostra
-o progresso durante a visita e não guarda nada, e a coluna Treino da
-Administração fica vazia; antes dela veio o **último acesso** de cada conta,
+última foi a tabela **`progresso`**, em 24/10/2026 — com as colunas da
+gravação (`gravado_em`, `acerto`, `tentativas`) que vieram no mesmo dia: sem rodar, a tela de Início mostra
+o progresso durante a visita e não guarda nada, a coluna Treino da
+Administração fica vazia e, pior, a trava dos exercícios não se segura entre
+uma visita e outra: o aluno grava, libera o próximo, e ao voltar amanhã
+encontra tudo trancado de novo; antes dela veio o **último acesso** de cada conta,
 em 14/10/2026) — ele cria o que falta (`aprovado`, `modulos`,
 `config_sistema`, `convites`, a função `pode_usar`) e atualiza as políticas.
 

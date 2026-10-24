@@ -2002,6 +2002,83 @@ também que a partitura não some no claro, que o tema sobrevive a recarregar se
 lampejo, e que quem nunca escolheu nada abre no tema que o aparelho pede.
 `tests/ouvir.smoke.js` passou a aceitar os dois vermelhos de parar.
 
+## Gravar e liberar: o sistema ouve o aluno tocar — ✅ (2026-10-24)
+
+O pedido do dono, inteiro: dois botões no exercício — um para **ouvir o
+exercício**, outro para o aluno **tocar e o sistema conferir**. O exercício 1
+nasce aberto; ao gravar, toca o acompanhamento do campo harmônico escolhido, o
+aluno toca por cima, o sistema analisa sozinho, aceita a partir de **80%**, diz
+onde errou e **libera o próximo** — um a um, e só a gravação libera.
+
+**O caminho do áudio** (`js/gravacao.js`): microfone → `MediaRecorder` →
+`AudioBuffer` → a **mesma rede neural** da tela de Transcrição (Basic Pitch,
+em `vendor/`) → `js/avaliar.js`. Nada sai do computador de quem está usando: o
+áudio é processado no próprio navegador e descartado. Para o banco vai só um
+número, a porcentagem.
+
+**A conta** (`js/avaliar.js`): maior subsequência comum entre as notas do
+exercício e as notas ouvidas. Subsequência, e não trecho contínuo — uma nota
+errada no meio não derruba o que vem depois, que é o que um professor faria ao
+ouvir. Ela ignora **oitava** (quem toca baixo, sax ou em outra região do braço
+toca as mesmas notas em outro lugar) e ignora **ritmo** (a transcrição erra
+mais na duração do que na altura; reprovar alguém por erro da máquina seria
+pior do que deixar passar). O que ela mede é a **ordem das notas**.
+
+**A prova de que funciona** — e esta parte importa, porque é uma trava: além do
+smoke com dublê (`tests/gravacao.smoke.js`, 19 checagens do fluxo), existe
+`tests/gravacao.e2e.js`, que roda a **rede neural de verdade** sobre o
+exercício sintetizado em áudio no próprio navegador. Medido:
+
+| situação | notas ouvidas | nota |
+|---|---|---|
+| o aluno tocando sozinho (com fone, ou acompanhamento desligado) | 22 de 21 | **100%** |
+| o acompanhamento alto entrando junto pelo microfone | 11 de 21 | **52%** |
+
+A segunda linha é o problema que eu suspeitava e fui medir: **o acompanhamento
+saindo pela caixa cobre o instrumento**, e o detector perde notas do aluno — um
+exercício tocado certo cairia para 52% e seria reprovado. Três respostas, todas
+no ar:
+
+1. Uma caixinha **"Gravar sem o acompanhamento (só a contagem do metrônomo)"**,
+   logo acima dos exercícios.
+2. A recomendação de fone de ouvido escrita na própria caixa de gravação.
+3. **O sistema reconhece a assinatura do problema**: poucas notas ouvidas e
+   todas certas é o retrato do microfone perdendo o instrumento, e nesse caso a
+   mensagem deixa de ser "você errou" e passa a ser "use fone, chegue mais
+   perto do microfone, ou desmarque o acompanhamento". Isso é testado nos dois
+   lugares (`tests/avaliar.test.js` e o próprio e2e).
+
+**A trava na tela**: o exercício trancado não mostra partitura nem tablatura —
+mostrar o conteúdo e dizer "não pode" seria provocação. Mostra o número, o
+cadeado e a frase do que fazer: *"Para abrir este, grave o exercício N e acerte
+pelo menos 80% das notas"*. E, no alto da lista, a regra inteira em duas
+linhas, incluindo que **ouvir não libera nada: ouvir não é tocar**.
+
+**No banco**: `progresso` ganhou `gravado_em`, `acerto` (0–100) e `tentativas`,
+e a função `registrar_gravacao()` guarda a **melhor** nota, conta as tentativas
+e carimba a partir do piso. Fica escrito no schema, sem meias palavras, que a
+conta vem do navegador porque o áudio não sai de lá — o banco não tem como
+refazê-la. O que ele faz é o que dá para fazer com honestidade: limitar a
+0–100, exigir o piso, e guardar cada tentativa para o admin ver.
+`tests/rls.sql` foi de 71 para **80 checagens** contra um PostgreSQL de
+verdade.
+
+**O resto do pedido, na mesma entrega:**
+
+* O botão de ouvir virou **"Ouvir o exercício"**.
+* O site passou a **abrir no tema claro**. Quem prefere escuro clica no ☾ uma
+  vez e a escolha fica guardada naquele navegador.
+* Os dois botões do topo ganharam **nome ao lado do ícone** — "Sugestão" e
+  "Tema claro/escuro". Ícone sozinho é adivinhação; no celular, onde não cabe,
+  o nome some e ficam o `title` e o `aria-pressed`.
+
+**O limite, dito na cara**: a análise demora. Neste contêiner, sem placa de
+vídeo, foram ~30 segundos para 10 segundos de áudio; numa máquina comum é
+menos, mas não é instantâneo — a barra de progresso existe por isso. E a
+máquina erra: som sujo, distorção pesada, instrumento longe do microfone e
+acorde tocado junto pioram a leitura. Por isso o aluno pode tentar quantas
+vezes quiser, e a melhor nota é a que vale.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
@@ -2027,13 +2104,15 @@ do escopo cobrado, mas vale registrar): leitura transposta de sax/trompete
 ## Arquivos do projeto
 `index.html`, `css/styles.css`, `js/data.js`, `js/theory.js`, `js/phrases.js`,
 `js/notation.js`, `js/audio.js`, `js/articulation.js`, `js/scale-info.js`, `js/patterns.js`, `js/patterns-ui.js`, `js/scales.js`, `js/scales-ui.js`, `js/transcribe.js`, `js/transcribe-ui.js`, `vendor/*` (+ `vendor/CREDITOS.md`), `sounds/*.js` (+ `sounds/CREDITOS.md`), `js/lab.js`, `js/lessons.js`, `js/library.js`, `js/app.js`, `js/library-ui.js`,
-`js/config.js`, `js/supabaseClient.js`, `js/auth-ui.js`, `sql/schema.sql`,
+`js/config.js`, `js/supabaseClient.js`, `js/auth-ui.js`, `js/avaliar.js`,
+`js/gravacao.js`, `sql/schema.sql`,
 `tests/theory.test.js`, `tests/phrases.test.js`, `tests/lab.test.js`,
 `tests/lessons.test.js`, `tests/library.test.js`, `tests/articulation.test.js`, `tests/fusion.smoke.js`, `tests/scaleinfo.test.js`, `tests/scaleinfo.smoke.js`, `tests/som.smoke.js`, `tests/patterns.test.js`, `tests/padroes.smoke.js`, `tests/escalas.test.js`, `tests/escalas.smoke.js`, `tests/ambiencia.smoke.js`, `tests/menu.smoke.js`, `tests/transcricao.test.js`, `tests/transcricao.smoke.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
 `tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`, `tests/etapa5.smoke.js`,
 `tests/etapa5.planos.smoke.js`, `tests/etapa5.laboratorio.smoke.js`,
 `tests/etapa5.aulas.smoke.js`, `tests/fraseados.smoke.js`, `tests/biblioteca.smoke.js`, `tests/boasvindas.smoke.js`,
-`tests/teoria.smoke.js`, `tests/progresso.smoke.js`, `tests/cores.smoke.js`, `tests/screenshot*.js` (dev only),
+`tests/teoria.smoke.js`, `tests/progresso.smoke.js`, `tests/cores.smoke.js`,
+`tests/avaliar.test.js`, `tests/gravacao.smoke.js`, `tests/gravacao.e2e.js`, `tests/screenshot*.js` (dev only),
 `docs/PRD.md`, `docs/mapa-do-sistema.md`, `docs/matriz-rbac.md`,
 `docs/modulos.md`, `docs/status.md`, `docs/etapa4-supabase.md`,
 `docs/etapa5-planos.md`, `docs/fraseados-referencias.md`, `README.md`.

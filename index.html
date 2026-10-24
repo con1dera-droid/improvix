@@ -20,12 +20,12 @@
      carregamento. São seis linhas aqui para não ter esse pisca. -->
 <script>
   (function () {
+    // O padrão é o CLARO, a pedido do dono (24/10/2026): estudar instrumento é
+    // quase sempre de luz acesa. Quem prefere escuro clica no ☾ uma vez e a
+    // escolha fica guardada neste navegador.
     var escolha = null;
     try { escolha = window.localStorage.getItem('improvix:tema'); } catch (e) { /* sem memória */ }
-    if (!escolha && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-      escolha = 'claro';                 // respeita o que o aparelho já pede
-    }
-    if (escolha === 'claro') document.documentElement.setAttribute('data-tema', 'claro');
+    if (escolha !== 'escuro') document.documentElement.setAttribute('data-tema', 'claro');
   })();
 </script>
 </head>
@@ -99,12 +99,12 @@
         <!-- A caixa de ideias: aparece para quem entrou (js/auth-ui.js). O
              administrador vê aqui também quantas sugestões ainda não leu. -->
         <button class="bell" id="btn-sugestao" type="button" hidden
-                title="Mandar uma sugestão para quem administra">💡<span class="bell-conta" id="sugestao-conta" hidden></span></button>
+                title="Mandar uma sugestão para quem administra">💡<span class="bell-rot">Sugestão</span><span class="bell-conta" id="sugestao-conta" hidden></span></button>
         <!-- Claro ou escuro. Estudar instrumento costuma ser de luz acesa, e aí
              um site escuro é o pior caso de leitura; quem prefere escuro
              continua tendo escuro. A escolha fica no navegador da pessoa. -->
         <button class="bell" id="btn-tema" type="button"
-                title="Trocar entre tema claro e escuro" aria-pressed="false">☾</button>
+                title="Trocar entre tema claro e escuro" aria-pressed="false">☾<span class="bell-rot" id="btn-tema-rot">Tema escuro</span></button>
         <div class="user" id="user-area">
           <button class="btn-primary" id="btn-entrar">Entrar</button>
         </div>
@@ -863,6 +863,9 @@
 <script src="js/chords-ui.js"></script>
 <script src="js/transcribe.js"></script>
 <script src="js/transcribe-ui.js"></script>
+<!-- Gravar o exercício e conferir: a conta (avaliar) e o caminho do áudio (gravacao). -->
+<script src="js/avaliar.js"></script>
+<script src="js/gravacao.js"></script>
 
 <!-- Etapa 4: contas de usuário (Supabase). Se js/config.js ainda tiver os
      valores de exemplo, ou se não houver internet, o login fica desativado

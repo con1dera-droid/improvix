@@ -260,9 +260,33 @@ const FAKE_SUPABASE = `
     return Promise.resolve({ data: Object.assign({}, linha), error: null });
   };
 
+  /** registrar_gravacao(): guarda a melhor nota, conta tentativas, carimba a partir de 80. */
+  FakeClient.prototype._registrarGravacao = function (chave, acerto) {
+    var eu = this.auth.currentUser ? this.auth.currentUser.id : null;
+    var meu = this.store.profiles.filter(function (p) { return p.id === eu; })[0];
+    if (!(meu && meu.aprovado && !meu.bloqueado)) {
+      return Promise.resolve({ data: null, error: { message: 'conta sem acesso liberado' } });
+    }
+    var n = Math.max(0, Math.min(100, Math.round(acerto || 0)));
+    var linha = this.store.progresso.filter(function (r) { return r.user_id === eu && r.chave === chave; })[0];
+    if (!linha) {
+      linha = { user_id: eu, chave: chave, voltas: 0, bpm_max: null, feito_em: null,
+                acerto: 0, tentativas: 0, gravado_em: null };
+      this.store.progresso.push(linha);
+    }
+    linha.acerto = Math.max(linha.acerto || 0, n);
+    linha.tentativas = (linha.tentativas || 0) + 1;
+    linha.atualizado_em = new Date().toISOString();
+    if (!linha.gravado_em && n >= 80) linha.gravado_em = new Date().toISOString();
+    return Promise.resolve({ data: Object.assign({}, linha), error: null });
+  };
+
   /** As funções do banco (rpc). */
   FakeClient.prototype.rpc = function (nome, args) {
     if (nome === 'excluir_conta') return this._excluirConta(args && args.alvo);
+    if (nome === 'registrar_gravacao') {
+      return this._registrarGravacao(args && args.p_chave, args && args.p_acerto);
+    }
     if (nome === 'registrar_voltas') {
       return this._registrarVoltas(args && args.p_chave, args && args.p_voltas, args && args.p_bpm);
     }

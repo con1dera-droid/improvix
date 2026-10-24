@@ -224,12 +224,18 @@ li { margin-bottom: 0.5rem; line-height: 1.4; }
 .topbar-right { display: flex; align-items: center; gap: 1rem; }
 .bell {
   font-size: 1.1rem; cursor: pointer; position: relative; background: none;
-  border: none; color: inherit; padding: 0.2rem 0.3rem; line-height: 1;
+  border: none; color: inherit; padding: 0.2rem 0.45rem; line-height: 1;
+  display: inline-flex; align-items: center; gap: 0.3rem;
 }
 .bell:hover { filter: brightness(1.3); }
+/* O nome ao lado do ícone. Ícone sozinho é adivinhação: nem todo mundo sabe
+   que 💡 é "mandar sugestão" ou que ☾ troca o tema. Some no celular, onde não
+   cabe — lá o title e o aria-pressed continuam dizendo o que é. */
+.bell-rot { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
+.bell:hover .bell-rot { color: var(--text); }
 /* Quantas sugestões o admin ainda não leu: bolinha no canto do ícone. */
 .bell-conta {
-  position: absolute; top: -2px; right: -4px; min-width: 16px; height: 16px;
+  position: absolute; top: -2px; left: 14px; min-width: 16px; height: 16px;
   padding: 0 4px; border-radius: 9px; background: var(--parar); color: #fff;
   font-size: 0.62rem; font-weight: 700; line-height: 16px; text-align: center;
 }
@@ -685,6 +691,46 @@ select, input[type="text"] {
 }
 .esc-ex-feito { opacity: 0.72; }
 .esc-ex-proximo { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+
+/* Gravar o exercício: o botão, a caixa de resultado e a trava do seguinte. */
+.tre-prog-regra {
+  font-size: 0.78rem; line-height: 1.5; color: var(--text-muted);
+  border-left: 3px solid var(--ouvir); padding-left: 0.7rem; margin-top: 0.1rem;
+}
+.tre-opcao {
+  display: flex; align-items: flex-start; gap: 0.45rem; font-size: 0.76rem;
+  color: var(--text-muted); margin: 0 0 0.9rem; cursor: pointer; line-height: 1.45;
+}
+.tre-opcao input { margin-top: 0.15rem; flex: 0 0 auto; }
+.btn-gravar { background: var(--bg-elevated); border-color: var(--accent); color: var(--text); font-weight: 600; }
+.btn-gravar:hover { background: var(--accent); color: #fff; }
+.btn-gravar.gravando { background: var(--parar); border-color: var(--parar); color: #fff; }
+.esc-gravacao {
+  border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 10px;
+  background: var(--bg-elevated); padding: 0.8rem 0.9rem; margin: 0.2rem 0 0.8rem;
+}
+.esc-gravacao.grv-ok { border-left-color: var(--ok); }
+.esc-gravacao.grv-quase { border-left-color: var(--aviso); }
+.esc-gravacao.grv-falha { border-left-color: var(--erro); }
+.grv-estado { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; }
+.grv-barra { flex: 1 1 auto; height: 6px; border-radius: 999px; background: var(--bg-card); border: 1px solid var(--border); overflow: hidden; }
+.grv-barra i { display: block; height: 100%; background: var(--accent); transition: width 0.3s; }
+.grv-txt { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
+.grv-dica { font-size: 0.76rem; color: var(--text-muted); margin: 0.3rem 0 0; line-height: 1.5; }
+.grv-nota { font-size: 0.95rem; font-weight: 700; margin: 0 0 0.3rem; }
+.grv-nota-ok { color: var(--ok); }
+.grv-nota-quase { color: var(--aviso); }
+.grv-erro { color: var(--erro); font-size: 0.85rem; margin: 0 0 0.3rem; }
+.grv-resumo { font-size: 0.84rem; line-height: 1.55; color: var(--text); margin: 0 0 0.6rem; }
+.esc-gravacao .view-btn { margin-right: 0.4rem; }
+/* O exercício trancado não mostra partitura nem tablatura: mostrar o conteúdo
+   e dizer "não pode" seria provocação. Mostra o que fazer para abrir. */
+.esc-ex-trancado { opacity: 0.85; border-style: dashed; }
+.esc-trancado-selo {
+  margin-left: 0.5rem; font-size: 0.7rem; font-weight: 700; color: var(--text-muted);
+  border: 1px solid var(--border); border-radius: 999px; padding: 0.05rem 0.45rem; vertical-align: middle;
+}
+.esc-trancado-dica { margin: 0.2rem 0 0; }
 
 .aula-bloco {
   font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700;
@@ -1143,6 +1189,7 @@ body.sistema-travado .modal-close { display: none; }
      morava um sino decorativo, que no celular sumia por não fazer nada.) */
   .bell { order: 3; width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center;
           background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; flex: 0 0 auto; }
+  .bell-rot { display: none; }
 
   /* --- conteúdo --- */
   .content { padding: 0.9rem 0.8rem 2.5rem; }

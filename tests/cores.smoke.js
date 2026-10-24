@@ -77,28 +77,35 @@ async function medirTudo(page, tema) {
   await page.goto(URL, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(700);
 
-  // ---------- tema escuro (o padrão) ----------
+  // ---------- tema claro (o padrão desde 24/10/2026) ----------
+  // A aba foi aberta dizendo que o aparelho PREFERE escuro, de propósito: o
+  // dono decidiu que o site abre claro de qualquer jeito, porque estudar
+  // instrumento é quase sempre de luz acesa. Quem quer escuro clica uma vez.
+  ok(await page.evaluate(() => document.documentElement.getAttribute('data-tema') === 'claro'),
+    'o site abre no tema claro, mesmo num aparelho que pede escuro');
+  const claro = await medirTudo(page, 'claro');
+  ok(claro.licao >= MINIMO, 'CLARO: o texto das lições lê (' + claro.licao + ' para 1)');
+  ok(claro.legenda >= MINIMO, 'CLARO: a legenda explicativa lê (' + claro.legenda + ')');
+  ok(claro.resumo >= MINIMO, 'CLARO: o resumo das lições lê (' + claro.resumo + ')');
+  ok(claro.titulo >= MINIMO, 'CLARO: os títulos leem (' + claro.titulo + ')');
+
+  // ---------- trocar para escuro ----------
+  await page.click('#btn-tema');
+  await page.waitForTimeout(400);
   ok(await page.evaluate(() => document.documentElement.getAttribute('data-tema') === null),
-    'num aparelho que pede escuro, o site abre escuro');
+    'o ☾ troca para o tema escuro');
+  const corDeFundo = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  ok(/rgb\(1[01],/.test(corDeFundo), 'e o fundo fica escuro de verdade (' + corDeFundo + ')');
+
   const escuro = await medirTudo(page, 'escuro');
   ok(escuro.licao >= MINIMO, 'ESCURO: o texto das lições lê (' + escuro.licao + ' para 1)');
   ok(escuro.legenda >= MINIMO, 'ESCURO: a legenda explicativa lê (' + escuro.legenda + ')');
   ok(escuro.resumo >= MINIMO, 'ESCURO: o resumo das lições lê (' + escuro.resumo + ')');
   ok(escuro.titulo >= MINIMO, 'ESCURO: os títulos leem (' + escuro.titulo + ')');
 
-  // ---------- trocar para claro ----------
+  // volta ao claro para conferir a partitura no papel branco
   await page.click('#btn-tema');
   await page.waitForTimeout(400);
-  ok(await page.evaluate(() => document.documentElement.getAttribute('data-tema') === 'claro'),
-    'o ☾ troca para o tema claro');
-  const corDeFundo = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  ok(/2[45][0-9]/.test(corDeFundo), 'e o fundo fica claro de verdade (' + corDeFundo + ')');
-
-  const claro = await medirTudo(page, 'claro');
-  ok(claro.licao >= MINIMO, 'CLARO: o texto das lições lê (' + claro.licao + ' para 1)');
-  ok(claro.legenda >= MINIMO, 'CLARO: a legenda explicativa lê (' + claro.legenda + ')');
-  ok(claro.resumo >= MINIMO, 'CLARO: o resumo das lições lê (' + claro.resumo + ')');
-  ok(claro.titulo >= MINIMO, 'CLARO: os títulos leem (' + claro.titulo + ')');
 
   // ---------- a partitura não pode sumir no claro ----------
   const partitura = await page.evaluate(() => {
@@ -134,21 +141,21 @@ async function medirTudo(page, tema) {
   const semPisca = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
   ok(/2[45][0-9]/.test(semPisca), 'e o fundo já volta claro (sem lampejo escuro)');
 
-  // ---------- e dá para voltar ----------
+  // ---------- quem escolheu escuro continua no escuro ao recarregar ----------
   await page.click('#btn-tema');
   await page.waitForTimeout(300);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(600);
   ok(await page.evaluate(() => document.documentElement.getAttribute('data-tema') === null),
-    'o ☀ devolve o tema escuro');
+    'quem escolheu escuro continua no escuro depois de recarregar');
 
-  // ---------- quem nunca escolheu segue o aparelho ----------
-  const outra = await browser.newContext({ colorScheme: 'light' });
-  const p2 = await outra.newPage();
-  await prepararSemLogin(p2);
-  await p2.goto(URL, { waitUntil: 'domcontentloaded' });
-  await p2.waitForTimeout(600);
-  ok(await p2.evaluate(() => document.documentElement.getAttribute('data-tema') === 'claro'),
-    'num aparelho que pede claro, quem nunca escolheu já abre no claro');
-  await outra.close();
+  // ---------- os dois botões do topo têm nome, não só ícone ----------
+  const rotulos = await page.evaluate(() => ({
+    tema: (document.querySelector('#btn-tema .bell-rot') || {}).textContent || '',
+    temaTitle: (document.getElementById('btn-tema') || {}).title || ''
+  }));
+  ok(/Tema/.test(rotulos.tema), 'o botão de tema mostra o nome ao lado do ícone ("' + rotulos.tema + '")');
+  ok(/clique/i.test(rotulos.temaTitle), 'e o título explica o que o clique faz');
 
   console.log('\nResumo medido — escuro:', JSON.stringify(escuro), '\n                claro :', JSON.stringify(claro));
   console.log('\nErros de página:', erros.length ? erros : 'nenhum');

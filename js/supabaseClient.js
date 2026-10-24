@@ -199,6 +199,19 @@
       .catch(function () { return { data: null, error: null }; });
   }
 
+  /**
+   * Registra a gravação do aluno: a porcentagem de acerto que a comparação
+   * deu. O banco guarda a MELHOR nota, conta as tentativas e, a partir do
+   * piso (80), carimba o exercício como gravado — é isso que libera o
+   * seguinte. Ver registrar_gravacao() em sql/schema.sql.
+   */
+  function registrarGravacao(chave, acerto) {
+    var c = getClient();
+    if (!c || !c.rpc) return Promise.resolve({ data: null, error: null });
+    return Promise.resolve(c.rpc('registrar_gravacao', { p_chave: chave, p_acerto: acerto }))
+      .catch(function () { return { data: null, error: null }; });
+  }
+
   /** O progresso de quem está logado (ou de todo mundo, se for admin). */
   function listProgresso() {
     var c = getClient();
@@ -345,6 +358,7 @@
     getProfile: getProfile,
     registrarAcesso: registrarAcesso,
     registrarVoltas: registrarVoltas,
+    registrarGravacao: registrarGravacao,
     listProgresso: listProgresso,
     listProfiles: listProfiles,
     updateProfile: updateProfile,

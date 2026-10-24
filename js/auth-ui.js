@@ -165,9 +165,13 @@
     var b = $('btn-tema');
     if (b) {
       var claro = tema === 'claro';
-      b.textContent = claro ? '☀' : '☾';
+      // O ícone mostra para ONDE o clique leva, e o rótulo ao lado diz isso em
+      // palavras — ícone sozinho é adivinhação.
+      b.innerHTML = (claro ? '☾' : '☀') +
+        '<span class="bell-rot">' + (claro ? 'Tema escuro' : 'Tema claro') + '</span>';
       b.setAttribute('aria-pressed', claro ? 'true' : 'false');
-      b.title = claro ? 'Tema claro — clique para o escuro' : 'Tema escuro — clique para o claro';
+      b.title = claro ? 'Você está no tema claro — clique para o escuro'
+        : 'Você está no tema escuro — clique para o claro';
     }
     // A cor da barra do navegador no celular acompanha o fundo do site.
     var meta = document.querySelector('meta[name="theme-color"]');

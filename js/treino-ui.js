@@ -61,7 +61,10 @@
     state.progressoLido = true;
     Promise.resolve(db.listProgresso()).then(function (res) {
       (res && res.data ? res.data : []).forEach(function (p) {
-        state.progresso[p.chave] = { voltas: p.voltas, feito: !!p.feito_em };
+        state.progresso[p.chave] = {
+          voltas: p.voltas, feito: !!p.feito_em,
+          gravado: !!p.gravado_em, acerto: p.acerto || 0
+        };
       });
       if (aoTerminar) aoTerminar();
     }).catch(function () { if (aoTerminar) aoTerminar(); });
@@ -110,18 +113,36 @@
     return (t && t.bpm) || 80;
   }
 
-  /** Qual é o próximo exercício a fazer: o primeiro que ainda não está feito. */
+  /**
+   * Até onde a pessoa chegou. A regra, pedida pelo dono em 24/10/2026: o
+   * exercício 1 nasce aberto; cada um dos seguintes só abre quando o anterior
+   * for GRAVADO (o aluno tocou e o sistema reconheceu 80% das notas).
+   *
+   * Tocar junto — contar voltas — continua valendo e aparece no cartão, mas
+   * não abre porta nenhuma: ouvir não é tocar.
+   */
+  function gravado(i) {
+    var p = state.progresso[chaveDe(i)];
+    return !!(p && p.gravado);
+  }
+
+  /** O primeiro exercício ainda não gravado: é onde a pessoa está. */
   function indiceDoProximo() {
     for (var i = 0; i < state.exercises.length; i++) {
-      var p = state.progresso[chaveDe(i)];
-      if (!p || !p.feito) return i;
+      if (!gravado(i)) return i;
     }
     return -1;
   }
 
   function marcaDe(i) {
-    var p = state.progresso[chaveDe(i)] || { voltas: 0, feito: false };
-    return { voltas: p.voltas, feito: p.feito, proximo: i === indiceDoProximo() };
+    var p = state.progresso[chaveDe(i)] || { voltas: 0, feito: false, gravado: false, acerto: 0 };
+    var aberto = i === 0 || gravado(i - 1);
+    return {
+      voltas: p.voltas, feito: p.feito, gravado: p.gravado, acerto: p.acerto,
+      proximo: i === indiceDoProximo(),
+      podeGravar: aberto && !!(window.IL.account && window.IL.account.canUse()),
+      trancado: aberto ? 0 : i                 // o número do exercício que falta gravar
+    };
   }
 
   /** Redesenha só os selos e o resumo, sem remontar partituras e tablaturas. */
@@ -133,9 +154,12 @@
     var resumo = $('tre-progresso');
     if (resumo) resumo.innerHTML = resumoHTML(feitos);
     var prox = indiceDoProximo();
+    // Os cartões trancados não têm título com selo para atualizar; e a trava em
+    // si só muda quando uma gravação passa, e aí a lista inteira é redesenhada.
     caixa.querySelectorAll('.esc-ex').forEach(function (card, i) {
-      var p = state.progresso[chaveDe(i)] || { voltas: 0, feito: false };
-      card.classList.toggle('esc-ex-feito', !!p.feito);
+      if (card.classList.contains('esc-ex-trancado')) return;
+      var m = marcaDe(i);
+      card.classList.toggle('esc-ex-feito', !!m.gravado);
       card.classList.toggle('esc-ex-proximo', i === prox);
       var titulo = card.querySelector('.lib-card-title');
       if (!titulo) return;
@@ -143,12 +167,16 @@
       if (velho) velho.parentNode.removeChild(velho);
       var seloProx = titulo.querySelector('.esc-proximo-selo');
       if (seloProx) seloProx.parentNode.removeChild(seloProx);
-      if (p.feito) {
+      if (m.gravado) {
         titulo.insertAdjacentHTML('beforeend',
-          '<span class="esc-feito" title="Você tocou este do começo ao fim duas vezes">✓ feito</span>');
-      } else if (p.voltas) {
+          '<span class="esc-feito" title="Você gravou este exercício e acertou ' + (m.acerto || 0) +
+          '%">✓ gravado' + (m.acerto ? ' · ' + m.acerto + '%' : '') + '</span>');
+      } else if (m.feito) {
         titulo.insertAdjacentHTML('beforeend',
-          '<span class="esc-andando" title="Execuções inteiras até agora">' + p.voltas + ' de ' + META_VOLTAS + ' voltas</span>');
+          '<span class="esc-andando" title="Você já tocou junto o exercício inteiro duas vezes">♪ tocado junto</span>');
+      } else if (m.voltas) {
+        titulo.insertAdjacentHTML('beforeend',
+          '<span class="esc-andando" title="Execuções inteiras até agora">' + m.voltas + ' de ' + META_VOLTAS + ' voltas</span>');
       }
       if (i === prox) {
         titulo.insertAdjacentHTML('beforeend', '<span class="esc-proximo-selo">continue daqui</span>');
@@ -158,15 +186,22 @@
 
   function resumoHTML(feitos) {
     var total = state.exercises.length;
+    var REGRA = '<span class="tre-prog-regra">Como funciona: o exercício 1 está aberto. ' +
+      'Clique em <strong>🎙 Gravar e liberar</strong>, toque junto com o acompanhamento, e o IMPROVIX ' +
+      'ouve pelo microfone e compara com as notas. Acertando <strong>80%</strong>, ele libera o próximo — ' +
+      'e assim, um a um. <strong>Ouvir o exercício</strong> não libera nada: ouvir não é tocar.</span>';
     if (!window.IL.account || !window.IL.account.canUse()) {
-      return '<span class="tre-prog-aviso">Entre na sua conta para o IMPROVIX guardar o que você já treinou.</span>';
+      return '<span class="tre-prog-aviso">Entre na sua conta para o IMPROVIX guardar o que você já treinou ' +
+        'e liberar os exercícios conforme você grava.</span>' + REGRA;
     }
-    var pct = total ? Math.round(feitos * 100 / total) : 0;
+    var gravados = 0;
+    state.exercises.forEach(function (ex, i) { if (gravado(i)) gravados++; });
+    var pct = total ? Math.round(gravados * 100 / total) : 0;
     return '<div class="tre-prog-barra"><i style="width:' + pct + '%"></i></div>' +
-      '<span class="tre-prog-texto"><strong>' + feitos + ' de ' + total + '</strong> exercícios feitos nesta escala' +
-      (feitos < total ? ' — um exercício conta como feito quando você acompanha ele inteiro ' + META_VOLTAS +
-        ' vezes, sem parar no meio.' : ' — escala fechada. Troque o tom ou a escala lá em cima.') +
-      '</span>';
+      '<span class="tre-prog-texto"><strong>' + gravados + ' de ' + total + '</strong> exercícios gravados nesta escala' +
+      (gravados >= total ? ' — escala fechada. Troque o tom ou a escala lá em cima.' : '') +
+      (feitos ? ' · ' + feitos + ' tocado(s) junto do começo ao fim' : '') +
+      '</span>' + (gravados >= total ? '' : REGRA);
   }
 
   function $(id) { return document.getElementById(id); }
@@ -201,6 +236,12 @@
     if (!b) return;
     var act = b.getAttribute('data-act');
     if (act === 'ouvir-ex') { tocar(b, 'ex' + b.getAttribute('data-i'), state.exercises[Number(b.getAttribute('data-i'))]); return; }
+    if (act === 'gravar-ex') { gravarExercicio(b, Number(b.getAttribute('data-i'))); return; }
+    if (act === 'fechar-gravacao') {
+      var cx = b.closest('.esc-gravacao');
+      if (cx) { cx.hidden = true; cx.innerHTML = ''; }
+      return;
+    }
     // trocar a região do braço (as digitações vêm do cartão compartilhado)
     if (act === 'digitacao') {
       state.digitacao[b.getAttribute('data-i')] = Number(b.getAttribute('data-d'));
@@ -252,6 +293,127 @@
     });
   }
 
+  // ---------------- gravar o exercício ----------------
+  // O aluno toca, o site ouve pelo microfone e compara. Acertando o piso, o
+  // exercício fica gravado e o seguinte abre. Ver js/gravacao.js (o caminho do
+  // áudio) e js/avaliar.js (a conta).
+
+  var gravandoAgora = false;
+
+  function caixaDaGravacao(i) {
+    return $('tre-conteudo').querySelector('[data-gravacao="' + i + '"]');
+  }
+
+  function mostrarNaCaixa(i, html, classe) {
+    var cx = caixaDaGravacao(i);
+    if (!cx) return;
+    cx.hidden = false;
+    cx.className = 'esc-gravacao' + (classe ? ' ' + classe : '');
+    cx.innerHTML = html;
+  }
+
+  function gravarExercicio(botao, i) {
+    if (gravandoAgora) return;
+    var ex = state.exercises[i];
+    if (!ex || !window.IL.gravacao || !window.IL.avaliar) return;
+    parar();                                   // nada tocando por cima da gravação
+    // O clique pode ter vindo do "tentar de novo", que está DENTRO da caixa de
+    // resultado — e essa caixa é repintada no instante seguinte, levando o
+    // botão junto. Quem guarda o estado visual é sempre o botão do cartão.
+    var cartao = $('tre-conteudo').querySelectorAll('.esc-ex')[i];
+    var alvo = $('tre-conteudo').querySelector('.btn-gravar[data-i="' + i + '"]') || botao;
+    gravandoAgora = true;
+    if (cartao) cartao.classList.add('esc-ex-gravando');
+    alvo.classList.add('gravando');
+    alvo.textContent = '● gravando…';
+    botao = alvo;
+
+    var t = window.IL.ui.transportOpts ? window.IL.ui.transportOpts('treino') : { bpm: 80 };
+    var comAcomp = !$('tre-sem-acompanhamento') || !$('tre-sem-acompanhamento').checked;
+    var prep = notation.prepareForInstrument(ex.events, $('tre-instrumento').value);
+
+    mostrarNaCaixa(i, '<div class="grv-estado"><span class="grv-barra"><i style="width:4%"></i></span>' +
+      '<span class="grv-txt">preparando…</span></div>' +
+      '<p class="grv-dica">Toque o exercício inteiro junto com o acompanhamento. ' +
+      (comAcomp ? 'Se puder, use fone de ouvido: assim o microfone ouve só você.' :
+        'O acompanhamento está desligado — vai só a contagem do metrônomo.') + '</p>');
+
+    function estado(txt, pct) {
+      var cx = caixaDaGravacao(i);
+      if (!cx) return;
+      var barra = cx.querySelector('.grv-barra i');
+      var texto = cx.querySelector('.grv-txt');
+      if (barra) barra.style.width = Math.round(Math.max(0.04, pct || 0) * 100) + '%';
+      if (texto) texto.textContent = txt;
+    }
+
+    window.IL.gravacao.rodar({
+      eventos: prep.events, chords: ex.chords || [], instrumento: $('tre-instrumento').value,
+      bpm: t.bpm, comAcompanhamento: comAcomp, onEstado: estado
+    }).then(function (r) {
+      var acerto = Math.round(r.nota * 100);
+      var passou = r.nota >= window.IL.avaliar.PASSA;
+      terminarGravacao(botao);
+      mostrarNaCaixa(i, resultadoHTML(i, acerto, passou, r), passou ? 'grv-ok' : 'grv-quase');
+      registrarGravacao(i, acerto, passou);
+    }).catch(function (e) {
+      terminarGravacao(botao);
+      var msg = (e && e.message) || 'não deu certo';
+      mostrarNaCaixa(i,
+        '<p class="grv-erro">Não consegui gravar: ' + esc(msg) + '</p>' +
+        '<p class="grv-dica">Se o navegador pediu permissão do microfone, é preciso aceitar. ' +
+        'No celular, o site precisa estar em https (o endereço do IMPROVIX já está).</p>' +
+        '<button class="view-btn" data-act="fechar-gravacao">Fechar</button>', 'grv-falha');
+    });
+  }
+
+  function terminarGravacao(botao) {
+    gravandoAgora = false;
+    $('tre-conteudo').querySelectorAll('.esc-ex-gravando').forEach(function (c) {
+      c.classList.remove('esc-ex-gravando');
+    });
+    if (botao && botao.isConnected) {
+      botao.classList.remove('gravando');
+      botao.textContent = botao.getAttribute('data-label') || '🎙 Gravar e liberar';
+    }
+  }
+
+  function resultadoHTML(i, acerto, passou, r) {
+    var cabeca = passou
+      ? '<p class="grv-nota grv-nota-ok">✓ ' + acerto + '% — exercício gravado' +
+        (i + 1 < state.exercises.length ? '. O exercício ' + (i + 2) + ' está liberado.' : '. Escala fechada!') + '</p>'
+      : '<p class="grv-nota grv-nota-quase">' + acerto + '% — faltou um pouco (o piso é 80%).</p>';
+    return cabeca +
+      '<p class="grv-resumo">' + esc(r.resumo) + '</p>' +
+      '<button class="view-btn" data-act="gravar-ex" data-i="' + i + '" data-label="🎙 Gravar e liberar">' +
+      (passou ? '🎙 Gravar de novo' : '🎙 Tentar de novo') + '</button>' +
+      '<button class="view-btn" data-act="fechar-gravacao">Fechar</button>';
+  }
+
+  function registrarGravacao(i, acerto, passou) {
+    var chave = chaveDe(i);
+    var atual = state.progresso[chave] || { voltas: 0, feito: false };
+    atual.acerto = Math.max(atual.acerto || 0, acerto);
+    atual.gravado = atual.gravado || passou;
+    state.progresso[chave] = atual;
+    var db = window.IL.db;
+    var guardar = (db && db.registrarGravacao)
+      ? Promise.resolve(db.registrarGravacao(chave, acerto))
+      : Promise.resolve({ data: null });
+    guardar.then(function (res) {
+      var linha = res && res.data;
+      if (linha) {
+        state.progresso[chave] = {
+          voltas: linha.voltas || atual.voltas, feito: !!linha.feito_em,
+          gravado: !!linha.gravado_em, acerto: linha.acerto || acerto
+        };
+      }
+      // Passou: a trava do seguinte caiu, então a lista inteira é redesenhada.
+      if (passou) { var caixa = $('tre-conteudo'); if (caixa) render(); }
+      else atualizarMarcas();
+    });
+  }
+
   function render() {
     var instrumento = $('tre-instrumento').value;
     var nf = SC.notesFor(state.tonic, state.key);
@@ -282,6 +444,9 @@
 
       '<h3 class="esc-sub">Exercícios para treinar</h3>' +
       '<div class="tre-prog" id="tre-progresso"></div>' +
+      '<label class="tre-opcao"><input type="checkbox" id="tre-sem-acompanhamento"/> ' +
+      'Gravar sem o acompanhamento (só a contagem do metrônomo) — marque se estiver sem fone de ouvido ' +
+      'e o microfone estiver pegando o som da caixa.</label>' +
       '<p class="si-legend">' + state.exercises.length + ' exercícios, todos subindo e descendo duas oitavas. ' +
       'Ponha o metrônomo devagar e só acelere quando sair limpo.</p>' +
       '<p class="dica-rolar">↔ no celular, deslize a partitura/tablatura para o lado</p>' +

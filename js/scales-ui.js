@@ -186,17 +186,44 @@
     }
     var selo = '';
     if (marca) {
-      selo = marca.feito
-        ? '<span class="esc-feito" title="Você tocou este do começo ao fim duas vezes">✓ feito</span>'
-        : (marca.voltas ? '<span class="esc-andando" title="Execuções inteiras até agora">' +
-            marca.voltas + ' de 2 voltas</span>' : '');
+      if (marca.gravado) {
+        selo = '<span class="esc-feito" title="Você gravou este exercício e acertou ' +
+          (marca.acerto || 0) + '%">✓ gravado' + (marca.acerto ? ' · ' + marca.acerto + '%' : '') + '</span>';
+      } else if (marca.feito) {
+        selo = '<span class="esc-andando" title="Você já tocou junto o exercício inteiro duas vezes">♪ tocado junto</span>';
+      } else if (marca.voltas) {
+        selo = '<span class="esc-andando" title="Execuções inteiras até agora">' +
+          marca.voltas + ' de 2 voltas</span>';
+      }
     }
-    return '<div class="lib-card esc-ex' + (marca && marca.feito ? ' esc-ex-feito' : '') +
+
+    // TRANCADO: o exercício só abre quando o anterior é gravado. Aqui não se
+    // mostra partitura nem tablatura — mostrar o conteúdo e dizer "não pode"
+    // seria provocação. Mostra-se o que fazer para abrir.
+    if (marca && marca.trancado) {
+      return '<div class="lib-card esc-ex esc-ex-trancado">' +
+        '<div class="lib-card-head"><div class="lib-card-title">' + (i + 1) + '. ' + esc(ex.title) +
+        '<span class="esc-trancado-selo">🔒 trancado</span></div></div>' +
+        '<p class="si-legend esc-trancado-dica">Para abrir este, grave o exercício <strong>' + marca.trancado +
+        '</strong> e acerte pelo menos 80% das notas. O botão está lá em cima, no cartão dele.</p>' +
+        '</div>';
+    }
+
+    var acoes = '<button class="view-btn btn-ouvir" data-act="ouvir-ex" data-i="' + i +
+      '" data-label="🔊 Ouvir o exercício">🔊 Ouvir o exercício</button>';
+    if (marca && marca.podeGravar) {
+      acoes += '<button class="view-btn btn-gravar" data-act="gravar-ex" data-i="' + i +
+        '" data-label="🎙 Gravar e liberar" title="Toque o exercício; o IMPROVIX ouve pelo microfone, ' +
+        'compara com as notas e, acertando 80%, libera o próximo">🎙 Gravar e liberar</button>';
+    }
+
+    return '<div class="lib-card esc-ex' + (marca && marca.gravado ? ' esc-ex-feito' : '') +
       (marca && marca.proximo ? ' esc-ex-proximo' : '') + '">' +
       '<div class="lib-card-head"><div class="lib-card-title">' + (i + 1) + '. ' + esc(ex.title) + selo +
       (marca && marca.proximo ? '<span class="esc-proximo-selo">continue daqui</span>' : '') + '</div>' +
-      '<div class="lib-card-actions"><button class="view-btn btn-ouvir" data-act="ouvir-ex" data-i="' + i + '" data-label="🔊 Ouvir">🔊 Ouvir</button></div></div>' +
+      '<div class="lib-card-actions">' + acoes + '</div></div>' +
       '<p class="si-legend">' + esc(ex.dica) + '</p>' +
+      (marca && marca.podeGravar ? '<div class="esc-gravacao" data-gravacao="' + i + '" hidden></div>' : '') +
       '<div class="lib-card-body">' + body + notasHTML(ex) + '</div></div>';
   }
 

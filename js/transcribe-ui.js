@@ -51,6 +51,12 @@
     return vendorPronto;
   }
 
+  // A tela de Início (gravar o exercício) usa a MESMA rede neural. Expor o
+  // carregador aqui evita uma segunda cópia das bibliotecas em memória — são
+  // 2,6 MB, e carregar duas vezes seria desperdício puro.
+  window.IL.ui = window.IL.ui || {};
+  window.IL.ui.carregarVendorTranscricao = carregarVendor;
+
   // ---------------- montagem ----------------
   function build() {
     if (state.built) return;

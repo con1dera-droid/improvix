@@ -106,16 +106,22 @@ async function tocar(page, i, ms) {
   ok(linha.voltas === 2 && !!linha.feito_em, 'na segunda volta inteira, o exercício fica feito');
   ok(linha.bpm_max === 80, 'e o andamento usado fica guardado (' + linha.bpm_max + ' bpm)');
 
+  // A partir de 24/10/2026 tocar junto NÃO libera o próximo — quem libera é a
+  // gravação (tests/gravacao.smoke.js). Tocar junto continua sendo medido e
+  // aparece no cartão, mas com outro nome, para não prometer o que não dá.
   const tela = await page.evaluate(() => ({
-    feito: !!document.querySelector('#tre-conteudo .esc-ex .esc-feito'),
+    selo: (document.querySelector('#tre-conteudo .esc-ex .esc-andando') || {}).textContent || '',
+    gravado: !!document.querySelector('#tre-conteudo .esc-ex .esc-feito'),
     resumo: document.getElementById('tre-progresso').textContent,
     barra: document.querySelector('.tre-prog-barra i').style.width,
     proximo: (document.querySelector('.esc-ex-proximo .lib-card-title') || {}).textContent || ''
   }));
-  ok(tela.feito, 'o exercício ganha o selo ✓ feito');
-  ok(/1 de \d+ exerc/.test(tela.resumo), 'o resumo conta "1 de N exercícios feitos"');
-  ok(tela.barra && tela.barra !== '0%', 'a barra de progresso anda (' + tela.barra + ')');
-  ok(/^2\./.test(tela.proximo.trim()), 'o "continue daqui" passa para o exercício 2 ("' + tela.proximo.trim().slice(0, 30) + '")');
+  ok(/tocado junto/.test(tela.selo), 'o exercício ganha o selo "♪ tocado junto" ("' + tela.selo.trim() + '")');
+  ok(!tela.gravado, 'mas NÃO o selo de gravado: ouvir não é tocar');
+  ok(/0 de \d+ exercícios gravados/.test(tela.resumo) && /1 tocado/.test(tela.resumo),
+    'o resumo separa gravados de tocados junto ("' + tela.resumo.trim().slice(0, 60) + '")');
+  ok(tela.barra === '0%', 'a barra conta gravações, e ainda não houve nenhuma (' + tela.barra + ')');
+  ok(/^1\./.test(tela.proximo.trim()), 'o "continue daqui" continua no 1 ("' + tela.proximo.trim().slice(0, 30) + '")');
 
   // 4) ninguém "faz" os exercícios pelo Console
   const trapaca = await page.evaluate(async () => {
