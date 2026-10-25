@@ -2596,6 +2596,46 @@ escolher outra abre a outra) e passou a conferir que **não existe etiqueta
 escrita em lugar nenhum da página**. Bateria inteira: 13 testes de unidade, 38
 smokes, sem erro de página.
 
+## Quatro módulos de acorde, nenhuma cifra exposta — ✅ (2026-10-25)
+
+Na Biblioteca de Acordes, os atalhos abaixo de "Ver o acorde" eram quatro
+fileiras com as trinta cifras todas à mostra — mais texto no alto da tela do
+que a própria tela de resultado. A pedido do dono, viraram **quatro módulos**:
+Básicos · Com 7ª · Cor · Com baixo trocado, **dois por linha em qualquer
+largura**, cada um com o nome e só a cifra que o representa embaixo.
+
+**Nenhuma cifra fica exposta na página.** Tocar no módulo abre o menu do
+próprio aparelho com as cifras daquele grupo — o mesmo formato que o site já
+usa para a tonalidade e para as lições de teoria, e que no celular vira a
+roleta nativa em vez de uma lista empurrando a tela para baixo. Escolhida uma,
+o módulo passa a mostrá-la e a busca acontece na hora.
+
+O jeito de fazer isso é um `<select>` **invisível cobrindo o cartão inteiro**
+(`position: absolute; inset: 0; opacity: 0`). Assim o toque cai nele em
+qualquer ponto — não só num botãozinho — e o que a pessoa lê é o desenho de
+baixo, com as cores e o espaçamento do site. Uma primeira tentativa foi feita
+em sanfona (o módulo abria e as cifras apareciam dentro dele); ele mesmo
+apontou que continuava havendo cifra exposta, e o seletor nativo resolve isso
+sem meio-termo.
+
+**De quebra, um defeito achado no caminho.** A regra
+`.esc-head .esc-title { display: none }` do celular não estava presa à tela de
+Início, para onde tinha sido escrita — então ela escondia também o nome do
+acorde e o nome da escala nas duas Bibliotecas. No celular, a Biblioteca de
+Acordes mostrava os diagramas sem dizer de que acorde eram. A regra saiu; o
+Início continua certo porque lá o cabeçalho inteiro já é escondido.
+
+Medido nas três larguras de telefone (320, 360 e 390px): os quatro módulos
+ficam dois por linha, sem transbordo horizontal, com zero cifra desenhada na
+página e o título do acorde de volta.
+
+Testes: `tests/acordes.smoke.js` trocou as asserções da sanfona pelas do
+formato novo — quatro módulos com os nomes pedidos, cada um com a cifra de
+exemplo e as demais guardadas no menu, o alinhamento dois a dois medido pelo
+topo de cada cartão, nenhuma cifra desenhada, o seletor cobrindo o cartão com
+opacidade zero, e escolher no menu buscando o acorde. Bateria inteira: 13
+testes de unidade, 38 smokes, sem erro de página.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
