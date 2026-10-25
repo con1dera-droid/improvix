@@ -70,13 +70,22 @@
   function desenharPolegar(caixa, pos, fim) {
     var trilho = caixa.__trilho;
     var polegar = caixa.__polegar;
-    var altura = trilho.clientHeight;
-    if (!altura || !fim) return;
-    var parte = caixa.clientHeight / caixa.scrollHeight;
-    var alt = Math.max(ALTURA_MIN_POLEGAR, Math.round(altura * parte));
-    if (alt > altura) alt = altura;
-    polegar.style.height = alt + 'px';
-    polegar.style.top = Math.round((altura - alt) * (pos / fim)) + 'px';
+    var vertical = !!caixa.__vertical;
+    var vao = vertical ? trilho.clientHeight : trilho.clientWidth;
+    if (!vao || !fim) return;
+    var parte = vertical
+      ? caixa.clientHeight / caixa.scrollHeight
+      : caixa.clientWidth / caixa.scrollWidth;
+    var tam = Math.max(ALTURA_MIN_POLEGAR, Math.round(vao * parte));
+    if (tam > vao) tam = vao;
+    var desloc = Math.round((vao - tam) * (pos / fim));
+    if (vertical) {
+      polegar.style.height = tam + 'px';
+      polegar.style.top = desloc + 'px';
+    } else {
+      polegar.style.width = tam + 'px';
+      polegar.style.left = desloc + 'px';
+    }
   }
 
   function embrulhar(caixa, vertical) {
@@ -116,7 +125,8 @@
     env.appendChild(dir);
     env.appendChild(aviso);
 
-    if (vertical) montarTrilho(env, caixa);
+    caixa.__vertical = !!vertical;
+    montarTrilho(env, caixa, vertical);
 
     caixa.addEventListener('scroll', function () { atualizar(caixa); }, { passive: true });
     atualizar(caixa);
@@ -124,9 +134,9 @@
 
   // Monta a barra desenhada e deixa ela funcionando como barra de verdade:
   // dá para arrastar o polegar e dá para clicar no trilho para pular.
-  function montarTrilho(env, caixa) {
+  function montarTrilho(env, caixa, vertical) {
     var trilho = document.createElement('div');
-    trilho.className = 'rolavel-trilho';
+    trilho.className = 'rolavel-trilho' + (vertical ? '' : ' rolavel-trilho-x');
     var polegar = document.createElement('div');
     polegar.className = 'rolavel-polegar';
     trilho.appendChild(polegar);
@@ -134,16 +144,21 @@
     caixa.__trilho = trilho;
     caixa.__polegar = polegar;
 
-    function fimDe() { return caixa.scrollHeight - caixa.clientHeight; }
+    function fimDe() {
+      return vertical ? caixa.scrollHeight - caixa.clientHeight
+        : caixa.scrollWidth - caixa.clientWidth;
+    }
+    function posicao() { return vertical ? caixa.scrollTop : caixa.scrollLeft; }
+    function irPara(v) { if (vertical) caixa.scrollTop = v; else caixa.scrollLeft = v; }
 
-    // Clicar no trilho (fora do polegar) leva direto àquele ponto da lista.
+    // Clicar no trilho (fora do polegar) leva direto àquele ponto.
     trilho.addEventListener('mousedown', function (e) {
       if (e.target === polegar) return;
       var r = trilho.getBoundingClientRect();
-      var alt = polegar.offsetHeight;
-      var y = e.clientY - r.top - alt / 2;
-      var livre = r.height - alt;
-      caixa.scrollTop = livre > 0 ? (y / livre) * fimDe() : 0;
+      var tam = vertical ? polegar.offsetHeight : polegar.offsetWidth;
+      var d = (vertical ? e.clientY - r.top : e.clientX - r.left) - tam / 2;
+      var livre = (vertical ? r.height : r.width) - tam;
+      irPara(livre > 0 ? (d / livre) * fimDe() : 0);
     });
 
     // Arrastar o polegar.
@@ -152,16 +167,18 @@
     var topoAoPegar = 0;
     polegar.addEventListener('mousedown', function (e) {
       arrastando = true;
-      pegouEm = e.clientY;
-      topoAoPegar = caixa.scrollTop;
+      pegouEm = vertical ? e.clientY : e.clientX;
+      topoAoPegar = posicao();
       env.classList.add('rolavel-arrastando');
       e.preventDefault();
     });
     document.addEventListener('mousemove', function (e) {
       if (!arrastando) return;
-      var livre = trilho.clientHeight - polegar.offsetHeight;
+      var vao = vertical ? trilho.clientHeight : trilho.clientWidth;
+      var livre = vao - (vertical ? polegar.offsetHeight : polegar.offsetWidth);
       if (livre <= 0) return;
-      caixa.scrollTop = topoAoPegar + ((e.clientY - pegouEm) / livre) * fimDe();
+      var andou = (vertical ? e.clientY : e.clientX) - pegouEm;
+      irPara(topoAoPegar + (andou / livre) * fimDe());
     });
     document.addEventListener('mouseup', function () {
       if (!arrastando) return;

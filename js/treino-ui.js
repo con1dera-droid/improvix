@@ -596,7 +596,8 @@
       // primeira tela inteira.
       '</div></div></div>' +
 
-      '<div class="tre-transporte-lugar">' +
+      '<div class="tre-titulo-linha">' +
+      '<h3 class="esc-sub">Exercícios para treinar</h3>' +
       '<div class="transport" data-transport="treino">' +
       '<button type="button" class="tr-btn tr-metro" data-act="metro" title="Metrônomo (liga/desliga)" aria-pressed="false">⏱</button>' +
       '<button type="button" class="tr-btn" data-act="menos" title="Mais devagar (−5 bpm)">−</button>' +
@@ -605,7 +606,6 @@
       '<button type="button" class="tr-btn tr-loop" data-act="loop" title="Repetir (toca em loop até você parar)" aria-pressed="false">🔁</button>' +
       '</div></div>' +
 
-      '<h3 class="esc-sub">Exercícios para treinar</h3>' +
       '<div class="tre-prog" id="tre-progresso"></div>' +
       extraHTML() +
       exerciciosHTML(instrumento);
@@ -669,7 +669,9 @@
   }
 
   function posicionarTransporte() {
-    mudarDeLugar('.transport[data-transport="treino"]', '.tre-transporte-lugar', 'hero-transporte');
+    // A barra de andamento deixou de subir para o cabeçalho em 25/10/2026: o
+    // dono pediu ela ao lado de "Exercícios para treinar", que é onde se usa.
+    // Só as pastilhas da escala continuam mudando de lugar.
     mudarDeLugar('.lib-badges', '.esc-head-info', 'hero-badges');
   }
 

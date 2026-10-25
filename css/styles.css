@@ -823,14 +823,28 @@ select, input[type="text"] {
   background: var(--bg-elevated); border: 1px solid var(--border);
   cursor: pointer; z-index: 2;
 }
+/* A mesma barra, deitada, para o que rola PARA O LADO (partitura, tablatura,
+   braço, tabela larga). No celular a barra do navegador só aparece enquanto o
+   dedo está encostado e some logo — o dono viu isso e disse que "o usuário
+   pode se perder se ela não ficar visível". Esta fica. */
+.rolavel-ativo:not(.rolavel-y) .rolavel-trilho {
+  display: block; position: absolute; left: 0; right: 0; bottom: 0;
+  height: 10px; border-radius: 999px;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  cursor: pointer; z-index: 2;
+}
 .rolavel-polegar {
   position: absolute; left: 1px; right: 1px; top: 0; height: 30px;
   border-radius: 999px; background: var(--accent); cursor: grab;
+}
+.rolavel-ativo:not(.rolavel-y) .rolavel-polegar {
+  top: 1px; bottom: 1px; left: 0; right: auto; height: auto; width: 40px;
 }
 .rolavel-polegar:hover { filter: brightness(1.12); }
 .rolavel-arrastando .rolavel-polegar { cursor: grabbing; }
 /* Espaço para a barra não cair em cima do texto dos cartões. */
 .rolavel-y.rolavel-ativo > *:first-child { padding-right: 16px; }
+.rolavel-ativo:not(.rolavel-y) > *:first-child { padding-bottom: 14px; }
 
 .rolavel-aviso {
   order: -1; align-self: flex-start; margin: 0 0 0.3rem;
@@ -1125,6 +1139,14 @@ textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .esc-card-title { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim); margin-bottom: 0.3rem; }
 .esc-card p { margin: 0; font-size: 0.9rem; line-height: 1.5; color: var(--text-muted); }
 .esc-sub { font-size: 1rem; margin: 1.2rem 0 0.2rem; color: var(--text); }
+/* "Exercícios para treinar" e a barra de andamento na mesma linha: o
+   andamento é do treino, e era isso que o dono queria ver junto. */
+.tre-titulo-linha {
+  display: flex; align-items: center; justify-content: flex-start;
+  gap: 1rem; flex-wrap: wrap;
+}
+.tre-titulo-linha .esc-sub { margin: 1.2rem 0 0.2rem; }
+.tre-titulo-linha .transport { margin: 0; }
 .esc-grupo {
   font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim);
   margin: 1.1rem 0 0.1rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--border); font-weight: 700;
@@ -1500,25 +1522,38 @@ body.sistema-travado .modal-close { display: none; }
   .esc-sub { margin: 0.8rem 0 0.1rem; }
   .tre-opcao { font-size: 0.74rem; }
 
-  /* O título do cabeçalho encolhe e divide a linha com a barra de andamento
-     (a barra sobe para cá por JS — ver posicionarTransporte). O cartão
-     inteiro foi apertado: é cabeçalho, não conteúdo. */
+  /* O cabeçalho é cabeçalho, não conteúdo: o cartão foi apertado e o título
+     cabe numa linha só (a barra de andamento saiu daqui em 25/10/2026 e foi
+     para o lado de "Exercícios para treinar"). */
   .hero.card { padding: 0.45rem 0.6rem; margin-bottom: 0.6rem; }
-  .hero-topo { display: flex; align-items: center; gap: 0.5rem; flex-wrap: nowrap; }
   .hero-text { min-width: 0; }
-  .hero-text h1 { font-size: 0.88rem; line-height: 1.15; margin: 0; }
-  .hero .lib-controls { margin: 0.15rem 0 0; }
+  .hero-text h1 { font-size: 0.95rem; line-height: 1.25; margin: 0; }
+  .hero .lib-controls { margin: 0.25rem 0 0; }
   .hero .lib-controls .field { gap: 0.05rem; }
   .hero .lib-controls .field label { line-height: 1.2; }
   .hero .lib-controls select { min-height: 36px; }
-  .hero-transporte .tr-btn { width: 30px; height: 30px; min-height: 30px; }
-  .hero-transporte .tr-bpm-input { min-height: 30px; }
-  .hero-transporte { flex: 0 0 auto; margin-left: auto; }
-  .hero-transporte .transport { margin: 0; gap: 0.2rem; padding: 0; border: 0; background: none; }
-  .hero-transporte .tr-btn { width: 32px; height: 32px; min-height: 32px; font-size: 0.85rem; }
-  .hero-transporte .tr-bpm { padding: 0 0.15rem; }
-  .hero-transporte .tr-bpm-input { width: 2.6rem; font-size: 14px; min-height: 32px; }
-  .hero-transporte .tr-bpm small { display: none; }
+
+  /* A barra de andamento, compacta, ao lado do título dos exercícios — e as
+     duas coisas têm de caber na mesma linha num celular de 360px. */
+  /* No celular a barra vai para a borda direita: é a única coisa à direita,
+     e colada no título ficaria apertada. */
+  .tre-titulo-linha { flex-wrap: nowrap; gap: 0.35rem; justify-content: space-between; }
+  /* O título cede primeiro: num iPhone SE (320px) ele corta com reticências
+     em vez de empurrar a barra de andamento para fora do cartão. */
+  .tre-titulo-linha .esc-sub {
+    font-size: 0.88rem; margin: 0.9rem 0 0.2rem;
+    min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .tre-titulo-linha .transport { gap: 0.15rem; padding: 0; border: 0; background: none; margin: 0; flex: 0 0 auto; }
+  .tre-titulo-linha .tr-btn { width: 28px; height: 28px; min-height: 28px; font-size: 0.8rem; }
+  .tre-titulo-linha .tr-bpm { padding: 0; }
+  .tre-titulo-linha .tr-bpm-input { width: 2.2rem; font-size: 14px; min-height: 28px; padding: 0 0.1rem; }
+  .tre-titulo-linha .tr-bpm small { display: none; }
+
+  /* As notas do rodapé do exercício, menores: são referência, não leitura. */
+  .esc-notas { gap: 0.2rem; line-height: 1.7; }
+  .esc-nota { min-width: 1.5rem; font-size: 0.7rem; padding: 0.05rem 0.22rem; border-radius: 5px; }
+  .esc-notas-rot { font-size: 0.66rem; }
 
   /* A contagem escrita sai; fica a barrinha, que já diz o quanto falta. E o
      "Como funciona" vem colado nela, sem faixa de respiro no meio. */

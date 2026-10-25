@@ -2436,6 +2436,43 @@ mínimo passou a ser dois, e o que se mede continua sendo o mesmo: se eles
 ficam lado a lado. Bateria inteira: 13 testes de unidade, 38 smokes, sem erro
 de página.
 
+## A barra que some quando o dedo sai — ✅ (2026-10-25)
+
+"Sempre deixe visível a barra azul que indica que a clave continua para o
+lado, porque ela só aparece se eu triscar na clave e o usuário pode se
+perder." É o mesmo defeito que já tinha sido corrigido na lista de lições, só
+que na horizontal: no celular a barra de rolagem do navegador aparece enquanto
+o dedo está encostado e some um segundo depois. Quem não encosta não sabe que
+a partitura continua.
+
+A solução foi a mesma, e agora vale para os dois sentidos: a barra é um
+elemento desenhado por nós (`js/rolagem.js`), no **mesmo lugar** onde a do
+navegador ficava — rente à borda de baixo da caixa que rola. O que muda é que
+ela não some: fica parada, com a cor de destaque, polegar proporcional ao que
+falta, e dá para arrastar e clicar nela. E continua valendo a regra antiga: só
+existe quando a caixa **realmente** transborda; quando a partitura cabe
+inteira, não aparece nada.
+
+Junto vieram três ajustes de arrumação no celular, todos do dono:
+
+- a barra de andamento (metrônomo, −, bpm, +, repetir) saiu do cabeçalho e foi
+  para a linha de **"Exercícios para treinar"**, na borda direita. No
+  computador ela foi para a mesma linha, mas colada no título — ali não faz
+  sentido jogar no canto;
+- **"Escolha o tom e a escala. Treine."** passou a caber numa linha só, com
+  Tonalidade/Escala/Instrumento logo abaixo;
+- as notinhas do rodapé do exercício encolheram de 0,82 para 0,70rem.
+
+Num iPhone SE (320px) o título dos exercícios é quem cede: corta com
+reticências, em vez de empurrar a barra de andamento para fora do cartão.
+Quem apontou isso foi `tests/celular.smoke.js`, que mede o que estoura nas
+três larguras.
+
+Testes: `tests/rolagem.smoke.js` precisou escolher a barra VERTICAL pelo nome
+(`.rolavel-y .rolavel-trilho`) — com as caixas horizontais ganhando a sua, um
+seletor solto pegava a errada. Bateria inteira: 13 testes de unidade, 38
+smokes, sem erro de página.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

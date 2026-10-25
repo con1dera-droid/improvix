@@ -146,7 +146,9 @@ const estado = (alvo) => {
 
   // clicar no fim do trilho leva ao fim da lista
   const t = await page.evaluate(() => {
-    const r = document.querySelector('.rolavel-trilho').getBoundingClientRect();
+    // só a barra VERTICAL: desde 25/10/2026 as caixas que rolam para o lado
+    // também têm a sua, e um querySelector solto pegava a errada.
+    const r = document.querySelector('.rolavel-y .rolavel-trilho').getBoundingClientRect();
     return { x: r.left + r.width / 2, y: r.bottom - 20 };
   });
   await page.mouse.click(t.x, t.y);
