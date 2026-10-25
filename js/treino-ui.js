@@ -212,16 +212,12 @@
       if (velho) velho.parentNode.removeChild(velho);
       var seloProx = titulo.querySelector('.esc-proximo-selo');
       if (seloProx) seloProx.parentNode.removeChild(seloProx);
+      // Só GRAVADO ganha selo. "♪ tocado junto" e "1 de 2 voltas" saíram em
+      // 25/10/2026: contavam o que a pessoa ouviu, e ouvir não libera nada.
       if (m.gravado) {
         titulo.insertAdjacentHTML('beforeend',
           '<span class="esc-feito" title="Você gravou este exercício e acertou ' + (m.acerto || 0) +
           '%">✓ gravado' + (m.acerto ? ' · ' + m.acerto + '%' : '') + '</span>');
-      } else if (m.feito) {
-        titulo.insertAdjacentHTML('beforeend',
-          '<span class="esc-andando" title="Você já tocou junto o exercício inteiro duas vezes">♪ tocado junto</span>');
-      } else if (m.voltas) {
-        titulo.insertAdjacentHTML('beforeend',
-          '<span class="esc-andando" title="Execuções inteiras até agora">' + m.voltas + ' de ' + META_VOLTAS + ' voltas</span>');
       }
       if (i === prox) {
         titulo.insertAdjacentHTML('beforeend', '<span class="esc-proximo-selo">continue daqui</span>');

@@ -70,7 +70,7 @@ const estado = (alvo) => {
   ok(largo.ehEnvelope, 'a tablatura do exercício entrou num envelope de rolagem');
   ok(largo.cabe === true, 'na tela larga, essa tablatura cabe inteira');
   ok(largo.ativo === false, 'e por isso NÃO aparece aviso nenhum nela');
-  ok(largo.etiqueta === false, 'nem a etiqueta "tem mais para o lado"');
+  ok(largo.etiqueta === false, 'nem seta nem barra sobrando');
 
   // ---------- celular: a mesma tablatura transborda ----------
   await page.setViewportSize({ width: 390, height: 844 });
@@ -79,10 +79,9 @@ const estado = (alvo) => {
   ok(estreito.cabe === false, 'no celular, a mesma tablatura transborda');
   ok(estreito.ativo === true, 'e aí o aviso acende');
   ok(estreito.setas >= 2, 'com as setas ‹ › à mostra (' + estreito.setas + ')');
-  ok(estreito.etiqueta === true, 'e a etiqueta "tem mais para o lado"');
-  // a etiqueta fica ACIMA da caixa, não por cima do conteúdo
-  ok(estreito.etiquetaBase <= estreito.caixaTopo + 2,
-    'a etiqueta fica acima da caixa, sem tapar a tablatura');
+  // A etiqueta escrita saiu da horizontal em 25/10/2026: com a barra azul
+  // parada embaixo da partitura, ela era a terceira coisa dizendo o mesmo.
+  ok(estreito.etiqueta === false, 'sem etiqueta escrita: quem avisa é a barra e a seta');
   ok(!!estreito.barra && estreito.barra !== 'auto',
     'a barra de rolagem tem cor própria, em vez de sumir (' + estreito.barra + ')');
 
@@ -94,7 +93,7 @@ const estado = (alvo) => {
   await page.waitForTimeout(800);
   const rolou = await page.evaluate(estado, ALVO);
   ok(rolou.scrollLeft > estreito.scrollLeft, 'clicar na seta › rola o conteúdo (' + estreito.scrollLeft + ' → ' + rolou.scrollLeft + ')');
-  ok(rolou.etiqueta === false, 'e a etiqueta some depois que a pessoa rolou: já cumpriu o papel');
+  ok(rolou.scrollLeft > 0, 'e o conteúdo fica onde a seta deixou');
 
   // ---------- voltando para a tela larga, o aviso se apaga sozinho ----------
   await page.setViewportSize({ width: 1340, height: 950 });

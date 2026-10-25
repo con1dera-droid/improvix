@@ -119,21 +119,22 @@ dela). O motor é `js/chords.js` e a tela, `js/chords-ui.js`.
 Uma lista corrida, sem títulos de grupo, na ordem que o dono do projeto fixou:
 **Inicie aqui** · Exercícios de Padrões · Transcrição / Treino · Teoria Musical
 do zero · Biblioteca de Escalas · Biblioteca de Fraseados · Biblioteca de
-Acordes · Análise de Harmonia · **Treino de Ouvido** · Meus Exercícios ·
+Acordes · Análise de Harmonia · **Treine seu Ouvido** · Meus Exercícios ·
 (Administração, só para quem administra) · **Configurações** no fim. O
 administrador pode desligar qualquer uma dessas telas, menos o Início e as
 Configurações.
 
-## Treino de Ouvido
+## Treine seu Ouvido
 
-Um jogo curto, no item **🎧 Treino de Ouvido**. O sistema toca o acorde da
+Um jogo curto, no item **🎮 Treine seu Ouvido**. O sistema toca o acorde da
 tonalidade (a referência), depois uma nota, e você responde **que grau** é
 aquilo — a tônica, a terça, a quinta. É ouvido **relativo**: a pergunta "que
 nota é essa?", sem referência, cobraria ouvido absoluto, que em adulto
 praticamente não se desenvolve e viraria sorte.
 
-São quatro níveis, que abrem como os exercícios do Início — 80% numa rodada de
-dez abre o seguinte: **1)** 1-3-5, **2)** com a 7ª, **3)** a escala inteira,
+São quatro níveis, que abrem com 80% numa rodada de dez — e **fecham 24 horas
+depois**: todo dia você recomeça do nível 1, porque ouvido não se guarda, se
+mantém. Os níveis são: **1)** 1-3-5, **2)** com a 7ª, **3)** a escala inteira,
 **4)** as doze notas. No nível 1, de três em três perguntas vem um **acorde
 inteiro** para você dizer se é maior ou menor — é a terça do mesmo acorde,
 vista de outro ângulo.

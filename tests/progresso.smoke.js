@@ -97,8 +97,10 @@ async function tocar(page, i, ms) {
   ok(linha && linha.voltas === 1, 'uma execução inteira conta uma volta (' + (linha && linha.voltas) + ')');
   ok(linha && linha.chave === 'treino:jonio:0', 'gravada na chave do exercício ("' + (linha && linha.chave) + '")');
   ok(linha && !linha.feito_em, 'com uma volta, ainda não está feito');
+  // O contador "1 de 2 voltas" saiu do cartão em 25/10/2026 — a conta
+  // continua no banco, que é o que esta linha acabou de conferir.
   let selo = await page.$eval('#tre-conteudo .esc-ex:first-of-type .lib-card-title', (t) => t.textContent);
-  ok(/1 de 2 voltas/.test(selo), 'a tela mostra "1 de 2 voltas" ("' + selo.trim().slice(0, 50) + '")');
+  ok(!/voltas/.test(selo), 'o cartão não anuncia a contagem de voltas ("' + selo.trim().slice(0, 50) + '")');
 
   // 3) a segunda fecha o exercício
   await tocar(page, 0, Math.round(ciclo * 1000 + 700));
@@ -107,8 +109,9 @@ async function tocar(page, i, ms) {
   ok(linha.bpm_max === 80, 'e o andamento usado fica guardado (' + linha.bpm_max + ' bpm)');
 
   // A partir de 24/10/2026 tocar junto NÃO libera o próximo — quem libera é a
-  // gravação (tests/gravacao.smoke.js). Tocar junto continua sendo medido e
-  // aparece no cartão, mas com outro nome, para não prometer o que não dá.
+  // gravação (tests/gravacao.smoke.js). Em 25/10/2026 o selo "♪ tocado junto"
+  // saiu do cartão, a pedido do dono: ele contava o que a pessoa ouviu, e
+  // ouvir não abre porta nenhuma. A contagem continua no banco e no resumo.
   const tela = await page.evaluate(() => ({
     selo: (document.querySelector('#tre-conteudo .esc-ex .esc-andando') || {}).textContent || '',
     gravado: !!document.querySelector('#tre-conteudo .esc-ex .esc-feito'),
@@ -116,8 +119,8 @@ async function tocar(page, i, ms) {
     barra: document.querySelector('.tre-prog-barra i').style.width,
     proximo: (document.querySelector('.esc-ex-proximo .lib-card-title') || {}).textContent || ''
   }));
-  ok(/tocado junto/.test(tela.selo), 'o exercício ganha o selo "♪ tocado junto" ("' + tela.selo.trim() + '")');
-  ok(!tela.gravado, 'mas NÃO o selo de gravado: ouvir não é tocar');
+  ok(tela.selo === '', 'o cartão NÃO ganha selo por ter tocado junto (ouvir não é tocar)');
+  ok(!tela.gravado, 'e nem o selo de gravado');
   ok(/0 de \d+ exercícios gravados/.test(tela.resumo) && /1 tocado/.test(tela.resumo),
     'o resumo separa gravados de tocados junto ("' + tela.resumo.trim().slice(0, 60) + '")');
   ok(tela.barra === '0%', 'a barra conta gravações, e ainda não houve nenhuma (' + tela.barra + ')');

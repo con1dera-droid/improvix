@@ -405,7 +405,7 @@
     { nav: 'biblioteca-fraseados', label: 'Biblioteca de Fraseados' },
     { nav: 'acordes', label: 'Biblioteca de Acordes' },
     { nav: 'harmonia', label: 'Análise de Harmonia' },
-    { nav: 'ouvido', label: 'Treino de Ouvido' },
+    { nav: 'ouvido', label: 'Treine seu Ouvido' },
     { nav: 'meus-exercicios', label: 'Meus Exercícios' },
     { nav: 'config', label: 'Configurações', fixo: true }
   ];

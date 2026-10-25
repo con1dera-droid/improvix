@@ -113,9 +113,16 @@
     dir.className = 'rolavel-seta rolavel-dir';
     dir.setAttribute('aria-label', vertical ? 'Mostrar o que está abaixo' : 'Mostrar o que está à direita');
     dir.textContent = vertical ? '⌄' : '›';
-    var aviso = document.createElement('span');
-    aviso.className = 'rolavel-aviso';
-    aviso.textContent = vertical ? '↓ tem mais abaixo' : '↔ tem mais para o lado';
+    // O aviso escrito só existe na vertical. Na horizontal ele saiu em
+    // 25/10/2026, a pedido do dono: agora que a barra azul fica parada
+    // embaixo da partitura, a etiqueta era a terceira coisa dizendo a mesma
+    // coisa (barra, seta e texto) em cima de um cartão já cheio.
+    var aviso = null;
+    if (vertical) {
+      aviso = document.createElement('span');
+      aviso.className = 'rolavel-aviso';
+      aviso.textContent = '↓ tem mais abaixo';
+    }
 
     function anda(quanto) {
       if (vertical) {
@@ -129,7 +136,7 @@
 
     env.appendChild(esq);
     env.appendChild(dir);
-    env.appendChild(aviso);
+    if (aviso) env.appendChild(aviso);
 
     caixa.__vertical = !!vertical;
     montarTrilho(env, caixa, vertical);

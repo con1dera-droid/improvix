@@ -2522,6 +2522,43 @@ checagens do prazo, envelhecendo o relógio em 25 horas e conferindo que tudo
 tranca e que a pessoa volta ao nível 1. Bateria inteira: 13 testes de unidade,
 38 smokes, sem erro de página.
 
+## Menos pastilhas, nomes e ícones — ✅ (2026-10-25)
+
+Uma rodada de acabamento, toda ela de tirar coisa da frente.
+
+**Duas pastilhas saíram do cartão do exercício**: "♪ tocado junto" e "1 de 2
+voltas". As duas contavam o que a pessoa **ouviu**, e ouvir não libera nada —
+quem libera é a gravação. Eram duas formas de dizer quase a mesma coisa em
+cima de um cartão que já tem título, selo, dois botões e a partitura. A
+contagem continua no banco e na tela de Administração, que é onde ela serve.
+
+**O aviso escrito "↔ tem mais para o lado" saiu da horizontal.** Agora que a
+barra azul fica parada embaixo da partitura, eram três coisas dizendo o mesmo:
+barra, seta e texto. Na vertical (a lista de lições) ele fica, porque lá a
+barra sozinha não dá conta de uma lista de 28 cortada em 4.
+
+**"Como funciona"** encolheu para o tamanho dos selos (0,7rem): o destaque dele
+é a cor, não o tamanho. **"Informação"** passou para o azul-claro dos botões de
+ouvir, que lê melhor no escuro. **A caixa do andamento** virou 28×28, do
+tamanho do − e do +.
+
+**Nomes e ícones.** "Treino de Ouvido" virou **"Treine seu Ouvido"**, com 🎮 —
+é um jogo, e o nome agora é um convite em vez de um rótulo. A Análise de
+Harmonia ganhou 🎸.
+
+Para a Teoria Musical o dono pediu "um livro com capa com uma nota". Esse
+emoji não existe — então o ícone é **desenhado**: um SVG de 24×24 no
+`index.html`, livro azul com uma semínima branca na capa, dimensionado em `em`
+para acompanhar o texto. Como ele vira um segundo filho do item de menu, o
+alinhamento da lista passou de `space-between` para `flex-start`: com o
+primeiro, ícone e texto se afastariam para as pontas.
+
+Testes ajustados ao que mudou: `menu.smoke` (nomes e ícones novos; o da Teoria
+não entra no texto, por ser SVG), `progresso.smoke` (o cartão não anuncia mais
+voltas — a conta continua conferida no banco) e `rolagem.smoke` (sem etiqueta
+na horizontal). Bateria inteira: 13 testes de unidade, 38 smokes, sem erro de
+página.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

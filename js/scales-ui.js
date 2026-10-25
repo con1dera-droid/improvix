@@ -184,17 +184,15 @@
     } else {
       body = '<div class="staff-block lib-staff">' + notation.toRhythmStaffSVG(notation.centerForStaff(ex.events), { chords: ex.chords }) + '</div>';
     }
+    // Só o selo que significa alguma coisa: GRAVADO. Os antigos "♪ tocado
+    // junto" e "1 de 2 voltas" saíram a pedido do dono (25/10/2026) — eles
+    // contavam o que a pessoa ouviu, e ouvir não libera nada. Duas pastilhas
+    // dizendo quase a mesma coisa só tiravam a atenção do exercício. A
+    // contagem continua no banco e na tela de Administração.
     var selo = '';
-    if (marca) {
-      if (marca.gravado) {
-        selo = '<span class="esc-feito" title="Você gravou este exercício e acertou ' +
-          (marca.acerto || 0) + '%">✓ gravado' + (marca.acerto ? ' · ' + marca.acerto + '%' : '') + '</span>';
-      } else if (marca.feito) {
-        selo = '<span class="esc-andando" title="Você já tocou junto o exercício inteiro duas vezes">♪ tocado junto</span>';
-      } else if (marca.voltas) {
-        selo = '<span class="esc-andando" title="Execuções inteiras até agora">' +
-          marca.voltas + ' de 2 voltas</span>';
-      }
+    if (marca && marca.gravado) {
+      selo = '<span class="esc-feito" title="Você gravou este exercício e acertou ' +
+        (marca.acerto || 0) + '%">✓ gravado' + (marca.acerto ? ' · ' + marca.acerto + '%' : '') + '</span>';
     }
 
     // TRANCADO: o exercício só abre quando o anterior é gravado. Aqui não se

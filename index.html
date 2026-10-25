@@ -56,12 +56,12 @@
       <a href="#" class="nav-item active" data-nav="inicio">🏠 Inicie aqui — treinar escalas</a>
       <a href="#" class="nav-item" data-nav="padroes">📘 Exercícios de Padrões</a>
       <a href="#" class="nav-item" data-nav="transcricao">🎤 Transcrição / Treino</a>
-      <a href="#" class="nav-item" data-nav="aulas">🎓 Teoria Musical — do zero</a>
+      <a href="#" class="nav-item" data-nav="aulas"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2.8h11.2c.99 0 1.8.81 1.8 1.8v16.6H7.6c-.99 0-1.8-.81-1.8-1.8V2.8z" fill="#3b82f6"/><path d="M6 2.8A2.2 2.2 0 0 0 3.8 5v14.2A2.2 2.2 0 0 0 6 21.4V2.8z" fill="#1d4ed8"/><ellipse cx="10.6" cy="15.6" rx="2.5" ry="1.9" transform="rotate(-22 10.6 15.6)" fill="#fff"/><path d="M12.9 15.1V6.6" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><path d="M12.9 6.6c1.9.4 3 1.2 3.4 2.4" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg> Teoria Musical — do zero</a>
       <a href="#" class="nav-item" data-nav="biblioteca-escalas">📚 Biblioteca de Escalas</a>
       <a href="#" class="nav-item" data-nav="biblioteca-fraseados">🎼 Biblioteca de Fraseados</a>
       <a href="#" class="nav-item" data-nav="acordes">🎹 Biblioteca de Acordes</a>
-      <a href="#" class="nav-item" data-nav="harmonia">🎹 Análise de Harmonia</a>
-      <a href="#" class="nav-item" data-nav="ouvido">🎧 Treino de Ouvido</a>
+      <a href="#" class="nav-item" data-nav="harmonia">🎸 Análise de Harmonia</a>
+      <a href="#" class="nav-item" data-nav="ouvido">🎮 Treine seu Ouvido</a>
       <a href="#" class="nav-item" data-nav="meus-exercicios">📋 Meus Exercícios</a>
       <!-- só aparece para quem é admin (js/auth-ui.js cuida disso) -->
       <a href="#" class="nav-item" data-nav="admin" id="nav-admin" hidden>👑 Administração</a>
@@ -727,7 +727,7 @@
     <div class="content view" data-view="aulas" hidden>
       <div class="card">
         <div class="card-head">
-          <span class="card-icon">🎓</span>
+          <span class="card-icon"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2.8h11.2c.99 0 1.8.81 1.8 1.8v16.6H7.6c-.99 0-1.8-.81-1.8-1.8V2.8z" fill="#3b82f6"/><path d="M6 2.8A2.2 2.2 0 0 0 3.8 5v14.2A2.2 2.2 0 0 0 6 21.4V2.8z" fill="#1d4ed8"/><ellipse cx="10.6" cy="15.6" rx="2.5" ry="1.9" transform="rotate(-22 10.6 15.6)" fill="#fff"/><path d="M12.9 15.1V6.6" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><path d="M12.9 6.6c1.9.4 3 1.2 3.4 2.4" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></span>
           <div class="card-title">Teoria Musical — do zero</div>
         </div>
         <p class="muted-note">Vinte e oito lições curtas, das quatro propriedades do som ao ii–V–I.
@@ -740,7 +740,7 @@
       </div>
     </div>
 
-    <!-- View: Treino de Ouvido -->
+    <!-- View: Treine seu Ouvido -->
     <!-- Ouvido RELATIVO, não absoluto: o sistema dá a referência antes de
          tocar a nota, e a pergunta é "que grau é", não "que nota é". Ouvido
          absoluto praticamente não se desenvolve em adulto; o relativo é o que
@@ -748,8 +748,8 @@
     <div class="content view" data-view="ouvido" hidden>
       <div class="card">
         <div class="card-head">
-          <span class="card-icon">🎧</span>
-          <div class="card-title">Treino de Ouvido</div>
+          <span class="card-icon">🎮</span>
+          <div class="card-title">Treine seu Ouvido</div>
         </div>
         <div id="ouv-conteudo"></div>
       </div>

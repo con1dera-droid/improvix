@@ -157,6 +157,13 @@ li { margin-bottom: 0.5rem; line-height: 1.4; }
   justify-content: space-between;
   gap: 0.4rem;
 }
+/* Não existe emoji de "livro com uma nota na capa", que foi o que o dono
+   pediu para a Teoria Musical — então esse é desenhado (SVG no index.html).
+   Como ele vira um segundo filho do item, o alinhamento do menu passa a ser
+   pela esquerda: com `space-between` o ícone e o texto se afastariam. */
+.nav-item { justify-content: flex-start; }
+.nav-ico { width: 1.15em; height: 1.15em; flex: 0 0 auto; vertical-align: -0.2em; }
+.card-icon .nav-ico { width: 1em; height: 1em; }
 .nav-item:hover { background: var(--bg-elevated); color: var(--text); }
 .nav-item.active { background: var(--accent); color: #fff; }
 .nav-item.is-soon { opacity: 0.65; cursor: default; }
@@ -1616,12 +1623,25 @@ body.sistema-travado .modal-close { display: none; }
   }
   /* "Como funciona" é a porta de entrada da regra do treino: em texto azul
      puro ele se perdia no fundo escuro. Vira pastilha, com o mesmo azul-claro
-     dos botões de ouvir — que é o tom de maior contraste do site. */
+     dos botões de ouvir — que é o tom de maior contraste do site. Do tamanho
+     dos selos do exercício (0,7rem), a pedido do dono: destaque é a cor, não
+     o tamanho. */
   .tre-mais {
     background: var(--ouvir); color: var(--ouvir-ink);
-    border-radius: 999px; padding: 0.3rem 0.8rem;
-    font-size: 0.82rem; font-weight: 800; letter-spacing: 0.01em;
-    margin: 0.35rem 0 0.1rem;
+    border-radius: 999px; padding: 0.12rem 0.6rem; min-height: 0;
+    font-size: 0.7rem; font-weight: 800; letter-spacing: 0.01em;
+    margin: 0.35rem 0 0.1rem; align-self: flex-start;
+  }
+  /* "Informação" num azul mais claro: o texto do link se apagava no escuro. */
+  .esc-info-btn { color: var(--ouvir); }
+
+  /* A caixa do andamento, do tamanho do − e do +. */
+  .tre-titulo-linha .tr-bpm {
+    height: 28px; width: 28px; padding: 0; justify-content: center;
+    background: var(--bg-card); border: 1px solid var(--border);
+  }
+  .tre-titulo-linha .tr-bpm-input {
+    width: 100%; text-align: center; font-size: 13px; line-height: 26px; min-height: 26px;
   }
   .tre-mais::before, .esc-info-btn::before { content: '▸'; }
   .tre-mais.is-aberto::before, .esc-info-aberta .esc-info-btn::before { content: '▾'; }

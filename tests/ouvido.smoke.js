@@ -1,5 +1,5 @@
 /**
- * Treino de Ouvido: o jogo pedido pelo dono em 25/10/2026.
+ * Treine seu Ouvido: o jogo pedido pelo dono em 25/10/2026.
  *
  * A checagem que importa aqui não é visual, é de afinação: **a nota que sai
  * pelo alto-falante é mesmo o grau que o jogo diz ser?** Um erro de um
@@ -270,6 +270,6 @@ const PC = { C: 0, Db: 1, D: 2, Eb: 3, E: 4, F: 5, 'F#': 6, G: 7, Ab: 8, A: 9, B
   console.log('\nErros de página:', erros.length ? erros : 'nenhum');
   if (erros.length) falhas += erros.length;
   await browser.close();
-  console.log(falhas ? '\n' + falhas + ' PROBLEMA(S)' : '\nTreino de Ouvido ok.');
+  console.log(falhas ? '\n' + falhas + ' PROBLEMA(S)' : '\nTreine seu Ouvido ok.');
   process.exit(falhas ? 1 : 0);
 })();

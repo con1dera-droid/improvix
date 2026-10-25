@@ -17,12 +17,12 @@ const ESPERADO = [
   ['inicio', '🏠 Inicie aqui'],
   ['padroes', '📘 Exercícios de Padrões'],
   ['transcricao', '🎤 Transcrição / Treino'],
-  ['aulas', '🎓 Teoria Musical'],
+  ['aulas', 'Teoria Musical'],   // o ícone virou um SVG (livro com nota), não entra no texto
   ['biblioteca-escalas', '📚 Biblioteca de Escalas'],
   ['biblioteca-fraseados', '🎼 Biblioteca de Fraseados'],
   ['acordes', '🎹 Biblioteca de Acordes'],
-  ['harmonia', '🎹 Análise de Harmonia'],
-  ['ouvido', '🎧 Treino de Ouvido'],
+  ['harmonia', '🎸 Análise de Harmonia'],
+  ['ouvido', '🎮 Treine seu Ouvido'],
   ['meus-exercicios', '📋 Meus Exercícios'],
   ['config', '⚙ Configurações']
 ];
