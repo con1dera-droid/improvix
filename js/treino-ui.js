@@ -3,8 +3,12 @@
  *
  * A primeira coisa que se vê ao abrir o site: escolhe o tom, a escala e o
  * instrumento, e saem na hora os 21 exercícios do método (os mesmos da
- * Biblioteca de Escalas), subindo e descendo duas oitavas, com partitura ou
- * tablatura, as notas escritas e áudio para tocar junto.
+ * Biblioteca de Escalas), com partitura ou tablatura, as notas escritas e
+ * áudio para tocar junto.
+ *
+ * Na escala maior há ainda o botão do CAMPO HARMÔNICO: os sete acordes da
+ * tonalidade tocando em sequência, um compasso cada, em loop, para o aluno
+ * executar o exercício por cima do som.
  *
  * São cinco escalas de propósito — as que se usa 90% do tempo na prática
  * diária. O catálogo inteiro (46 escalas, com a ficha de cada uma) continua
@@ -16,6 +20,7 @@
   var SC = window.IL.scales;
   var notation = window.IL.notation;
   var audio = window.IL.audio;
+  var theory = window.IL.theory;
 
   // Rótulos próprios: aqui a pessoa pensa "maior/menor", não "jônio/eólio".
   var ESCALAS = [
@@ -36,6 +41,46 @@
   var META_VOLTAS = 2;      // o mesmo número está em registrar_voltas(), no schema
 
   function chaveDe(i) { return 'treino:' + state.key + ':' + i; }
+
+  // ---------------- o campo harmônico tocando por baixo ----------------
+  //
+  // Pedido do dono (25/10/2026): um botão que toca os acordes do campo
+  // harmônico em sequência, para o aluno executar o exercício POR CIMA do som.
+  // É a sugestão que já está escrita no cartão do primeiro exercício
+  // ("execute em cima de todos os acordes do campo harmônico e se surpreenda")
+  // virando um botão, em vez de depender de alguém ter o acompanhamento à mão.
+  //
+  // As três decisões são dele: um compasso de 4 tempos por acorde, tétrades
+  // (C7M, Dm7, Em7, F7M, G7, Am7, Bm7(b5)) e só na escala MAIOR — na menor e
+  // nas pentatônicas o campo harmônico ou muda de cara ou não existe do mesmo
+  // jeito, e um botão que aparece onde não faz sentido só confunde.
+  var TEMPOS_POR_ACORDE = 4;
+
+  // Como se escreve a cifra de cada grau, no padrão que o site usa em todo
+  // lugar (Chediak): 7M para a sétima maior, (b5) entre parênteses.
+  var SUFIXO = { major7: '7M', minor7: 'm7', dominant7: '7', m7b5: 'm7(b5)' };
+
+  function temCampoHarmonico() { return state.key === 'jonio'; }
+
+  /**
+   * Os sete graus da tonalidade, já com cifra e notas, prontos para o motor de
+   * áudio. Devolve [] quando a escala escolhida não tem campo harmônico maior.
+   */
+  function campoHarmonico() {
+    if (!temCampoHarmonico() || !theory) return [];
+    var graus = theory.buildDiatonicField(state.tonic, 'maior');
+    return graus.map(function (g, i) {
+      var cifra = g.root + (SUFIXO[g.quality] || '');
+      return {
+        beat: i * TEMPOS_POR_ACORDE,
+        beats: TEMPOS_POR_ACORDE,
+        root: g.root,
+        tones: theory.chordNotes(cifra),
+        cifra: cifra,
+        roman: g.roman
+      };
+    });
+  }
 
   /**
    * Quantos segundos dura UMA execução inteira do exercício, no andamento da
@@ -235,6 +280,7 @@
     var b = ev.target.closest('[data-act]');
     if (!b) return;
     var act = b.getAttribute('data-act');
+    if (act === 'campo') { tocarCampo(b); return; }
     if (act === 'ouvir-ex') { tocar(b, 'ex' + b.getAttribute('data-i'), state.exercises[Number(b.getAttribute('data-i'))]); return; }
     if (act === 'gravar-ex') { gravarExercicio(b, Number(b.getAttribute('data-i'))); return; }
     if (act === 'fechar-gravacao') {
@@ -267,6 +313,65 @@
       b.classList.remove('playing');
       b.textContent = b.getAttribute('data-label') || '🔊 Ouvir';
     });
+    marcarAcordeAtual(-1);
+  }
+
+  /** Acende a cifra do acorde que está soando agora (ou apaga todas). */
+  function marcarAcordeAtual(indice) {
+    var cifras = document.querySelectorAll('#tre-conteudo .tre-campo-cifra');
+    Array.prototype.forEach.call(cifras, function (el, i) {
+      el.classList.toggle('is-on', i === indice);
+    });
+  }
+
+  /**
+   * Toca o campo harmônico em sequência, em loop, para o aluno executar o
+   * exercício por cima. Um compasso de 4 tempos por acorde, no andamento da
+   * barra de transporte. Clicar de novo pára.
+   */
+  function tocarCampo(btn) {
+    if (!audio) return;
+    if (state.playing === 'campo') { parar(); return; }
+    parar();
+    var acordes = campoHarmonico();
+    if (!acordes.length) return;
+    var t = window.IL.ui.transportOpts ? window.IL.ui.transportOpts('treino') : { bpm: 80 };
+    var compassos = acordes.length * TEMPOS_POR_ACORDE;
+    state.playing = 'campo';
+    btn.classList.add('playing');
+    btn.textContent = '⏹ Parar o campo harmônico';
+    // Só os acordes: a "melodia" é uma pausa do tamanho da volta inteira, para
+    // o motor saber onde o ciclo fecha. Quem toca a melodia é o aluno.
+    audio.playEvents([{ rest: true, onset: 0, dur: compassos }], $('tre-instrumento').value, {
+      bpm: t.bpm,
+      metronome: t.metronome,
+      loop: true,                 // o campo harmônico é para ficar rodando
+      chords: acordes,
+      onChord: marcarAcordeAtual        // o motor manda o índice do acorde
+    }, function () {
+      if (state.playing === 'campo') parar();
+    });
+  }
+
+  /** O botão e as sete cifras, só onde o campo harmônico faz sentido. */
+  function campoHTML() {
+    var acordes = campoHarmonico();
+    if (!acordes.length) return '';
+    return '<div class="tre-campo">' +
+      '<div class="tre-campo-topo">' +
+      // Mesma convenção de todo botão que toca som no site: azul claro parado,
+      // vermelho enquanto está soando.
+      '<button type="button" class="view-btn btn-ouvir tre-campo-btn" data-act="campo" ' +
+      'data-label="🎹 Tocar o campo harmônico" ' +
+      'title="Toca os sete acordes da tonalidade, um compasso cada, em loop. ' +
+      'Toque o exercício por cima.">🎹 Tocar o campo harmônico</button>' +
+      '<span class="tre-campo-nota">um compasso por acorde, em loop — toque o exercício por cima</span>' +
+      '</div>' +
+      '<div class="tre-campo-cifras">' +
+      acordes.map(function (c) {
+        return '<span class="tre-campo-cifra"><small>' + esc(c.roman) + '</small>' + esc(c.cifra) + '</span>';
+      }).join('') +
+      '</div></div>';
   }
 
   function tocar(btn, tag, ex) {
@@ -467,11 +572,12 @@
       '</div>' +
 
       '<h3 class="esc-sub">Exercícios para treinar</h3>' +
+      campoHTML() +
       '<div class="tre-prog" id="tre-progresso"></div>' +
       '<label class="tre-opcao"><input type="checkbox" id="tre-sem-acompanhamento"/> ' +
       'Gravar sem o acompanhamento (só a contagem do metrônomo) — marque se estiver sem fone de ouvido ' +
       'e o microfone estiver pegando o som da caixa.</label>' +
-      '<p class="si-legend">' + state.exercises.length + ' exercícios, todos subindo e descendo duas oitavas. ' +
+      '<p class="si-legend">' + state.exercises.length + ' exercícios, subindo e descendo. ' +
       'Ponha o metrônomo devagar e só acelere quando sair limpo.</p>' +
       '<p class="dica-rolar">↔ no celular, deslize a partitura/tablatura para o lado</p>' +
       exerciciosHTML(instrumento);

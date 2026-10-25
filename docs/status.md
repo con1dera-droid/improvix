@@ -2208,6 +2208,39 @@ repete; `tests/digitacoes.smoke.js` passou a exigir que nenhuma opção comece
 depois da 12ª casa. Bateria inteira: 13 testes de unidade, 36 smokes, sem erro
 de página.
 
+## O campo harmônico tocando por baixo — ✅ (2026-10-25)
+
+"Seria possível colocar um botão na aba Exercícios para treinar que ao clicar
+executaria os acordes do campo harmônico em sequência, pra gente executar os
+exercícios em cima do som saindo?" É a sugestão que entrou ontem no cartão do
+primeiro exercício virando botão — em vez de depender de o aluno ter um
+acompanhamento à mão.
+
+As três decisões são do dono: **um compasso de quatro tempos por acorde**,
+**tétrades** e **só na escala maior**. Na menor e nas pentatônicas o campo
+harmônico ou muda de cara ou não existe do mesmo jeito, e botão que aparece
+onde não faz sentido só confunde — então ali ele simplesmente não existe.
+
+O botão fica logo abaixo de "Exercícios para treinar", com as sete cifras da
+tonalidade à vista (em Dó: C7M · Dm7 · Em7 · F7M · G7 · Am7 · Bm7(b5)). Clicou,
+os acordes rodam em loop no andamento da barra de transporte e **a cifra que
+está soando acende** — dá para saber em que grau você está sem contar compasso.
+Clicar de novo pára; mandar ouvir ou gravar um exercício também pára, para os
+dois não somarem.
+
+Metade da peça já existia: o motor de áudio já tocava acordes como
+acompanhamento (é o que ele faz durante a gravação) e `buildDiatonicField` já
+montava os sete graus — era o mesmo cálculo que alimenta a Análise de
+Harmonia. O que entrou foi a ponte entre os dois, em `js/treino-ui.js`.
+
+Testes: `tests/campo.smoke.js` (novo, 18 checagens). Ele não se contenta com o
+botão mudando de rótulo: engancha um analisador na saída de áudio e confere que
+**sai som de verdade** (pico 0,40), que os acordes andam na ordem e **voltam ao
+I** (é loop), que cada um dura mesmo um compasso de quatro tempos (medido a 240
+bpm, para o ciclo fechar em 7 s), e que depois de parar o pico volta a zero. Em
+dois tons, para pegar erro de enarmonia. Bateria inteira: 13 testes de unidade,
+37 smokes, sem erro de página.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
@@ -2234,7 +2267,7 @@ do escopo cobrado, mas vale registrar): leitura transposta de sax/trompete
 `index.html`, `css/styles.css`, `js/data.js`, `js/theory.js`, `js/phrases.js`,
 `js/notation.js`, `js/audio.js`, `js/articulation.js`, `js/scale-info.js`, `js/patterns.js`, `js/patterns-ui.js`, `js/scales.js`, `js/scales-ui.js`, `js/transcribe.js`, `js/transcribe-ui.js`, `vendor/*` (+ `vendor/CREDITOS.md`), `sounds/*.js` (+ `sounds/CREDITOS.md`), `js/lab.js`, `js/lessons.js`, `js/library.js`, `js/app.js`, `js/library-ui.js`,
 `js/config.js`, `js/supabaseClient.js`, `js/auth-ui.js`, `js/avaliar.js`,
-`js/gravacao.js`, `js/rolagem.js`, `sql/schema.sql`,
+`js/gravacao.js`, `js/rolagem.js`, `js/treino-ui.js`, `sql/schema.sql`,
 `tests/theory.test.js`, `tests/phrases.test.js`, `tests/lab.test.js`,
 `tests/lessons.test.js`, `tests/library.test.js`, `tests/articulation.test.js`, `tests/fusion.smoke.js`, `tests/scaleinfo.test.js`, `tests/scaleinfo.smoke.js`, `tests/som.smoke.js`, `tests/patterns.test.js`, `tests/padroes.smoke.js`, `tests/escalas.test.js`, `tests/escalas.smoke.js`, `tests/ambiencia.smoke.js`, `tests/menu.smoke.js`, `tests/transcricao.test.js`, `tests/transcricao.smoke.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
 `tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`, `tests/etapa5.smoke.js`,
@@ -2242,7 +2275,8 @@ do escopo cobrado, mas vale registrar): leitura transposta de sax/trompete
 `tests/etapa5.aulas.smoke.js`, `tests/fraseados.smoke.js`, `tests/biblioteca.smoke.js`, `tests/boasvindas.smoke.js`,
 `tests/teoria.smoke.js`, `tests/progresso.smoke.js`, `tests/cores.smoke.js`,
 `tests/avaliar.test.js`, `tests/gravacao.smoke.js`, `tests/gravacao.e2e.js`,
-`tests/rolagem.smoke.js`, `tests/screenshot*.js` (dev only),
+`tests/rolagem.smoke.js`, `tests/campo.smoke.js`,
+`tests/screenshot*.js` (dev only),
 `docs/PRD.md`, `docs/mapa-do-sistema.md`, `docs/matriz-rbac.md`,
 `docs/modulos.md`, `docs/status.md`, `docs/etapa4-supabase.md`,
 `docs/etapa5-planos.md`, `docs/fraseados-referencias.md`, `README.md`.

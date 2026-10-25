@@ -117,15 +117,22 @@ dela). O motor é `js/chords.js` e a tela, `js/chords-ui.js`.
 ## A tela de Início: treinar escalas
 
 O site abre direto no treino: escolha a **tonalidade**, a **escala** e o
-**instrumento** e saem os 21 exercícios do método — todos subindo e
-descendo **duas oitavas** —, com partitura ou tablatura, as notas escritas,
-áudio e metrônomo. São cinco escalas (Maior, Menor natural, Pentatônica
-maior, Pentatônica maior + b3 e Pentablues); o catálogo completo de 46
-escalas, com a ficha de cada uma, está em **Biblioteca de Escalas**.
+**instrumento** e saem os 21 exercícios do método, subindo e descendo, com
+partitura ou tablatura, as notas escritas, áudio e metrônomo. São cinco
+escalas (Maior, Menor natural, Pentatônica maior, Pentatônica maior + b3 e
+Pentablues); o catálogo completo de 46 escalas, com a ficha de cada uma,
+está em **Biblioteca de Escalas**.
 
-Na escala **maior**, o primeiro exercício é o desenho **1-2-3-5-7-8** (a
-maior sem o 4º e o 6º graus — em C: C D E G B | C D E G B | C e a volta).
-Nas outras escalas, é a escala corrida.
+Na escala **maior**, o primeiro exercício é o desenho
+**1-2-3-5-7-8-9-8-7-5-3-2-1** (em C: C D E G B C D | C B G E D C) — uma
+oitava mais a 9ª, o único curto assim; os outros vão a duas oitavas. Nas
+outras escalas, o primeiro é a escala corrida.
+
+Ainda na maior, o botão **🎹 Tocar o campo harmônico** põe os sete acordes
+da tonalidade rodando em loop — tétrades (C7M, Dm7, Em7, F7M, G7, Am7,
+Bm7(b5)), um compasso de quatro tempos cada, no andamento da barra. A
+cifra que está soando acende. A ideia é tocar o exercício POR CIMA: é o
+jeito mais rápido de ouvir o mesmo desenho mudando de cor a cada grau.
 
 A **análise de harmonia** (progressão → escalas, arpejos, notas-alvo e
 fraseados) continua inteira: virou o item **🎹 Análise de Harmonia**, logo
