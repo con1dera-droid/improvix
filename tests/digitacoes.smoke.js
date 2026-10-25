@@ -55,8 +55,14 @@ const CARTAO = () => {
   const a = await page.evaluate(CARTAO);
   ok(a && a.opcoes.length >= 2, 'o exercício oferece mais de uma digitação (' + (a ? a.opcoes.join(', ') : '—') + ')');
   ok(a && a.ativa === 0, 'a primeira (mais grave) vem escolhida');
-  ok(/^6ª\/\d+$/.test(a.opcoes[0]) && /^5ª\/\d+$/.test(a.opcoes[1]),
+  ok(a.opcoes.every((o) => /^[1-6]ª\/\d+$/.test(o)),
     'as opções dizem corda e casa: ' + a.opcoes.join(' · '));
+  // E nenhuma delas manda a pessoa para o fim do braço: desde 24/10/2026 as
+  // regiões desconfortáveis (começar depois da 12ª casa) só aparecem quando
+  // não existe nenhuma confortável — antes disso, um exercício curto abria na
+  // casa 20 da 6ª corda, certo no papel e impraticável na mão.
+  ok(a.opcoes.every((o) => Number(o.split('/')[1]) <= 12),
+    'e nenhuma começa depois da 12ª casa: ' + a.opcoes.join(' · '));
 
   await page.click('.content.view:not([hidden]) .esc-ex [data-act="digitacao"][data-d="1"]');
   await page.waitForTimeout(500);

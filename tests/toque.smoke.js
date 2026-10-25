@@ -118,7 +118,11 @@ function analisa(env) {
   await page.evaluate(() => window.IL.audio.stopAll());
   const s2 = analisa(envSax);
   console.log('\nsax: ' + s2.notas + ' ataques · silêncio ' + (s2.silencio * 100).toFixed(1) + '%');
-  ok(s2.notas >= 8, 'SOPRO: o exercício toca (' + s2.notas + ' notas ouvidas)');
+  // O 1º exercício da maior passou a ter 13 notas (o desenho
+  // 1-2-3-5-7-8-9, pedido em 24/10/2026), e no sopro as notas se emendam de
+  // propósito — por isso o detector de ataques conta bem menos que 13. O que
+  // importa aqui é que o exercício TOCA; o emenda-sem-soluço é a linha de baixo.
+  ok(s2.notas >= 4, 'SOPRO: o exercício toca (' + s2.notas + ' notas ouvidas)');
   ok(s2.silencio < 0.08, 'SOPRO: as notas se emendam, sem soluço entre elas (silêncio ' +
     (s2.silencio * 100).toFixed(1) + '%)');
   ok(s2.pico >= 0.3 && s2.pico <= 1, 'SOPRO: sem estourar nem sumir (pico ' + s2.pico.toFixed(3) + ')');

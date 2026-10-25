@@ -298,16 +298,18 @@
     // que "puxam" para outro acorde. O que sobra são as notas do acorde
     // (1-3-5-7) mais a 2ª e a oitava — a escala já ouvida como harmonia.
     if (ehMaiorKey(scaleKey)) {
-      // 1-2-3-5-7 em cada oitava; o "8" é a tônica da oitava seguinte, que
-      // já abre o grupo de cima — por isso ela não é repetida.
-      var MOLDE = [0, 1, 2, 4, 6];        // 1 2 3 5 7  (o 8 vem do grupo seguinte)
-      var subida = [];
-      for (i = 0; i < OITAVAS; i++) MOLDE.forEach(function (g) { subida.push(s0 + i * n + g); });
-      subida.push(s0 + N);                // o 8 lá no alto, fechando a subida
-      seq = subida.concat(subida.slice(0, -1).reverse());
+      // A pedido do dono (24/10/2026), este exercício — e SÓ ele — é curto e
+      // fechado: 1 2 3 5 7 8 9 8 7 5 3 2 1. Uma oitava mais a 9ª, subindo e
+      // descendo, sem repetir o topo. É o desenho que ele usa para tocar em
+      // cima de cada acorde do campo harmônico; por isso cabe numa oitava.
+      // Todos os outros exercícios continuam em duas oitavas.
+      var subida = [0, 1, 2, 4, 6, n, n + 1];      // 1 2 3 5 7 8 9
+      seq = subida.concat(subida.slice(0, -1).reverse())  // …8 7 5 3 2 1
+        .map(function (g) { return s0 + g; });
       out.push({
-        id: 'escala', grupo: G1, title: 'Desenho 1-2-3-5-7-8 subindo e descendo (duas oitavas)',
+        id: 'escala', grupo: G1, title: 'Desenho 1-2-3-5-7-8-9 subindo e descendo',
         dica: 'A maior sem o 4º e o 6º graus — as duas notas que puxam para outro acorde. Sobram o acorde (1-3-5-7) mais a 2ª e a oitava: é a escala já ouvida como harmonia. Devagar, com o metrônomo, dizendo o grau de cada nota.',
+        sugestao: 'Execute esse exercício em cima de todos os acordes do campo harmônico da escala maior e se surpreenda.',
         events: toEvents(seq, ladder, 0.5, true)
       });
     } else {

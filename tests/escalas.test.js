@@ -113,6 +113,9 @@ test('todo exercício sobe e desce duas oitavas', function () {
   ['C', 'G', 'Eb', 'F#'].forEach(function (tom) {
     ['jonio', 'eolio', 'dorico', 'pentatonica_maior', 'blues_maior', 'blues_menor'].forEach(function (k) {
       SC.exercisesFor(tom, k).forEach(function (ex) {
+        // Exceção conhecida e querida: na maior, o desenho 1-2-3-5-7-8-9 é de
+        // propósito curto (uma oitava e a 9ª) — ver o teste acima.
+        if (ex.id === 'escala' && /1-2-3-5-7-8-9/.test(ex.title)) return;
         var ns = ex.events.filter(function (e) { return !e.rest; });
         var lo = Math.min.apply(null, ns.map(function (e) { return e.midi; }));
         var hi = Math.max.apply(null, ns.map(function (e) { return e.midi; }));
@@ -125,18 +128,32 @@ test('todo exercício sobe e desce duas oitavas', function () {
   });
 });
 
-test('na escala maior o primeiro exercício é o desenho 1-2-3-5-7-8', function () {
+test('na escala maior o primeiro exercício é o desenho 1-2-3-5-7-8-9', function () {
+  // Pedido do dono (24/10/2026): este exercício é exatamente
+  // 1 2 3 5 7 8 9 8 7 5 3 2 1 — treze notas, uma oitava e a 9ª — e é o único
+  // do site com esse formato curto. Os outros continuam em duas oitavas.
   var ex = SC.exercisesFor('C', 'jonio')[0];
-  assert.ok(/1-2-3-5-7-8/.test(ex.title), 'título inesperado: ' + ex.title);
+  assert.ok(/1-2-3-5-7-8-9/.test(ex.title), 'título inesperado: ' + ex.title);
   var ns = ex.events.filter(function (e) { return !e.rest; });
+  assert.strictEqual(ns.length, 13, 'devia ter 13 notas, tem ' + ns.length);
   assert.strictEqual(ns.map(function (e) { return e.name; }).join(' '),
-    'C D E G B C D E G B C B G E D C B G E D C');
+    'C D E G B C D C B G E D C');
   assert.strictEqual(ns.map(function (e) { return e.midi; }).join(' '),
-    '60 62 64 67 71 72 74 76 79 83 84 83 79 76 74 72 71 67 64 62 60');
+    '60 62 64 67 71 72 74 72 71 67 64 62 60');
+  // a sugestão de usar o desenho em todo o campo harmônico vem junto
+  assert.ok(/campo harmônico/.test(ex.sugestao || ''), 'faltou a sugestão: ' + ex.sugestao);
   // em outro tom, o mesmo desenho
   assert.strictEqual(SC.exercisesFor('G', 'jonio')[0].events.filter(function (e) { return !e.rest; })
     .map(function (e) { return e.name; }).join(' '),
-    'G A B D F# G A B D F# G F# D B A G F# D B A G');
+    'G A B D F# G A G F# D B A G');
+  // e é o ÚNICO com esse desenho: nenhum outro exercício repete a sequência
+  // nem leva a sugestão em destaque.
+  var desenho = ns.map(function (e) { return e.name; }).join(' ');
+  SC.exercisesFor('C', 'jonio').slice(1).forEach(function (o) {
+    assert.notStrictEqual(o.events.filter(function (e) { return !e.rest; })
+      .map(function (e) { return e.name; }).join(' '), desenho, o.id + ' repete o mesmo desenho');
+    assert.ok(!o.sugestao, o.id + ' não devia ter sugestão em destaque');
+  });
   // as outras escalas seguem com a escala corrida
   ['eolio', 'dorico', 'pentatonica_maior', 'blues_menor'].forEach(function (k) {
     assert.ok(/A escala subindo e descendo/.test(SC.exercisesFor('C', k)[0].title),

@@ -41,13 +41,17 @@ function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!c
   ok(escalas.map((e) => e.v).join(',') === 'jonio,eolio,pentatonica_maior,blues_maior,blues_menor',
     'na ordem pedida: ' + escalas.map((e) => e.t).join(' · '));
 
-  // --- escala maior: o desenho 1-2-3-5-7-8, duas oitavas ---
+  // --- escala maior: o desenho 1-2-3-5-7-8-9 ---
+  // Pedido do dono (24/10/2026): este exercício é curto de propósito — uma
+  // oitava e a 9ª, para ser tocado em cima de cada acorde do campo harmônico.
   const titulo1 = await page.$eval('#tre-conteudo .lib-card-title', (e) => e.textContent);
-  ok(/1-2-3-5-7-8/.test(titulo1), 'na maior, o 1º exercício é o 1-2-3-5-7-8 (' + titulo1 + ')');
+  ok(/1-2-3-5-7-8-9/.test(titulo1), 'na maior, o 1º exercício é o 1-2-3-5-7-8-9 (' + titulo1 + ')');
   const notas1 = await page.$eval('#tre-conteudo .esc-notas', (e) =>
     Array.from(e.querySelectorAll('.esc-nota')).map((n) => n.textContent).join(' '));
-  ok(notas1 === 'C D E G B C D E G B C B G E D C B G E D C',
+  ok(notas1 === 'C D E G B C D C B G E D C',
     'e sai nota a nota como o método pede: ' + notas1);
+  const sug = await page.$eval('#tre-conteudo .esc-ex-sugestao', (e) => e.textContent).catch(() => '');
+  ok(/campo harmônico/.test(sug), 'e a sugestão aparece em destaque no cartão (' + sug + ')');
 
   // --- duas oitavas em todos ---
   // Desde 24/10/2026 a tela de Início mostra um exercício de cada vez (os
@@ -55,8 +59,8 @@ function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!c
   // TODOS são longos se faz na Biblioteca de Escalas, que é consulta livre e
   // monta os mesmos 21 exercícios.
   const abertos = await page.$$eval('#tre-conteudo .esc-ex .esc-notas', (ps) => ps.map((p) => p.querySelectorAll('.esc-nota').length));
-  ok(abertos.length >= 1 && abertos[0] >= 20,
-    'o exercício aberto tem o tamanho de duas oitavas (' + abertos[0] + ' notas)');
+  ok(abertos.length >= 1 && abertos[0] === 13,
+    'o 1º exercício tem as 13 notas do desenho pedido (' + abertos[0] + ')');
   const trancados = await page.$$eval('#tre-conteudo .esc-ex-trancado', (e) => e.length);
   ok(trancados >= 15, 'e os outros ' + trancados + ' estão trancados, esperando a gravação');
 
@@ -82,7 +86,7 @@ function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!c
   await page.waitForTimeout(700);
   const notasG = await page.$eval('#tre-conteudo .esc-notas', (e) =>
     Array.from(e.querySelectorAll('.esc-nota')).map((n) => n.textContent).join(' '));
-  ok(notasG === 'G A B D F# G A B D F# G F# D B A G F# D B A G', 'trocar o tom transpõe o desenho: ' + notasG);
+  ok(notasG === 'G A B D F# G A G F# D B A G', 'trocar o tom transpõe o desenho: ' + notasG);
 
   // --- instrumento: teclado mostra partitura, guitarra mostra tablatura ---
   ok((await page.$$eval('#tre-conteudo .esc-ex svg', (s) => s.length)) > 0, 'no teclado sai partitura');

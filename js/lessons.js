@@ -464,6 +464,18 @@
       exemplo: { tonalidade: 'C', modo: 'maior', progressao: 'C | A7 | Dm7 | G7' }
     },
     {
+      id: 'acorde-escala-avancado',
+      categoria: 'Harmonia avançada',
+      titulo: 'Menor melódica, menor harmônica e o dominante',
+      resumo: 'Como a mesma cifra "7" pede escalas diferentes conforme para onde o acorde resolve — e o que as tensões da cifra mandam.',
+      corpo: [
+        'Além dos 7 modos da escala maior, a improvisação usa os modos da menor melódica (menor melódica, dórico b2, lídio aumentado, lídio b7, mixolídio b13, lócrio 9 e alterada), o 5º modo da menor harmônica (mixolídio b9 b13) e a escala simétrica dominante-diminuta (semitom-tom). Com elas dá para tocar sobre praticamente qualquer acorde do jazz e da MPB.',
+        'O dominante é o caso mais rico. Um V7 que resolve num acorde maior (G7 → C) soa bem com o mixolídio (ou, para mais tensão, com a alterada). Um V7 que resolve num acorde menor (E7 → Am, ou o A7 que prepara o Dm7) pede o mixolídio b9 b13, que já traz as notas da tonalidade menor. O SubV7 (Db7 → C), o IV7 do blues e o bVII7 pedem o lídio b7. E se a cifra trouxer tensões, elas mandam: 7(b9) = dominante-diminuta, 7(b13) = mixolídio b13, 7(#11) = lídio b7, 7(alt) = alterada, 7(#5) = tons inteiros.',
+        'Nos outros acordes: 7M no I grau = jônio, 7M nos demais graus = lídio; m7 no ii = dórico, no iii = frígio, no vi = eólio; m6 e m(7M) = menor melódica; m7(b5) diatônico = lócrio, e lócrio 9 nos demais; ° = diminuta (tom-semitom). É exatamente essa tabela que o IMPROVIX usa para escolher as escalas e montar as frases.'
+      ],
+      exemplo: { tonalidade: 'C', modo: 'maior', progressao: 'C7M | A7(b13) | Dm7 | G7(b9) | C7M | Db7 | C7M' }
+    },
+    {
       id: 'tipos-de-frase',
       categoria: 'Fraseados',
       titulo: 'Como o IMPROVIX monta os fraseados',
@@ -491,18 +503,6 @@
         'Para praticar cada técnica isolada, em qualquer escala e nos 12 tons, use a Biblioteca de Fraseados (menu lateral): escolha o estilo (Bebop, Jazz moderno, Blues, Modal, Rock, Baião), a escala e o tom, e peça quantas frases quiser — cada uma com partitura, tab, áudio e a explicação de qual vocabulário ela usa.'
       ],
       exemplo: { tonalidade: 'C', modo: 'maior', progressao: 'Dm7 | G7 | C7M' }
-    },
-    {
-      id: 'acorde-escala-avancado',
-      categoria: 'Harmonia avançada',
-      titulo: 'Menor melódica, menor harmônica e o dominante',
-      resumo: 'Como a mesma cifra "7" pede escalas diferentes conforme para onde o acorde resolve — e o que as tensões da cifra mandam.',
-      corpo: [
-        'Além dos 7 modos da escala maior, a improvisação usa os modos da menor melódica (menor melódica, dórico b2, lídio aumentado, lídio b7, mixolídio b13, lócrio 9 e alterada), o 5º modo da menor harmônica (mixolídio b9 b13) e a escala simétrica dominante-diminuta (semitom-tom). Com elas dá para tocar sobre praticamente qualquer acorde do jazz e da MPB.',
-        'O dominante é o caso mais rico. Um V7 que resolve num acorde maior (G7 → C) soa bem com o mixolídio (ou, para mais tensão, com a alterada). Um V7 que resolve num acorde menor (E7 → Am, ou o A7 que prepara o Dm7) pede o mixolídio b9 b13, que já traz as notas da tonalidade menor. O SubV7 (Db7 → C), o IV7 do blues e o bVII7 pedem o lídio b7. E se a cifra trouxer tensões, elas mandam: 7(b9) = dominante-diminuta, 7(b13) = mixolídio b13, 7(#11) = lídio b7, 7(alt) = alterada, 7(#5) = tons inteiros.',
-        'Nos outros acordes: 7M no I grau = jônio, 7M nos demais graus = lídio; m7 no ii = dórico, no iii = frígio, no vi = eólio; m6 e m(7M) = menor melódica; m7(b5) diatônico = lócrio, e lócrio 9 nos demais; ° = diminuta (tom-semitom). É exatamente essa tabela que o IMPROVIX usa para escolher as escalas e montar as frases.'
-      ],
-      exemplo: { tonalidade: 'C', modo: 'maior', progressao: 'C7M | A7(b13) | Dm7 | G7(b9) | C7M | Db7 | C7M' }
     },
     {
       id: 'blues-e-turnarounds',

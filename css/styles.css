@@ -751,6 +751,60 @@ select, input[type="text"] {
 .rolavel-ativo .rolavel-seta { display: inline-flex; }
 .rolavel-inicio .rolavel-esq, .rolavel-fim .rolavel-dir { opacity: 0.25; }
 
+/* A mesma ideia, mas para o que rola PARA BAIXO — a lista das 28 lições de
+   teoria é o caso: altura fixa, e o resto escondido embaixo sem nenhuma pista.
+   Aqui as setas ficam em cima e embaixo, e a sombra marca o lado onde ainda
+   há conteúdo. */
+.rolavel-y > *:first-child::-webkit-scrollbar { width: 10px; height: 10px; }
+/* A etiqueta fica EMBAIXO da lista (é para lá que ela aponta) e guarda um
+   lugar de tamanho fixo mesmo depois de sumir — assim a seta ⌄, que se apoia
+   na borda de baixo, nunca cai em cima dela nem pula de lugar quando a pessoa
+   começa a rolar. Sem lugar guardado, as duas coisas se sobrepõem. */
+.rolavel-y { --rol-aviso: 0rem; }
+.rolavel-y.rolavel-ativo { --rol-aviso: 1.55rem; }
+.rolavel-y.rolavel-ativo::before, .rolavel-y.rolavel-ativo::after {
+  left: 0; right: 10px; top: auto; bottom: auto; width: auto; height: 26px;
+}
+.rolavel-y.rolavel-ativo::before {
+  top: 0; background: linear-gradient(to bottom, var(--bg-card), rgba(0, 0, 0, 0));
+}
+.rolavel-y.rolavel-ativo::after {
+  bottom: var(--rol-aviso); background: linear-gradient(to top, var(--bg-card), rgba(0, 0, 0, 0));
+}
+/* As setas ficam encostadas na barra, do lado direito: no meio da lista elas
+   tapavam justamente o título do cartão que a pessoa estava lendo. */
+.rolavel-y .rolavel-seta {
+  top: auto; left: auto; right: 16px; transform: none;
+}
+.rolavel-y .rolavel-esq { top: 2px; }
+.rolavel-y .rolavel-dir { bottom: calc(var(--rol-aviso) + 2px); }
+.rolavel-y.rolavel-ativo .rolavel-aviso {
+  order: 1; align-self: center; margin: 0.35rem 0 0;
+  display: inline-block; visibility: hidden;
+  height: 1.2rem; line-height: 1.2rem; padding: 0 0.55rem;
+}
+.rolavel-y.rolavel-ativo.rolavel-virgem .rolavel-aviso { visibility: visible; }
+
+/* A barra desenhada por nós (js/rolagem.js). A do navegador é transparente no
+   Mac e some sozinha — foi justamente isso que fez o dono olhar a lista das
+   lições e achar que ela terminava na "Tríade menor". Esta fica parada, com a
+   cor de destaque, e só existe enquanto houver o que rolar. */
+.rolavel-trilho { display: none; }
+.rolavel-y.rolavel-ativo .rolavel-trilho {
+  display: block; position: absolute; right: 2px; top: 0;
+  bottom: var(--rol-aviso); width: 10px; border-radius: 999px;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  cursor: pointer; z-index: 2;
+}
+.rolavel-polegar {
+  position: absolute; left: 1px; right: 1px; top: 0; height: 30px;
+  border-radius: 999px; background: var(--accent); cursor: grab;
+}
+.rolavel-polegar:hover { filter: brightness(1.12); }
+.rolavel-arrastando .rolavel-polegar { cursor: grabbing; }
+/* Espaço para a barra não cair em cima do texto dos cartões. */
+.rolavel-y.rolavel-ativo > *:first-child { padding-right: 16px; }
+
 .rolavel-aviso {
   order: -1; align-self: flex-start; margin: 0 0 0.3rem;
   font-size: 0.7rem; font-weight: 700; letter-spacing: 0.02em;
@@ -815,6 +869,16 @@ select, input[type="text"] {
   border-radius: 999px; padding: 0.12rem 0.6rem; vertical-align: middle;
   white-space: nowrap;
 }
+/* A sugestão de uso do exercício: é um convite, não uma instrução a mais —
+   por isso sai da cor de texto comum e ganha moldura e fundo próprios. */
+.esc-ex-sugestao {
+  margin: 0.45rem 0 0; padding: 0.5rem 0.75rem;
+  font-size: 0.82rem; line-height: 1.5;
+  color: var(--text); background: var(--bg-elevated);
+  border-left: 4px solid var(--ouvir); border-radius: 0 8px 8px 0;
+}
+.esc-ex-sugestao strong { color: var(--accent); letter-spacing: 0.02em; }
+
 .esc-trancado-dica { margin: 0.2rem 0 0; }
 .esc-trancado-dica strong { color: var(--aviso); }
 

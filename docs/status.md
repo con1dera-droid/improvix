@@ -2155,6 +2155,59 @@ de verdade e que o aviso se apaga sozinho ao alargar a janela),
 lição**. Bateria inteira: 13 testes de unidade, 35 smokes e 80 regras de
 acesso, sem erro de página.
 
+## A barra que faltava, e o desenho 1-2-3-5-7-8-9 — ✅ (2026-10-25)
+
+Dois pedidos do dono, no mesmo dia.
+
+**1. "Não tem nada que identifique que tem conteúdo abaixo."** Ele abriu a
+Teoria Musical e concluiu que a lista de lições terminava na Tríade. E
+terminava mesmo, aos olhos: a lista tem altura fixa (560px, com 2.300px
+escondidos), e a barra de rolagem do Mac é transparente e some sozinha depois
+de um segundo. O aviso de rolagem que já existia só sabia olhar para os lados.
+
+Agora ele olha para baixo também, e a barra passou a ser **desenhada por nós**
+(`js/rolagem.js`), não a do navegador: um trilho com cor de destaque, parado, e
+um polegar proporcional ao que falta — 109px de 560 quando sobram 2.300px de
+lista. Dá para arrastar o polegar e para clicar em qualquer ponto do trilho.
+Junto vieram as setas ⌃ ⌄, encostadas na barra (no meio da lista elas tapavam
+justamente o título do cartão que a pessoa estava lendo), e a etiqueta
+**"↓ tem mais abaixo"**, que some assim que alguém rola — já cumpriu o papel.
+
+A etiqueta guarda um lugar de tamanho fixo mesmo depois de sumir. Sem isso, a
+seta ⌄ caía em cima dela e pulava de lugar na primeira rolagem — foi o
+primeiro desenho, e o teste cobre exatamente esse caso.
+
+De quebra, saiu um "Harmonia avançada" repetido: duas lições desse bloco
+estavam separadas por outro na lista, e o cabeçalho aparecia duas vezes.
+
+**2. O primeiro exercício, exatamente como ele toca.** A pedido dele, o
+exercício de abertura da escala maior passou a ser
+**1 2 3 5 7 8 9 8 7 5 3 2 1** — treze notas, uma oitava mais a 9ª — e é o
+único do site com esse formato curto; todos os outros continuam em duas
+oitavas. Junto, em caixa de destaque abaixo da descrição, a sugestão dele:
+*"Execute esse exercício em cima de todos os acordes do campo harmônico da
+escala maior e se surpreenda."*
+
+**O efeito colateral, medido e corrigido.** Encurtar o exercício fez a
+tablatura caber em qualquer região do braço — e a escolha de digitação, que ia
+da corda mais grave para a mais aguda, passou a abrir na **casa 20 da 6ª
+corda**: certo no papel, impraticável na mão. As regiões desconfortáveis
+(começar depois da 12ª casa, ou subir além da 15ª) agora só aparecem quando
+não existe nenhuma confortável. O exercício abre em 4ª/10, com 3ª/5 e 2ª/1 de
+alternativa. Em 1.782 combinações de tom, escala, exercício e instrumento, os
+casos que abriam lá no fim do braço caíram de **319 para 157** — os 157 que
+sobraram são frases agudas demais para terem opção melhor, e para elas nada
+mudou.
+
+Testes: `tests/rolagem.smoke.js` foi de 13 para 29 checagens (a barra
+desenhada, o polegar proporcional, o clique no trilho, o arraste, e a seta que
+não cai em cima da etiqueta); a metade horizontal mudou de cobaia, porque o
+exercício que ela usava agora cabe até no celular. `tests/escalas.test.js`
+confere o desenho nota a nota em dois tons e que nenhum outro exercício o
+repete; `tests/digitacoes.smoke.js` passou a exigir que nenhuma opção comece
+depois da 12ª casa. Bateria inteira: 13 testes de unidade, 36 smokes, sem erro
+de página.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

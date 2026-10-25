@@ -223,6 +223,10 @@
       (marca && marca.proximo ? '<span class="esc-proximo-selo">continue daqui</span>' : '') + '</div>' +
       '<div class="lib-card-actions">' + acoes + '</div></div>' +
       '<p class="si-legend">' + esc(ex.dica) + '</p>' +
+      // A sugestão vem em destaque porque é um convite a USAR o exercício em
+      // outro lugar (em cima de cada acorde do campo harmônico) — perdida no
+      // meio da dica, passava batido.
+      (ex.sugestao ? '<p class="esc-ex-sugestao"><strong>Sugestão:</strong> ' + esc(ex.sugestao) + '</p>' : '') +
       (marca && marca.podeGravar ? '<div class="esc-gravacao" data-gravacao="' + i + '" hidden></div>' : '') +
       '<div class="lib-card-body">' + body + notasHTML(ex) + '</div></div>';
   }

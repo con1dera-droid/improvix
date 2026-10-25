@@ -643,6 +643,23 @@
       });
     });
 
+    // Primeiro, fora as regiões que ninguém estuda.
+    //
+    // A mesma nota existe em várias cordas, e quanto mais grave a corda, mais
+    // alta a casa. Como a lista ia da corda mais grave para a mais aguda, um
+    // exercício curto chegava a abrir na casa 20 da 6ª corda — tecnicamente
+    // certo, impraticável na vida real (ali o corpo do violão atrapalha a mão,
+    // e as casas são estreitas demais para estudar escala). Por isso, quando
+    // existe alguma região confortável, só ela é oferecida; se não existir
+    // nenhuma (acontece com frases muito agudas), fica como estava, porque uma
+    // digitação difícil ainda é melhor do que nenhuma.
+    var CASA_MAX_INICIO = 12;   // começar depois da 12ª já é "lá no fim do braço"
+    var CASA_MAX_USO = 15;      // e a mão não deveria subir além disso no meio
+    var boas = saida.filter(function (o) {
+      return o.casa <= CASA_MAX_INICIO && o.maisAlta <= CASA_MAX_USO;
+    });
+    if (boas.length) saida = boas;
+
     // Da região mais grave para a mais aguda, e no máximo três: mais que isso
     // é escolha demais para quem só quer estudar.
     saida.sort(function (a, b) { return a.corda - b.corda || a.casa - b.casa; });
