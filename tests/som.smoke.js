@@ -5,7 +5,7 @@
  */
 const { chromium } = require('playwright');
 const path = require('path');
-const { prepararSemLogin } = require('./fake-supabase.js');
+const { prepararSemLogin, escolherSom } = require('./fake-supabase.js');
 (async () => {
   const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
   const page = await browser.newPage();
@@ -53,11 +53,11 @@ const { prepararSemLogin } = require('./fake-supabase.js');
   await page.click('.nav-item[data-nav="biblioteca-fraseados"]');
   await page.waitForTimeout(300);
   await measure('Biblioteca: ouvir (real)', () => page.click('.lib-card:first-child button[data-play]'));
-  await page.selectOption('#som-modo', 'synth');
+  await escolherSom(page, 'som-modo', 'synth');
   await measure('Biblioteca: ouvir (sintetizado)', () => page.click('.lib-card:nth-child(2) button[data-play]'));
-  await page.selectOption('#som-modo', 'drive');
+  await escolherSom(page, 'som-modo', 'drive');
   await measure('Biblioteca: ouvir (drive)', () => page.click('.lib-card:nth-child(3) button[data-play]'));
-  await page.selectOption('#som-modo', 'real');
+  await escolherSom(page, 'som-modo', 'real');
   for (const ins of ['teclado','baixo','violao','sax','trompete','violino','flauta']) {
     await page.selectOption('#lib-instrumento', ins);
     await page.waitForTimeout(150);

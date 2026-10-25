@@ -372,4 +372,22 @@ async function sair(page) {
   await page.waitForTimeout(450);
 }
 
-module.exports = { FAKE_SUPABASE, prepararPagina, prepararSemLogin, entrar, sair };
+/**
+ * Escolhe um dos seletores de som do topo (#som-modo, #som-ambiencia).
+ *
+ * Desde 25/10/2026 eles só aparecem para quem administra — o aluno ouve o
+ * padrão (som realista, sem sala). Como a maioria dos testes roda sem login,
+ * aqui o valor é posto direto e o evento `change` é disparado à mão: é o
+ * mesmo caminho que o clique percorreria, sem exigir uma conta de admin só
+ * para medir o som.
+ */
+async function escolherSom(page, id, valor) {
+  await page.evaluate(([id, valor]) => {
+    const s = document.getElementById(id);
+    if (!s) throw new Error('seletor ' + id + ' não existe');
+    s.value = valor;
+    s.dispatchEvent(new Event('change', { bubbles: true }));
+  }, [id, valor]);
+}
+
+module.exports = { FAKE_SUPABASE, prepararPagina, prepararSemLogin, entrar, sair, escolherSom };

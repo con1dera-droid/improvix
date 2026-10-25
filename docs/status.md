@@ -2292,6 +2292,57 @@ falso). `tests/menu.smoke.js` passou a conferir a ordem nova item por item e que
 NÃO existe título de grupo nenhum — se algum voltar sem querer, ele acusa.
 Bateria inteira: 13 testes de unidade, 38 smokes, sem erro de página.
 
+## O celular enxuto, e o botão de gravar que tinha sumido — ✅ (2026-10-25)
+
+O dono abriu o IMPROVIX no celular e mandou sete ajustes de uma vez. Um deles
+não era ajuste: era defeito.
+
+**O defeito.** "O botão de gravar e liberar sumiu." Sumiu mesmo. A tela de
+Início é montada antes de o login ficar pronto, e o `🎙 Gravar e liberar` só
+existe para quem tem conta liberada. Quando o login chegava, o sistema
+redesenhava só os selos — não os cartões. Resultado: o botão nunca aparecia, a
+não ser que a pessoa trocasse de escala sem querer e forçasse o redesenho.
+Agora a lista é remontada quando a conta muda. Reproduzido antes de consertar:
+`btn-gravar` = 0 depois do login, 1 depois de mexer na escala.
+
+**O modal de sugestão estourando a tela.** A caixa de texto não tinha estilo
+nenhum — o navegador lhe dava a largura padrão dele (umas vinte letras mais o
+branco do sistema) e ela empurrava o modal para fora da janela. Ganhou largura
+de 100%, as cores do tema e 16px de fonte (abaixo disso o iPhone dá zoom
+sozinho ao tocar no campo).
+
+**O que encolheu, no celular.** Tom, escala e instrumento numa linha só, três
+quadradinhos em vez de três linhas. Saíram "Ficha completa desta escala" e
+"Analisar uma progressão" (as duas telas já estão no menu, e ali só empurravam
+os exercícios para baixo). A busca do topo sai no Início — quem quer analisar
+uma progressão tem a tela própria. O `⏻` de sair subiu para o canto superior
+direito, ao lado do `☾`; o e-mail e o "Conta liberada" saíram, e ficou só a
+letra do avatar abrindo a fila. "Como funciona" virou um texto que se abre: o
+conteúdo continua inteiro, mas fechado — sozinho ele comia meia tela antes do
+primeiro exercício.
+
+**O campo harmônico, duas vezes.** Primeiro ficou compacto; o dono olhou e
+disse que ainda ocupava muito. Então as sete cifras passaram a aparecer **só
+enquanto o campo está rodando** — é aí que elas dizem alguma coisa (em que
+grau você está). Parado, o bloco é o botão e uma linha: de ~115px para **65px**.
+
+**Os seletores de som viraram coisa de administrador.** "Som realista" e "Sem
+sala (seco)" já eram o padrão; agora os dois seletores do topo só aparecem
+para quem administra. É afinação do sistema, não decisão de quem está
+estudando escala — e são mais duas linhas a menos no alto do celular. Eles
+continuam no HTML, que é de onde o motor de áudio lê o valor.
+
+Resultado medido: no celular de um aluno, o primeiro exercício inteiro —
+título, os dois botões, a descrição e a sugestão — cabe na primeira tela, sem
+rolar. Antes, o cabeçalho sozinho ocupava três linhas.
+
+Testes: `tests/inicio.smoke.js` passou a conferir que os dois atalhos saíram;
+`tests/acesso.smoke.js`, que o aluno não vê os seletores de som e ouve o padrão
+(realista / seco) e que o administrador vê; `tests/fake-supabase.js` ganhou o
+auxiliar `escolherSom`, porque os testes de som rodam sem login e o controle
+agora é do administrador. Bateria inteira: 13 testes de unidade, 38 smokes, sem
+erro de página.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

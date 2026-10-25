@@ -9,7 +9,7 @@
  */
 const { chromium } = require('playwright');
 const path = require('path');
-const { prepararSemLogin } = require('./fake-supabase.js');
+const { prepararSemLogin, escolherSom } = require('./fake-supabase.js');
 
 (async () => {
   const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
@@ -53,7 +53,7 @@ const { prepararSemLogin } = require('./fake-supabase.js');
   // Toca UMA nota curta (staccato) e mede o que ainda soa depois dela: sem
   // ambiência o silêncio é imediato; com ambiência sobra a cauda da sala.
   async function cauda(modo) {
-    await page.selectOption('#som-ambiencia', modo);
+    await escolherSom(page, 'som-ambiencia', modo);
     await page.waitForTimeout(250);
     await page.evaluate(() => { window.__env = []; });
     await page.evaluate(() => new Promise((ok) => {
@@ -108,7 +108,7 @@ const { prepararSemLogin } = require('./fake-supabase.js');
   if (!conv) failed = true;
 
   // A escolha fica guardada no navegador
-  await page.selectOption('#som-ambiencia', 'pouca');
+  await escolherSom(page, 'som-ambiencia', 'pouca');
   await page.waitForTimeout(200);
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(600);

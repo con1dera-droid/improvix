@@ -65,6 +65,9 @@ async function estado(page) {
   e = await estado(page);
   ok(!e.travado && e.appVisivel, 'o primeiro cadastro entra direto (vira o administrador)');
   ok(e.menu.indexOf('admin') >= 0, 'e o menu de Administração aparece para ele');
+  const somDoAdmin = await page.evaluate(() => ['som-modo', 'som-ambiencia']
+    .map((i) => document.getElementById(i).hidden));
+  ok(somDoAdmin.every((h) => h === false), 'o administrador vê os dois seletores de som do topo');
   const papel = await page.$eval('.user-plan', (x) => x.textContent);
   ok(/Administrador/.test(papel), 'o cabeçalho mostra o papel (' + papel + ')');
 
@@ -112,6 +115,14 @@ async function estado(page) {
   ok(e.menu.indexOf('admin') < 0, 'e não vê a Administração');
   ok(e.menu.indexOf('transcricao') < 0, 'a tela que o admin desligou não aparece para ele');
   ok(e.menu.indexOf('inicio') >= 0 && e.menu.indexOf('config') >= 0, 'Início e Configurações nunca somem');
+
+  // Os seletores de som do topo são afinação do sistema, não de uso diário:
+  // desde 25/10/2026 só quem administra os vê, e todo mundo ouve o padrão.
+  const somDoAluno = await page.evaluate(() => ['som-modo', 'som-ambiencia']
+    .map((i) => { const x = document.getElementById(i); return { oculto: x.hidden, valor: x.value }; }));
+  ok(somDoAluno.every((x) => x.oculto), 'o aluno não vê os seletores de som do topo');
+  ok(somDoAluno[0].valor === 'real' && somDoAluno[1].valor === 'seco',
+    'e ouve o padrão: som realista, sem sala (' + somDoAluno.map((x) => x.valor).join(' / ') + ')');
 
   // 6) uma tela só para esta pessoa
   await sair(page);

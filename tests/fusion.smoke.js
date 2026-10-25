@@ -5,7 +5,7 @@
  */
 const { chromium } = require('playwright');
 const path = require('path');
-const { prepararSemLogin } = require('./fake-supabase.js');
+const { prepararSemLogin, escolherSom } = require('./fake-supabase.js');
 
 (async () => {
   const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--autoplay-policy=no-user-gesture-required'] });
@@ -46,17 +46,17 @@ const { prepararSemLogin } = require('./fake-supabase.js');
   const dec = await page.evaluate(() => window.IL.audio.preload('guitarra').then((ok) => 'ok=' + ok).catch((e) => 'ERRO ' + e));
   console.log('Samples decodificados (guitarra, piano elétrico, baixo):', dec);
 
-  await page.selectOption('#som-modo', 'drive');
+  await escolherSom(page, 'som-modo', 'drive');
   await page.click('.lib-card:nth-child(2) button[data-play]');
   await page.waitForTimeout(3500);
   console.log('Com drive — samples:', (await page.evaluate(() => Object.keys(window.IL_SAMPLES || {}))).join(', '));
   await page.click('.lib-card:nth-child(2) button[data-play]');
-  await page.selectOption('#som-modo', 'synth');
+  await escolherSom(page, 'som-modo', 'synth');
   await page.click('.lib-card:nth-child(3) button[data-play]');
   await page.waitForTimeout(600);
   console.log('Sintetizado — botão:', await page.$eval('.lib-card:nth-child(3) button[data-play]', (e) => e.textContent));
   await page.click('.lib-card:nth-child(3) button[data-play]');
-  await page.selectOption('#som-modo', 'real');
+  await escolherSom(page, 'som-modo', 'real');
 
   await page.screenshot({ path: path.resolve(__dirname, '../../fusion.png'), fullPage: false });
   console.log('Erros de página:', errors);

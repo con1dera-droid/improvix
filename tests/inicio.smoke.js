@@ -108,22 +108,15 @@ function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!c
   ok(!(await page.$eval('#tre-conteudo .esc-ex [data-act="ouvir-ex"]', (b) => b.classList.contains('playing'))),
     'e clicar de novo para');
 
-  // --- atalhos ---
-  await page.click('[data-act="ir-escalas"]');
-  await page.waitForTimeout(900);
-  const vistaEsc = await page.$eval('.content.view:not([hidden])', (v) => v.getAttribute('data-view'));
-  const tituloFicha = await page.$eval('.content.view:not([hidden]) .esc-title', (e) => e.textContent.replace(/\s+/g, ' ').trim());
-  ok(vistaEsc === 'biblioteca-escalas' && /em G/.test(tituloFicha),
-    'o atalho "Ficha completa" abre a Biblioteca de Escalas na mesma escala e tom (' + tituloFicha + ')');
-
-  await page.click('.nav-item[data-nav="inicio"]');
-  await page.waitForTimeout(700);
-  await page.click('[data-act="ir-harmonia"]');
-  await page.waitForTimeout(600);
-  const vistaHarm = await page.$eval('.content.view:not([hidden])', (v) => v.getAttribute('data-view'));
-  ok(vistaHarm === 'harmonia', 'o atalho "Analisar uma progressão" abre a Análise de Harmonia');
-  const navAtivo = await page.$eval('.nav-item.active', (e) => e.getAttribute('data-nav'));
-  ok(navAtivo === 'harmonia', 'e o menu marca o item certo (' + navAtivo + ')');
+  // --- os dois atalhos saíram (25/10/2026) ---
+  // "Ficha completa desta escala" e "Analisar uma progressão" foram tirados a
+  // pedido do dono: as duas telas já estão no menu, e aqui só empurravam os
+  // exercícios para baixo — no celular, para fora da primeira tela inteira.
+  const atalhos = await page.$$eval('#tre-conteudo [data-act="ir-escalas"], #tre-conteudo [data-act="ir-harmonia"]',
+    (e) => e.length);
+  ok(atalhos === 0, 'os atalhos "Ficha completa" e "Analisar uma progressão" saíram da tela de treino');
+  const naoCabe = await page.$$eval('#tre-conteudo .esc-head-actions', (e) => e.length);
+  ok(naoCabe === 0, 'e a faixa de botões que os continha também');
 
   console.log('\nErros de página: ' + (erros.length ? erros.join(' | ') : 'nenhum'));
   if (erros.length) falhas += erros.length;

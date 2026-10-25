@@ -100,6 +100,25 @@
     }
     updateActionButtons();
     atualizarIconeSugestao();
+    aplicarControlesDeSom();
+  }
+
+  /**
+   * Os dois seletores de som do topo (tipo de som e quanta sala) são de
+   * afinação do sistema, não de uso diário: quem está estudando escala não
+   * tem por que decidir se o piano tem reverberação. A pedido do dono
+   * (25/10/2026) eles passaram a aparecer só para quem administra; todo mundo
+   * ouve o padrão, que é "Som realista" e "Sem sala (seco)".
+   *
+   * Eles continuam no HTML — é de lá que o motor de áudio lê o valor —, só
+   * ficam fora da vista.
+   */
+  function aplicarControlesDeSom() {
+    var ehAdmin = !!(window.IL.account && window.IL.account.isAdmin());
+    ['som-modo', 'som-ambiencia'].forEach(function (id) {
+      var el = $(id);
+      if (el) el.hidden = !ehAdmin;
+    });
   }
 
   // ---------------- Boas-vindas (uma vez só) ----------------

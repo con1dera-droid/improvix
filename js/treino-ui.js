@@ -231,10 +231,14 @@
 
   function resumoHTML(feitos) {
     var total = state.exercises.length;
-    var REGRA = '<span class="tre-prog-regra">Como funciona: o exercício 1 está aberto. ' +
+    // O texto continua inteiro, mas fechado: no celular ele sozinho ocupava
+    // meia tela antes de a pessoa chegar no primeiro exercício. Quem quer
+    // entender a regra abre; quem já sabe, passa direto.
+    var REGRA = '<details class="tre-regra"><summary>Como funciona</summary>' +
+      '<span class="tre-prog-regra">O exercício 1 está aberto. ' +
       'Clique em <strong>🎙 Gravar e liberar</strong>, toque junto com o acompanhamento, e o IMPROVIX ' +
       'ouve pelo microfone e compara com as notas. Acertando <strong>80%</strong>, ele libera o próximo — ' +
-      'e assim, um a um. <strong>Ouvir o exercício</strong> não libera nada: ouvir não é tocar.</span>';
+      'e assim, um a um. <strong>Ouvir o exercício</strong> não libera nada: ouvir não é tocar.</span></details>';
     if (!window.IL.account || !window.IL.account.canUse()) {
       return '<span class="tre-prog-aviso">Entre na sua conta para o IMPROVIX guardar o que você já treinou ' +
         'e liberar os exercícios conforme você grava.</span>' + REGRA;
@@ -322,6 +326,11 @@
     Array.prototype.forEach.call(cifras, function (el, i) {
       el.classList.toggle('is-on', i === indice);
     });
+    // As sete cifras só fazem sentido enquanto o campo está rodando: é ali
+    // que elas dizem em que grau você está. Paradas, no celular, eram duas
+    // linhas de enfeite empurrando o primeiro exercício para fora da tela.
+    var caixa = document.querySelector('#tre-conteudo .tre-campo');
+    if (caixa) caixa.classList.toggle('tocando', indice >= 0);
   }
 
   /**
@@ -365,7 +374,7 @@
       'data-label="🎹 Tocar o campo harmônico" ' +
       'title="Toca os sete acordes da tonalidade, um compasso cada, em loop. ' +
       'Toque o exercício por cima.">🎹 Tocar o campo harmônico</button>' +
-      '<span class="tre-campo-nota">um compasso por acorde, em loop — toque o exercício por cima</span>' +
+      '<span class="tre-campo-nota">um compasso por acorde, em loop — toque por cima</span>' +
       '</div>' +
       '<div class="tre-campo-cifras">' +
       acordes.map(function (c) {
@@ -557,11 +566,11 @@
       '<span class="lib-badge">' + nf.notes.length + ' notas</span>' +
       '<span class="lib-badge">' + esc(nf.notes.map(function (n) { return n.name; }).join(' ')) + '</span>' +
       '<span class="lib-badge lib-badge-chord"><strong>' + esc(acorde.symbol) + '</strong> ' + esc(acorde.tones.join(' – ')) + '</span>' +
-      '</div></div>' +
-      '<div class="esc-head-actions">' +
-      '<button class="view-btn" data-act="ir-escalas">📚 Ficha completa desta escala</button>' +
-      '<button class="view-btn" data-act="ir-harmonia">🎹 Analisar uma progressão</button>' +
-      '</div></div>' +
+      // "Ficha completa desta escala" e "Analisar uma progressão" saíram em
+      // 25/10/2026, a pedido do dono: as duas telas já estão no menu, e aqui
+      // só empurravam os exercícios para baixo — no celular, para fora da
+      // primeira tela inteira.
+      '</div></div></div>' +
 
       '<div class="transport" data-transport="treino">' +
       '<button type="button" class="tr-btn tr-metro" data-act="metro" title="Metrônomo (liga/desliga)" aria-pressed="false">⏱</button>' +
@@ -574,12 +583,11 @@
       '<h3 class="esc-sub">Exercícios para treinar</h3>' +
       campoHTML() +
       '<div class="tre-prog" id="tre-progresso"></div>' +
-      '<label class="tre-opcao"><input type="checkbox" id="tre-sem-acompanhamento"/> ' +
-      'Gravar sem o acompanhamento (só a contagem do metrônomo) — marque se estiver sem fone de ouvido ' +
-      'e o microfone estiver pegando o som da caixa.</label>' +
-      '<p class="si-legend">' + state.exercises.length + ' exercícios, subindo e descendo. ' +
-      'Ponha o metrônomo devagar e só acelere quando sair limpo.</p>' +
-      '<p class="dica-rolar">↔ no celular, deslize a partitura/tablatura para o lado</p>' +
+      '<label class="tre-opcao" title="Marque se estiver sem fone de ouvido e o microfone ' +
+      'estiver pegando o som da caixa junto com o seu instrumento.">' +
+      '<input type="checkbox" id="tre-sem-acompanhamento"/> ' +
+      'Gravar sem o acompanhamento (só o metrônomo)</label>' +
+      '<p class="si-legend">' + state.exercises.length + ' exercícios. Comece devagar.</p>' +
       exerciciosHTML(instrumento);
 
     $('tre-conteudo').innerHTML = html;
@@ -623,10 +631,17 @@
   window.IL.ui = window.IL.ui || {};
   window.IL.ui.renderTreinoView = renderTreinoView;
   // Trocou de conta: o progresso da pessoa anterior não pode ficar na tela.
+  //
+  // E o cartão INTEIRO muda, não só os selos: "Gravar e liberar" só existe
+  // para quem tem conta liberada, e a tela de Início é montada antes de o
+  // login ficar pronto. Redesenhar apenas as marcas deixava o botão fora da
+  // tela até a pessoa trocar de escala sem querer — foi assim que o dono viu
+  // "o botão de gravar e liberar sumiu" (25/10/2026). Agora a lista é
+  // remontada quando a conta muda.
   window.IL.ui.resetTreinoProgresso = function () {
     state.progresso = {};
     state.progressoLido = false;
-    if ($('tre-progresso')) { atualizarMarcas(); carregarProgresso(atualizarMarcas); }
+    if (state.built && $('tre-conteudo')) render();
   };
   window.IL.ui.TREINO_ESCALAS = ESCALAS;
 })();

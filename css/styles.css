@@ -224,6 +224,10 @@ li { margin-bottom: 0.5rem; line-height: 1.4; }
   font-size: 0.85rem;
 }
 .topbar-right { display: flex; align-items: center; gap: 1rem; }
+/* Os seletores de som só existem para quem administra (ver aplicarControlesDeSom
+   em js/auth-ui.js). O `hidden` sozinho não bastaria: qualquer regra de
+   display do autor passaria por cima dele. */
+.som-modo[hidden] { display: none !important; }
 .bell {
   font-size: 1.1rem; cursor: pointer; position: relative; background: none;
   border: none; color: inherit; padding: 0.2rem 0.45rem; line-height: 1;
@@ -959,6 +963,19 @@ select, input[type="text"] {
   border-radius: var(--radius); padding: 1.75rem; width: 100%; max-width: 380px;
 }
 .modal h2 { margin: 0 0 1.1rem; font-size: 1.15rem; }
+/* A caixa de texto da sugestão não tinha estilo nenhum: o navegador lhe dava
+   a largura padrão (umas 20 letras) mais o branco do sistema, e no celular
+   ela estourava a janela para o lado, levando o modal junto. Agora ela segue
+   a largura da caixa e as cores do tema. */
+textarea {
+  width: 100%; max-width: 100%;
+  background: var(--bg-elevated); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 0.6rem 0.75rem; font: inherit; font-size: 0.9rem;
+  line-height: 1.5; resize: vertical; min-height: 108px;
+}
+textarea::placeholder { color: var(--text-dim); }
+textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .modal .field { margin-bottom: 0.9rem; }
 .modal .btn-primary { width: 100%; padding: 0.65rem; margin-top: 0.3rem; }
 .modal-close {
@@ -1360,9 +1377,29 @@ body.sistema-travado .modal-close { display: none; }
     border-radius: 10px; color: var(--text); font-size: 1.15rem; padding: 0;
   }
   .topbar-brand { display: block; order: 2; margin-right: auto; font-weight: 700; font-size: 1rem; letter-spacing: 0.02em; }
-  .user { order: 3; flex: 0 0 auto; }
-  .search { order: 4; flex: 1 1 100%; max-width: none; }
-  .som-modo { order: 5; flex: 1 1 42%; width: auto; min-width: 0; max-width: none; min-height: 42px; font-size: 16px; }
+  /* O ⏻ de sair sobe para a primeira linha, ao lado do ☾ — pedido do dono em
+     25/10/2026. `display: contents` dissolve a caixa da conta para que cada
+     pedaço dela possa ser posto no seu lugar; o avatar e o e-mail saem, que é
+     uma linha inteira a menos no alto da tela (quem quiser conferir a conta
+     tem a tela de Configurações). */
+  /* O ⏻ de sair sobe para a primeira linha, ao lado do ☾ — pedido do dono em
+     25/10/2026. `display: contents` dissolve a caixa da conta para que cada
+     pedaço dela possa ser posto no seu lugar. O e-mail e o "Conta liberada"
+     saem (uma linha inteira a menos no alto da tela); fica só a letra do
+     avatar, discreta, abrindo a fila: A · 💡 · ☾ · ⏻. */
+  .user { display: contents; }
+  .user-info { display: none; }
+  .avatar { order: 3; flex: 0 0 auto; width: 30px; height: 30px; font-size: 0.85rem; }
+  .btn-logout, .user .btn-primary { order: 5; flex: 0 0 auto; }
+  .btn-logout {
+    width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+  }
+  .search { order: 6; flex: 1 1 100%; max-width: none; }
+  /* No Início a busca não serve para nada (quem quer analisar uma progressão
+     tem a tela própria no menu) e comia uma linha inteira. */
+  body[data-tela="inicio"] .search { display: none; }
+  .som-modo { order: 7; flex: 1 1 42%; width: auto; min-width: 0; max-width: none; min-height: 42px; font-size: 16px; }
   /* Seletores que no computador são miúdos de propósito: no celular vão a
      16px, senão o iPhone dá zoom sozinho quando o dedo toca neles. */
   .fraseados-controles select, .lib-controls select, .esc-filtros select,
@@ -1370,10 +1407,10 @@ body.sistema-travado .modal-close { display: none; }
   .search input { font-size: 16px; }
   .search { padding: 0.25rem 0.7rem; }
   .search input { min-height: 40px; }
-  #som-ambiencia { order: 6; }
+  #som-ambiencia { order: 8; }
   /* O 💡 fica: é por ele que quem usa fala com quem administra. (Antes aqui
      morava um sino decorativo, que no celular sumia por não fazer nada.) */
-  .bell { order: 3; width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center;
+  .bell { order: 4; width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center;
           background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; flex: 0 0 auto; }
   .bell-rot { display: none; }
 
@@ -1395,6 +1432,8 @@ body.sistema-travado .modal-close { display: none; }
   select, input[type="text"], input[type="search"], input[type="email"], input[type="password"], input[type="number"] {
     font-size: 16px; min-height: 42px; width: 100%;
   }
+  /* A caixa de texto também: abaixo de 16px o iPhone dá zoom sozinho. */
+  textarea { font-size: 16px; min-height: 120px; }
   .btn-primary, .btn-secondary, .btn-icon, .btn-chip-action, .view-btn, .lib-play,
   .tra-nota, .tab, .btn-logout, .modal-close {
     min-height: 40px;
@@ -1431,6 +1470,14 @@ body.sistema-travado .modal-close { display: none; }
   .esc-filtros { grid-template-columns: 1fr; }
   .esc-grid, .tra-resumo { grid-template-columns: 1fr; }
   .lib-controls .field, .lib-controls .field-wide, .lib-controls .field-small { flex: 1 1 100%; min-width: 0; }
+  /* No Início, os três (tom, escala, instrumento) ficam lado a lado numa
+     linha só: a pedido do dono, três quadradinhos em vez de três linhas. */
+  .hero .lib-controls { gap: 0.4rem; margin: 0.2rem 0 0; }
+  .hero .lib-controls .field,
+  .hero .lib-controls .field-wide { flex: 1 1 0; min-width: 0; width: auto; }
+  .hero .lib-controls .field label { font-size: 0.66rem; }
+  .hero .lib-controls select { padding-left: 0.4rem; padding-right: 0.4rem; }
+  .hero-text p { display: none; }
   .lib-controls .btn-primary { width: 100%; height: 44px; }
   .pad-nav { gap: 0.4rem; }
   .pad-nav .btn-secondary, .pad-nav .btn-primary { height: 40px; }
@@ -1444,6 +1491,25 @@ body.sistema-travado .modal-close { display: none; }
   .fraseado-actions .btn-chip-action { flex: 1 1 auto; }
   .btn-config-sair { max-width: none; }
   .modal { padding: 1.25rem; }
+
+  /* --- a tela de treino, enxuta no celular (25/10/2026) --- */
+  /* O campo harmônico vira um botão pequeno e sete cifras miúdas: antes
+     ocupava quase meia tela antes do primeiro exercício. */
+  .tre-campo {
+    padding: 0.4rem 0.5rem; margin: 0.3rem 0 0.6rem;
+    border-left-width: 3px; border-radius: 0 8px 8px 0;
+  }
+  .tre-campo-topo { gap: 0.15rem 0.5rem; }
+  .tre-campo-btn { font-size: 0.78rem; padding: 0.3rem 0.65rem; min-height: 34px; width: auto; }
+  .tre-campo-nota { font-size: 0.68rem; line-height: 1.3; }
+  /* Parado, o bloco é só o botão e uma linha. As sete cifras entram quando o
+     campo começa a rodar — é só aí que elas dizem alguma coisa. */
+  .tre-campo-cifras { display: none; gap: 0.2rem; margin-top: 0.35rem; }
+  .tre-campo.tocando .tre-campo-cifras { display: flex; }
+  .tre-campo-cifra { font-size: 0.7rem; padding: 0.1rem 0.35rem; border-radius: 5px; }
+  .tre-campo-cifra small { font-size: 0.58rem; }
+  .esc-sub { margin: 0.8rem 0 0.1rem; }
+  .tre-opcao { font-size: 0.74rem; }
 }
 
 /* Telas bem estreitas (iPhone SE e afins) */
@@ -1451,7 +1517,9 @@ body.sistema-travado .modal-close { display: none; }
   .content { padding: 0.8rem 0.65rem 2.5rem; }
   .card { padding: 0.85rem 0.7rem; }
   .hero-text h1 { font-size: 1.15rem; }
-  .som-modo { flex: 1 1 100%; }
+  /* Os dois seletores de som ficam lado a lado mesmo nas telas mais estreitas:
+     ocupavam duas linhas inteiras do alto da tela, e os rótulos cabem. */
+  .som-modo { flex: 1 1 46%; padding-left: 0.45rem; padding-right: 1.2rem; }
   .esc-nota { min-width: 1.7rem; font-size: 0.78rem; }
   .tab-block { font-size: 0.72rem; }
 }
@@ -1526,3 +1594,15 @@ body.sistema-travado .modal-close { display: none; }
 .ouv-fim-quase { border-left: 5px solid var(--aviso); }
 .ouv-nota { font-size: 2rem; font-weight: 800; color: var(--text); line-height: 1; }
 .ouv-grau-largo { min-width: 120px; font-size: 1rem; }
+
+/* "Como funciona": o texto continua inteiro, mas fechado. No celular ele
+   sozinho ocupava meia tela antes do primeiro exercício. */
+.tre-regra { margin: 0.35rem 0 0; }
+.tre-regra > summary {
+  cursor: pointer; font-size: 0.78rem; font-weight: 700; color: var(--accent);
+  list-style: none; display: inline-flex; align-items: center; gap: 0.3rem;
+}
+.tre-regra > summary::-webkit-details-marker { display: none; }
+.tre-regra > summary::before { content: '▸'; font-size: 0.8rem; }
+.tre-regra[open] > summary::before { content: '▾'; }
+.tre-regra .tre-prog-regra { display: block; margin-top: 0.4rem; }
