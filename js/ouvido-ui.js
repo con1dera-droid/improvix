@@ -111,21 +111,63 @@
 
   // ---------------- progresso ----------------
 
-  function carregarProgresso(aoTerminar) {
-    var db = window.IL.db;
-    if (state.lido || !db || !db.listProgresso || !window.IL.account || !window.IL.account.isLoggedIn()) {
-      if (aoTerminar) aoTerminar();
-      return;
+  /**
+   * Os níveis abertos valem 24 horas, e depois fecham — pedido do dono em
+   * 25/10/2026: ouvido não se guarda, se mantém. Fechar todo dia faz a pessoa
+   * voltar e refazer o caminho, que é exatamente o treino.
+   *
+   * Onde isso mora: no navegador da pessoa (localStorage), com a hora em que
+   * cada nível abriu. O banco continua recebendo a nota de cada rodada — é
+   * dele que sai o histórico —, mas quem decide o que está aberto é o relógio
+   * daqui. O preço honesto: em outro aparelho, a pessoa começa do nível 1.
+   * Que é, afinal, o que acontece todo dia de qualquer jeito.
+   */
+  var VALIDADE_MS = 24 * 60 * 60 * 1000;
+  var CHAVE_LOCAL = 'improvix:ouvido';
+
+  function lerAberturas() {
+    var dados = {};
+    try {
+      var bruto = window.localStorage && window.localStorage.getItem(CHAVE_LOCAL);
+      if (bruto) dados = JSON.parse(bruto) || {};
+    } catch (e) { dados = {}; }
+    var agora = Date.now();
+    var vivas = {};
+    Object.keys(dados).forEach(function (n) {
+      if (typeof dados[n] === 'number' && agora - dados[n] < VALIDADE_MS) vivas[n] = dados[n];
+    });
+    return vivas;
+  }
+
+  function guardarAbertura(n) {
+    var vivas = lerAberturas();
+    vivas[n] = Date.now();
+    try { window.localStorage.setItem(CHAVE_LOCAL, JSON.stringify(vivas)); } catch (e) { /* sem memória */ }
+    aplicarAberturas();
+  }
+
+  /** Relê o relógio: o que passou de 24 h volta a ficar trancado. */
+  function aplicarAberturas() {
+    var vivas = lerAberturas();
+    state.aberturas = vivas;
+    state.liberado = { 1: true };         // o nível 1 nunca fecha
+    Object.keys(vivas).forEach(function (n) { state.liberado[Number(n)] = true; });
+    if (!state.liberado[state.nivel]) {   // fechou embaixo do pé da pessoa
+      state.nivel = 1;
+      state.rodando = false;
+      state.ultimoResultado = null;
     }
-    state.lido = true;
-    Promise.resolve(db.listProgresso()).then(function (res) {
-      (res && res.data || []).forEach(function (linha) {
-        NIVEIS.forEach(function (nv) {
-          if (linha.chave === chaveDe(nv.n) && linha.gravado_em) state.liberado[nv.n + 1] = true;
-        });
-      });
-      if (aoTerminar) aoTerminar();
-    }).catch(function () { if (aoTerminar) aoTerminar(); });
+  }
+
+  /** "fecha em 7 h" / "fecha em 40 min" — quanto falta para o nível trancar. */
+  function quantoFalta(n) {
+    var quando = state.aberturas && state.aberturas[n];
+    if (!quando) return '';
+    var resta = VALIDADE_MS - (Date.now() - quando);
+    if (resta <= 0) return '';
+    var horas = Math.floor(resta / 3600000);
+    if (horas >= 1) return 'fecha em ' + horas + ' h';
+    return 'fecha em ' + Math.max(1, Math.round(resta / 60000)) + ' min';
   }
 
   function guardar(n, acerto) {
@@ -239,7 +281,7 @@
     state.rodando = false;
     state.ultimoResultado = { acerto: acerto, passou: acerto >= PISO, nivel: nv.n };
     guardar(nv.n, acerto);
-    if (acerto >= PISO && nv.n < NIVEIS.length) state.liberado[nv.n + 1] = true;
+    if (acerto >= PISO && nv.n < NIVEIS.length) guardarAbertura(nv.n + 1);
     render();
   }
 
@@ -254,12 +296,18 @@
       }).join('') + '</select></label>' +
       '<div class="ouv-niveis">' + NIVEIS.map(function (x) {
         var aberto = !!state.liberado[x.n];
+        var falta = aberto && x.n > 1 ? quantoFalta(x.n) : '';
         return '<button type="button" class="ouv-nivel' + (x.n === state.nivel ? ' is-on' : '') +
           (aberto ? '' : ' is-trancado') + '" data-act="nivel" data-n="' + x.n + '"' +
-          (aberto ? '' : ' disabled title="Faça ' + PISO + '% no nível anterior para abrir este"') + '>' +
-          (aberto ? '' : '🔒 ') + 'Nível ' + x.n + '</button>';
+          (aberto ? (falta ? ' title="' + esc(falta) + '"' : '')
+            : ' disabled title="Faça ' + PISO + '% no nível anterior para abrir este"') + '>' +
+          (aberto ? '' : '🔒 ') + 'Nível ' + x.n + (falta ? '<small>' + esc(falta) + '</small>' : '') + '</button>';
       }).join('') + '</div></div>' +
-      '<p class="ouv-sobre"><strong>' + esc(nv.nome) + '.</strong> ' + esc(nv.sobre) + '</p>';
+      '<p class="ouv-sobre"><strong>' + esc(nv.nome) + '.</strong> ' + esc(nv.sobre) + '</p>' +
+      // A regra das 24 h precisa estar escrita: um nível que fecha sozinho,
+      // sem aviso, parece defeito. Escrito, vira convite para voltar amanhã.
+      '<p class="ouv-prazo">⏳ Um nível aberto fecha <strong>24 horas</strong> depois. ' +
+      'Todo dia você recomeça do nível 1 — ouvido não se guarda, se mantém.</p>';
   }
 
   function placarHTML() {
@@ -418,8 +466,8 @@
 
   function renderOuvidoView() {
     build();
+    aplicarAberturas();                   // 24 h passaram? então trancou
     render();
-    carregarProgresso(render);
   }
 
   window.IL = window.IL || {};

@@ -21,7 +21,13 @@
 
   // As caixas que rolam para o lado no site.
   var CAIXAS = [
-    '.lib-card-body',        // partitura/tablatura dos exercícios
+    // A PARTITURA é a caixa que realmente rola: o CSS do celular põe
+    // `overflow-x: auto` nela, e não no cartão em volta. Faltava nesta lista,
+    // e por isso a partitura continuava só com a barra do navegador — aquela
+    // que no celular aparece enquanto o dedo está encostado e some em seguida.
+    // Foi o que o dono viu: "a barra azul só aparece se eu tocar na clave".
+    '.staff-block',
+    '.lib-card-body',        // o cartão em volta (tablatura, notas)
     '.fraseado-conteudo',    // a frase gerada na aba Fraseados
     '.esc-diagrama',         // desenho do braço na ficha da escala
     '.adm-tabela-wrap',      // a tabela de contas na Administração

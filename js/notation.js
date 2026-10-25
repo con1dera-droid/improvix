@@ -292,11 +292,32 @@
     var pxBeat = Math.max(62, dens * 19), left = 58, barPad = 14;
     function xAt(beat) { var bar = Math.min(nBars - 1, Math.floor(beat / bpb + 1e-6)); return left + beat * pxBeat + bar * barPad + 14; }
     var width = xAt(nBars * bpb) + 10;
-    var extra = (opts.chords || []).length ? 16 : 0; // espaço para as notas do acorde embaixo da cifra
-    var height = 215 + extra;
-    var staffTop = 95 + extra, gap = 10;
-    var bottomLineY = staffTop + 40;
+    // ----- a altura da partitura, medida em vez de reservada -----
+    //
+    // O espaço em branco acima da pauta era fixo e generoso: cabia a cifra, as
+    // marcas de articulação e a nota mais aguda que a escala pudesse ter. Numa
+    // partitura de uma oitava, que não tem nada disso, sobrava um dedo de
+    // branco entre a cifra e a primeira linha — foi o que o dono viu no
+    // celular (25/10/2026). Agora cada faixa só existe se for usada, e a folga
+    // para as notas altas é a que a música pede.
+    var gap = 10;
+    var temCifra = (opts.chords || []).length > 0;
+    var temArt = events.some(function (e) { return e.art || e.vibrato; });
+    var temAcento = events.some(function (e) { return e.accent; });
+    var maxPos = 8;                       // 8 = linha de cima da pauta
+    events.forEach(function (e) {
+      if (e.rest) return;
+      var p = staffPosition(e.name, e.midi);
+      if (p > maxPos) maxPos = p;
+    });
+    var acima = Math.max(0, (maxPos - 8) * gap + 12);   // cabeça e haste da nota mais alta
+    var bandaCifra = temCifra ? 34 : 0;                 // cifra + as notas dela
+    var bandaArt = temArt ? 22 : 0;                     // h, p, sl., bend, vibrato
+    var topoPauta = bandaCifra + bandaArt + acima + 8;
+    var bottomLineY = topoPauta + 80;
+    var staffTop = bottomLineY - 40;
     var midY = bottomLineY - 4 * gap;
+    var height = bottomLineY + (temAcento ? 64 : 52);
     var ink = 'var(--staff-note, #e7ecf7)', lineC = 'var(--staff-line, #5c6c8f)', label = 'var(--staff-label, #94a3c4)';
     function yFor(pos) { return bottomLineY - pos * gap; }
     var out = '';
@@ -312,10 +333,10 @@
       out += '<line x1="' + bx + '" y1="' + (bottomLineY - 40) + '" x2="' + bx + '" y2="' + bottomLineY + '" stroke="' + lineC + '" stroke-width="' + (b === nBars ? 2.5 : 1) + '"/>';
     }
     (opts.chords || []).forEach(function (ch) {
-      out += '<text x="' + (xAt(ch.beat) - 6) + '" y="16" font-size="13" font-weight="700" fill="' + ink + '">' + ch.symbol + '</text>';
+      out += '<text x="' + (xAt(ch.beat) - 6) + '" y="' + (bandaCifra - 13) + '" font-size="13" font-weight="700" fill="' + ink + '">' + ch.symbol + '</text>';
       // notas que formam o acorde, embaixo da cifra
       var tones = theory && theory.chordNotesText ? theory.chordNotesText(ch.symbol, '-') : '';
-      if (tones) out += '<text x="' + (xAt(ch.beat) - 6) + '" y="31" font-size="10" fill="' + label + '">(' + tones + ')</text>';
+      if (tones) out += '<text x="' + (xAt(ch.beat) - 6) + '" y="' + bandaCifra + '" font-size="10" fill="' + label + '">(' + tones + ')</text>';
     });
 
     // Posições e hastes
@@ -363,8 +384,8 @@
       else if (e.art === 'sl') mark = 'sl.';
       else if (e.art === 'r') mark = 'r';
       else if (e.art === 'b') mark = 'b' + ((e.midi - e.bendFrom) === 1 ? '½' : '1');
-      if (mark) s2 += '<text x="' + n.x + '" y="36" font-size="10" font-style="italic" text-anchor="middle" fill="var(--accent, #3b82f6)">' + mark + '</text>';
-      if (e.vibrato) s2 += '<path d="M' + (n.x - 6) + ' 44 q 2 -3 4 0 t 4 0 t 4 0 t 4 0" fill="none" stroke="' + label + '" stroke-width="1.2"/>';
+      if (mark) s2 += '<text x="' + n.x + '" y="' + (bandaCifra + 14) + '" font-size="10" font-style="italic" text-anchor="middle" fill="var(--accent, #3b82f6)">' + mark + '</text>';
+      if (e.vibrato) s2 += '<path d="M' + (n.x - 6) + ' ' + (bandaCifra + 20) + ' q 2 -3 4 0 t 4 0 t 4 0 t 4 0" fill="none" stroke="' + label + '" stroke-width="1.2"/>';
       if (e.accent) s2 += '<text x="' + n.x + '" y="' + (bottomLineY + 56) + '" font-size="11" text-anchor="middle" fill="' + label + '">&gt;</text>';
       return s2;
     }

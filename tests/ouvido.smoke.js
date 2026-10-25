@@ -146,6 +146,39 @@ const PC = { C: 0, Db: 1, D: 2, Eb: 3, E: 4, F: 5, 'F#': 6, G: 7, Ab: 8, A: 9, B
   const destrancados = await page.$$eval('.ouv-nivel', (e) => e.filter((x) => !x.disabled).length);
   ok(destrancados === 2, 'e o botão do nível 2 destravou na tela (' + destrancados + ' abertos)');
 
+  // ---------- o nível aberto fecha em 24 horas ----------
+  // Pedido do dono (25/10/2026): ouvido não se guarda, se mantém — todo dia a
+  // pessoa recomeça do nível 1. Aqui o relógio é envelhecido à mão.
+  const avisoPrazo = await page.$eval('.ouv-prazo', (e) => e.textContent.replace(/\s+/g, ' '));
+  ok(/24 horas/.test(avisoPrazo), 'a tela avisa que o nível fecha em 24 horas: "' + avisoPrazo.slice(0, 60) + '…"');
+  const guardado = await page.evaluate(() => localStorage.getItem('improvix:ouvido'));
+  ok(/"2":\s*\d{10,}/.test(guardado || ''), 'a abertura do nível 2 fica guardada com a hora (' + guardado + ')');
+  const falta = await page.$eval('.ouv-nivel[data-n="2"]', (e) => e.textContent);
+  ok(/fecha em/.test(falta), 'e o botão mostra quanto falta para fechar ("' + falta.trim() + '")');
+
+  await page.evaluate(() => {
+    const d = JSON.parse(localStorage.getItem('improvix:ouvido'));
+    Object.keys(d).forEach((k) => { d[k] = Date.now() - 25 * 3600 * 1000; });
+    localStorage.setItem('improvix:ouvido', JSON.stringify(d));
+  });
+  await page.click('.nav-item[data-nav="inicio"]');
+  await page.waitForTimeout(400);
+  await page.click('.nav-item[data-nav="ouvido"]');
+  await page.waitForTimeout(700);
+  const depoisDe25h = await page.$$eval('.ouv-nivel', (e) => e.filter((x) => x.disabled).length);
+  ok(depoisDe25h === 3, 'passadas 25 horas, os níveis de cima fecham de novo (' + depoisDe25h + ' trancados)');
+  const voltou = await page.evaluate(() => window.IL.ouvido._state.nivel);
+  ok(voltou === 1, 'e a pessoa volta para o nível 1 (está no ' + voltou + ')');
+
+  // reabre para os testes seguintes, que precisam do nível 2
+  await page.evaluate(() => {
+    localStorage.setItem('improvix:ouvido', JSON.stringify({ 2: Date.now() }));
+  });
+  await page.click('.nav-item[data-nav="inicio"]');
+  await page.waitForTimeout(300);
+  await page.click('.nav-item[data-nav="ouvido"]');
+  await page.waitForTimeout(600);
+
   // ---------- os graus de cada nível ----------
   await page.click('.ouv-nivel[data-n="2"]');
   await page.waitForTimeout(300);
@@ -202,8 +235,9 @@ const PC = { C: 0, Db: 1, D: 2, Eb: 3, E: 4, F: 5, 'F#': 6, G: 7, Ab: 8, A: 9, B
 
   // ---------- quem está logado tem o progresso guardado ----------
   // O jogo reaproveita a tabela `progresso` que já existe, com a chave
-  // 'ouvido:n1' — nenhuma mudança no banco. Aqui o teste confere que a linha
-  // chega mesmo lá, com o carimbo que destrava o nível seguinte.
+  // 'ouvido:n1' — nenhuma mudança no banco. O banco guarda a NOTA (é o
+  // histórico); quem decide o que está aberto é o relógio de 24 h no
+  // navegador. Aqui o teste confere que a linha chega mesmo lá.
   const { prepararPagina, entrar } = require('./fake-supabase.js');
   const ctx = await browser.newContext({ viewport: { width: 1340, height: 1000 } });
   const p2 = await ctx.newPage();
@@ -230,7 +264,7 @@ const PC = { C: 0, Db: 1, D: 2, Eb: 3, E: 4, F: 5, 'F#': 6, G: 7, Ab: 8, A: 9, B
     .filter((r) => r.chave === 'ouvido:n1')[0] || null);
   ok(!!linha, 'logado, a rodada vai para o banco na chave "ouvido:n1"');
   ok(linha && linha.acerto === 100, 'com a nota da rodada (' + (linha && linha.acerto) + '%)');
-  ok(linha && !!linha.gravado_em, 'e carimbada como feita — é esse carimbo que lembra o nível aberto na próxima visita');
+  ok(linha && !!linha.gravado_em, 'e carimbada como feita — é o histórico da pessoa');
   await ctx.close();
 
   console.log('\nErros de página:', erros.length ? erros : 'nenhum');

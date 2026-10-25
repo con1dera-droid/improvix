@@ -1550,8 +1550,9 @@ body.sistema-travado .modal-close { display: none; }
   .tre-titulo-linha .tr-bpm-input { width: 2.2rem; font-size: 14px; min-height: 28px; padding: 0 0.1rem; }
   .tre-titulo-linha .tr-bpm small { display: none; }
 
-  /* As notas do rodapé do exercício, menores: são referência, não leitura. */
-  .esc-notas { gap: 0.2rem; line-height: 1.7; }
+  /* As notas do rodapé do exercício, menores e mais perto da pauta: são
+     referência, não leitura. */
+  .esc-notas { gap: 0.2rem; line-height: 1.6; margin-top: 0.1rem; }
   .esc-nota { min-width: 1.5rem; font-size: 0.7rem; padding: 0.05rem 0.22rem; border-radius: 5px; }
   .esc-notas-rot { font-size: 0.66rem; }
 
@@ -1565,6 +1566,11 @@ body.sistema-travado .modal-close { display: none; }
      o tom estão nos seletores, e o grupo do exercício está no próprio nome. */
   .esc-head .esc-title { display: none; }
   #tre-conteudo .esc-grupo { display: none; }
+  /* As setas de rolagem no dedo: 30px era a medida do mouse. Agora que elas
+     aparecem também na partitura (que é quem rola, no celular), vale a regra
+     do site — nada abaixo de 40px no toque. */
+  .rolavel-seta { width: 40px; height: 40px; }
+
   /* "↓ tem mais abaixo", na lista de lições, em destaque: é ele que diz à
      pessoa que as 28 lições continuam embaixo das quatro que ela vê. */
   .rolavel-y.rolavel-ativo .rolavel-aviso {
@@ -1607,6 +1613,15 @@ body.sistema-travado .modal-close { display: none; }
     display: inline-flex; align-items: center; gap: 0.3rem;
     background: none; border: 0; padding: 0.3rem 0; min-height: 34px;
     font-size: 0.8rem; font-weight: 700; color: var(--accent);
+  }
+  /* "Como funciona" é a porta de entrada da regra do treino: em texto azul
+     puro ele se perdia no fundo escuro. Vira pastilha, com o mesmo azul-claro
+     dos botões de ouvir — que é o tom de maior contraste do site. */
+  .tre-mais {
+    background: var(--ouvir); color: var(--ouvir-ink);
+    border-radius: 999px; padding: 0.3rem 0.8rem;
+    font-size: 0.82rem; font-weight: 800; letter-spacing: 0.01em;
+    margin: 0.35rem 0 0.1rem;
   }
   .tre-mais::before, .esc-info-btn::before { content: '▸'; }
   .tre-mais.is-aberto::before, .esc-info-aberta .esc-info-btn::before { content: '▾'; }
@@ -1701,3 +1716,14 @@ body.sistema-travado .modal-close { display: none; }
 .ouv-grau-largo { min-width: 120px; font-size: 1rem; }
 
 
+
+/* O prazo dos níveis do Treino de Ouvido (fecham 24 h depois de abertos). */
+.ouv-prazo {
+  margin: 0 0 0.9rem; font-size: 0.78rem; line-height: 1.5;
+  color: var(--text-muted);
+}
+.ouv-prazo strong { color: var(--text); }
+.ouv-nivel small {
+  display: block; font-size: 0.6rem; font-weight: 600; opacity: 0.85;
+  letter-spacing: 0; text-transform: none; margin-top: 0.05rem;
+}

@@ -2473,6 +2473,55 @@ Testes: `tests/rolagem.smoke.js` precisou escolher a barra VERTICAL pelo nome
 seletor solto pegava a errada. Bateria inteira: 13 testes de unidade, 38
 smokes, sem erro de página.
 
+## A barra estava no elemento errado — ✅ (2026-10-25)
+
+"A barra azul ainda não está permanentemente visível, ela só aparece se eu
+tocar na clave." A correção anterior estava certa e no lugar errado: quem rola
+para o lado **não é o cartão do exercício, é a partitura**. O CSS do celular
+põe `overflow-x: auto` em `.staff-block`, e essa caixa não estava na lista das
+que ganham a barra desenhada — então a partitura continuava só com a do
+navegador, aquela que aparece enquanto o dedo está encostado e some em
+seguida. Medido: 281px escondidos para o lado, e nenhum envelope de rolagem em
+volta. Entrou na lista, e a barra agora fica parada embaixo da clave.
+
+Lição para a próxima: a caixa que rola nem sempre é a que parece. Dava para
+ter achado isso na primeira vez medindo `scrollWidth - clientWidth` em **todos
+os descendentes** do cartão, que foi exatamente o que achou agora.
+
+Junto, três ajustes do dono:
+
+**"Como funciona" em destaque.** Em texto azul puro ele se perdia no fundo
+escuro. Virou pastilha com o azul-claro dos botões de ouvir, que é o tom de
+maior contraste do site.
+
+**A partitura mais justa.** O espaço em branco acima da pauta era fixo e
+generoso: reservava lugar para a cifra, para as marcas de articulação e para a
+nota mais aguda que qualquer escala pudesse ter — mesmo quando a partitura não
+tinha nada disso. Agora **cada faixa só existe se for usada** e a folga para as
+notas altas é medida pela música (`staffPosition` do evento mais agudo). O
+primeiro exercício caiu de 231 para 186px de altura; o de duas oitavas foi a
+236, que é o certo — ali as notas realmente sobem. As notas do rodapé também
+chegaram mais perto.
+
+**O Treino de Ouvido fecha em 24 horas.** Passado o prazo, todos os níveis
+trancam e a pessoa volta ao nível 1: ouvido não se guarda, se mantém — e
+recomeçar o caminho é o treino. Cada nível aberto mostra quanto falta ("fecha
+em 23 h") e há uma linha explicando a regra, porque nível que fecha sozinho sem
+aviso parece defeito.
+
+Onde o prazo mora: **no navegador da pessoa** (localStorage), não no banco.
+Foi uma escolha para não exigir mais uma rodada de `schema.sql`. O preço
+honesto, escrito aqui para não se perder: em outro aparelho ela começa do
+nível 1 — que é o que acontece todo dia, de qualquer jeito. O banco continua
+recebendo a nota de cada rodada, que é o histórico.
+
+As setas de rolagem foram de 30 para 40px no celular: agora que aparecem
+também na partitura, vale a regra do site de nada abaixo de 40px no dedo —
+quem cobrou foi `tests/celular.smoke.js`. `tests/ouvido.smoke.js` ganhou seis
+checagens do prazo, envelhecendo o relógio em 25 horas e conferindo que tudo
+tranca e que a pessoa volta ao nível 1. Bateria inteira: 13 testes de unidade,
+38 smokes, sem erro de página.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
