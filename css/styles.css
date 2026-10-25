@@ -1266,9 +1266,40 @@ textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .adm-modo small { font-size: 0.78rem; line-height: 1.45; color: var(--text-muted); }
 
 /* ---------- Biblioteca de Acordes ---------- */
-.acd-sugestoes { display: flex; flex-direction: column; gap: 0.35rem; margin: 0.2rem 0 0.9rem; }
+.acd-sugestoes { display: flex; flex-direction: column; gap: 0.5rem; margin: 0.2rem 0 0.9rem; }
 .acd-sug-grupo { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; }
 .acd-sug-rot { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); font-weight: 700; min-width: 9.5rem; }
+
+/* Os quatro módulos de sugestão (ver montarSugestoes, em js/chords-ui.js).
+   Antes as trinta cifras ficavam todas à mostra. Agora são quatro cartões,
+   dois por linha em qualquer tela, cada um com o nome do módulo e uma cifra
+   de exemplo embaixo; nenhuma outra cifra fica exposta na página. O cartão
+   inteiro é um <select> invisível por cima, então tocar nele abre o menu do
+   próprio telefone com as cifras daquele módulo — o mesmo jeito do seletor
+   de tom e do de lições. */
+.acd-cats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.4rem; align-items: stretch; }
+.acd-cat {
+  position: relative; border-radius: 10px; background: var(--bg-elevated);
+  border: 1px solid var(--border); overflow: hidden;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0.15rem;
+  padding: 0.5rem 0.65rem; transition: border-color 0.12s;
+}
+.acd-cat:hover, .acd-cat:focus-within { border-color: var(--accent); }
+.acd-cat-nome {
+  font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.04em; color: var(--text-muted); line-height: 1.25;
+}
+.acd-cat-ex {
+  font-size: 0.9rem; font-weight: 700; color: var(--text);
+  font-family: "SFMono-Regular", Consolas, monospace;
+}
+/* O seletor cobre o cartão todo, invisível: quem toca em qualquer ponto do
+   cartão abre a lista. */
+.acd-cat-sel {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  opacity: 0; cursor: pointer; appearance: none; -webkit-appearance: none;
+  border: 0; padding: 0; margin: 0; background: none; font: inherit;
+}
 .acd-chip {
   background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text);
   border-radius: 999px; padding: 0.3rem 0.7rem; font-size: 0.8rem; font-weight: 600;
@@ -1478,6 +1509,7 @@ body.sistema-travado .modal-close { display: none; }
   .pad-nav .btn-secondary, .pad-nav .btn-primary { height: 40px; }
   .pad-view-toggle { margin-left: 0; }
   .acd-sug-rot { min-width: 0; flex-basis: 100%; }
+  .acd-cat { padding: 0.45rem 0.55rem; }
   .acd-grade, .acd-teclados { gap: 0.6rem; }
   .acd-forma, .acd-teclado { flex: 1 1 100%; }
   .acd-bloco-principal { padding-left: 0.6rem; }
@@ -1548,7 +1580,9 @@ body.sistema-travado .modal-close { display: none; }
 
   /* Dois rótulos que só repetem o que já está escrito logo acima: a escala e
      o tom estão nos seletores, e o grupo do exercício está no próprio nome. */
-  .esc-head .esc-title { display: none; }
+  /* (O título da escala sumia em TODA tela que usa .esc-head — inclusive a
+     Biblioteca de Acordes e a de Escalas. Quem precisava esconder era só o
+     Início, e lá o cabeçalho inteiro já sai, mais abaixo neste arquivo.) */
   #tre-conteudo .esc-grupo { display: none; }
   /* As setas de rolagem no dedo: 30px era a medida do mouse. Agora que elas
      aparecem também na partitura (que é quem rola, no celular), vale a regra

@@ -54,18 +54,44 @@
       parar(); render();
     });
     $('acd-conteudo').addEventListener('click', onClick);
-    $('acd-sugestoes').addEventListener('click', function (ev) {
-      var b = ev.target.closest('[data-cifra]');
-      if (!b) return;
-      $('acd-busca').value = b.getAttribute('data-cifra');
+    // Escolher no menu de uma categoria busca o acorde.
+    $('acd-sugestoes').addEventListener('change', function (ev) {
+      var sel = ev.target.closest('.acd-cat-sel');
+      if (!sel || !sel.value) return;
+      var mostrador = sel.parentNode.querySelector('.acd-cat-ex');
+      if (mostrador) mostrador.textContent = sel.value;   // a categoria passa a mostrar o escolhido
+      $('acd-busca').value = sel.value;
       buscar();
     });
-    $('acd-sugestoes').innerHTML = CH.SUGESTOES.map(function (g) {
-      return '<div class="acd-sug-grupo"><span class="acd-sug-rot">' + esc(g.grupo) + '</span>' +
+    montarSugestoes();
+  }
+
+  /**
+   * As sugestões de acorde, em quatro módulos.
+   *
+   * Antes as trinta cifras ficavam todas à mostra, em quatro fileiras. A
+   * pedido do dono (25/10/2026), viraram quatro módulos — Básicos, Com 7ª,
+   * Cor e Com baixo trocado —, dois por linha, cada um com o nome e o acorde
+   * que o representa embaixo. **Nenhuma cifra fica exposta**: tocar no módulo
+   * abre o menu do próprio aparelho com as cifras daquele grupo, como já
+   * acontece com o tom e com as lições de teoria. Escolhida uma, o módulo
+   * passa a mostrá-la e a busca acontece.
+   *
+   * O <select> cobre o módulo inteiro, invisível: assim o toque cai nele em
+   * qualquer ponto do cartão, e o que a pessoa lê é o desenho de baixo.
+   */
+  function montarSugestoes() {
+    $('acd-sugestoes').innerHTML = '<div class="acd-cats">' + CH.SUGESTOES.map(function (g, i) {
+      return '<div class="acd-cat">' +
+        '<span class="acd-cat-nome">' + esc(g.grupo) + '</span>' +
+        '<span class="acd-cat-ex">' + esc(g.cifras[0]) + '</span>' +
+        '<select class="acd-cat-sel" data-grupo="' + i + '" aria-label="' + esc(g.grupo) + '">' +
+        '<option value="">Escolha um acorde</option>' +
         g.cifras.map(function (c) {
-          return '<button type="button" class="acd-chip" data-cifra="' + esc(c) + '">' + esc(c) + '</button>';
-        }).join('') + '</div>';
-    }).join('');
+          return '<option value="' + esc(c) + '">' + esc(c) + '</option>';
+        }).join('') +
+        '</select></div>';
+    }).join('') + '</div>';
   }
 
   function buscar() {

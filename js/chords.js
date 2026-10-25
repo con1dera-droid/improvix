@@ -500,9 +500,9 @@
 
   // Acordes comuns, para quem não sabe o que digitar.
   var SUGESTOES = [
-    { grupo: 'Para começar', cifras: ['C', 'G', 'Am', 'F', 'D', 'Em', 'A', 'E'] },
+    { grupo: 'Básicos', cifras: ['C', 'G', 'Am', 'F', 'D', 'Em', 'A', 'E'] },
     { grupo: 'Com 7ª', cifras: ['C7M', 'Dm7', 'G7', 'Am7', 'Bm7(b5)', 'E7', 'A7', 'Cm7'] },
-    { grupo: 'Cores', cifras: ['C6(9)', 'C7M(9)', 'G7(b9)', 'G7alt', 'C7M(#11)', 'Dm6', 'Am(7M)', 'C7(13)'] },
+    { grupo: 'Cor', cifras: ['C6(9)', 'C7M(9)', 'G7(b9)', 'G7alt', 'C7M(#11)', 'Dm6', 'Am(7M)', 'C7(13)'] },
     { grupo: 'Com baixo trocado', cifras: ['C/E', 'G/B', 'D7/F#', 'F/G', 'Am/C', 'C7M/G'] }
   ];
 

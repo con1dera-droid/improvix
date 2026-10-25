@@ -69,10 +69,44 @@ function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!c
   const aindaG7 = await page.$eval('#acd-conteudo .esc-title', (e) => /G7/.test(e.textContent));
   ok(aindaG7, 'e o acorde anterior continua na tela');
 
-  // --- atalhos de acordes comuns ---
-  await page.click('#acd-sugestoes [data-cifra="Am7"]');
+  // --- as sugestões em quatro módulos, dois por linha, sem cifra exposta ---
+  // Desde 25/10/2026 as trinta cifras não ficam mais à mostra: são quatro
+  // módulos com nome + um acorde de exemplo, e as outras cifras moram no
+  // menu do aparelho, atrás de um <select> que cobre o cartão.
+  const mods = await page.$$eval('#acd-sugestoes .acd-cat', (ds) => ds.map((d) => ({
+    nome: d.querySelector('.acd-cat-nome').textContent.trim(),
+    ex: d.querySelector('.acd-cat-ex').textContent.trim(),
+    opcoes: d.querySelector('.acd-cat-sel').options.length,
+    topo: Math.round(d.getBoundingClientRect().top)
+  })));
+  ok(mods.length === 4, 'as sugestões vêm em quatro módulos (' + mods.length + ')');
+  ok(/^Básicos/.test(mods[0].nome) && /^Com 7/.test(mods[1].nome) && /^Cor/.test(mods[2].nome) && /^Com baixo/.test(mods[3].nome),
+    'com os nomes pedidos: ' + mods.map((m) => m.nome).join(' · '));
+  ok(mods.every((m) => m.ex.length > 0), 'cada módulo mostra o acorde que o representa: ' + mods.map((m) => m.ex).join(' · '));
+  ok(mods.every((m) => m.opcoes >= 7), 'e guarda as demais cifras no menu: ' + mods.map((m) => m.opcoes - 1).join(' · '));
+
+  // dois por linha: o 1º e o 2º no mesmo topo, o 3º mais abaixo
+  ok(mods[0].topo === mods[1].topo && mods[2].topo === mods[3].topo && mods[2].topo > mods[0].topo,
+    'ficam dois por linha (topos ' + mods.map((m) => m.topo).join(', ') + ')');
+
+  const expostas = await page.$$eval('#acd-sugestoes .acd-chip, #acd-sugestoes .acd-sug-grupo', (c) => c.length);
+  ok(expostas === 0, 'nenhuma cifra fica exposta na página (' + expostas + ')');
+
+  // o seletor cobre o cartão inteiro, invisível
+  const cobre = await page.$eval('#acd-sugestoes .acd-cat', (d) => {
+    const c = d.getBoundingClientRect(), s = d.querySelector('.acd-cat-sel').getBoundingClientRect();
+    const est = getComputedStyle(d.querySelector('.acd-cat-sel'));
+    // 2px de folga: o cartão tem borda de 1px e o seletor cobre a área de dentro
+    return { igual: Math.abs(c.width - s.width) <= 2 && Math.abs(c.height - s.height) <= 2, opacidade: est.opacity };
+  });
+  ok(cobre.igual && cobre.opacidade === '0', 'e o menu invisível cobre o cartão todo (opacidade ' + cobre.opacidade + ')');
+
+  // escolher no menu busca o acorde e o módulo passa a mostrá-lo
+  await page.selectOption('#acd-sugestoes .acd-cat-sel[data-grupo="1"]', 'Am7');
   await page.waitForTimeout(800);
-  ok(/Am7/.test(await page.$eval('#acd-conteudo .esc-title', (e) => e.textContent)), 'os atalhos de acorde comum funcionam');
+  ok(/Am7/.test(await page.$eval('#acd-conteudo .esc-title', (e) => e.textContent)), 'escolher no menu de um módulo busca o acorde');
+  ok((await page.$eval('#acd-sugestoes .acd-cat-sel[data-grupo="1"]', (s) => s.parentNode.querySelector('.acd-cat-ex').textContent.trim())) === 'Am7',
+    'e o módulo passa a mostrar o escolhido');
 
   // --- instrumento ---
   await page.selectOption('#acd-instrumento', 'baixo');
