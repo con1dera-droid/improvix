@@ -2391,6 +2391,31 @@ Dois defeitos achados no caminho, os dois por medição e não por olho:
 Testes: `tests/gravacao.smoke.js` passou a procurar a regra no bloco novo.
 Bateria inteira: 13 testes de unidade, 38 smokes, sem erro de página.
 
+## Quatro lições por vez, no celular — ✅ (2026-10-25)
+
+Na Teoria Musical do zero, as 28 lições ocupavam a tela inteira do celular: a
+pessoa rolava um bom tempo antes de ver o conteúdo da lição que tinha
+escolhido — justamente o que ela foi ler. A pedido do dono, a lista passou a
+mostrar **quatro** e a guardar o resto atrás da barra de rolagem.
+
+A altura é **medida, não chutada**. Os cartões têm textos de tamanhos
+diferentes (uns de duas linhas, outros de três), então o corte fica no fim do
+quarto cartão, seja qual for a altura dele — 377px nas contas de hoje, contra
+~840px antes. No computador a lista continua com os 560px do CSS, e girar o
+aparelho reajusta sozinho.
+
+Junto, o aviso mudou de regra na vertical: **"↓ TEM MAIS ABAIXO"** ganhou a
+largura inteira da lista, em caixa alta, e passou a ficar à vista **enquanto
+houver conteúdo abaixo** — some só ao chegar ao fim. Antes ele sumia depois da
+primeira rolagem; numa lista de 28 cortada em 4, "já rolei uma vez" não quer
+dizer "já sei que tem mais".
+
+Testes: `tests/rolagem.smoke.js` ganhou sete checagens — que as 28 continuam na
+lista, que só quatro aparecem **inteiras** (o cartão tem de começar e terminar
+dentro da janela), que a lista encolheu o bastante, que o aviso está escrito,
+visível desde o começo e ocupando a largura, e que some ao chegar ao fim.
+Bateria inteira: 13 testes de unidade, 38 smokes, sem erro de página.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

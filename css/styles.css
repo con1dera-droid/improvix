@@ -825,6 +825,11 @@ select, input[type="text"] {
   height: 1.2rem; line-height: 1.2rem; padding: 0 0.55rem;
 }
 .rolavel-y.rolavel-ativo.rolavel-virgem .rolavel-aviso { visibility: visible; }
+/* Na vertical o aviso não some depois da primeira rolagem: ele vale enquanto
+   houver conteúdo abaixo, e some só quando a pessoa chega ao fim. Numa lista
+   de 28 lições cortada em 4, "já rolei uma vez" não quer dizer "já sei que
+   tem mais". */
+.rolavel-y.rolavel-ativo:not(.rolavel-fim) .rolavel-aviso { visibility: visible; }
 
 /* A barra desenhada por nós (js/rolagem.js). A do navegador é transparente no
    Mac e some sozinha — foi justamente isso que fez o dono olhar a lista das
@@ -1551,6 +1556,15 @@ body.sistema-travado .modal-close { display: none; }
      o tom estão nos seletores, e o grupo do exercício está no próprio nome. */
   .esc-head .esc-title { display: none; }
   #tre-conteudo .esc-grupo { display: none; }
+  /* "↓ tem mais abaixo", na lista de lições, em destaque: é ele que diz à
+     pessoa que as 28 lições continuam embaixo das quatro que ela vê. */
+  .rolavel-y.rolavel-ativo .rolavel-aviso {
+    width: 100%; height: auto; line-height: 1.4; text-align: center;
+    font-size: 0.74rem; letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 0.3rem 0.6rem; border-radius: 8px;
+  }
+  .rolavel-y.rolavel-ativo { --rol-aviso: 1.95rem; }
+
   /* As pastilhas da escala sobem para o cabeçalho (ver posicionarTransporte)
      e viram uma linha só, logo abaixo dos três seletores. */
   .hero-badges { margin-top: 0.3rem; }

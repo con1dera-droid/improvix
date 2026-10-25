@@ -683,7 +683,33 @@
         '<div class="aula-resumo">' + l.resumo + '</div>';
       wrap.appendChild(item);
     });
+    limitarListaDeAulas();
   }
+
+  /**
+   * No celular a lista mostra QUATRO lições e o resto fica embaixo, atrás da
+   * barra de rolagem — pedido do dono em 25/10/2026: com as 28 ocupando a tela
+   * inteira, a pessoa rolava um minuto antes de ver o conteúdo da lição que
+   * escolheu. Quatro cabem e já dão escolha.
+   *
+   * A altura é medida, não chutada: os cartões têm textos de tamanhos
+   * diferentes, então o corte fica no fim do quarto cartão, seja qual for a
+   * altura dele. No computador a lista volta ao limite do CSS.
+   */
+  function limitarListaDeAulas() {
+    var wrap = document.getElementById('lista-aulas');
+    if (!wrap) return;
+    if (!window.matchMedia('(max-width: 980px)').matches) { wrap.style.maxHeight = ''; return; }
+    var itens = wrap.querySelectorAll('.aula-item');
+    if (itens.length <= 4) { wrap.style.maxHeight = ''; return; }
+    var topo = wrap.getBoundingClientRect().top;
+    var quarto = itens[3].getBoundingClientRect().bottom;
+    var altura = Math.round(quarto - topo + wrap.scrollTop + 4);
+    if (altura > 120) wrap.style.maxHeight = altura + 'px';
+  }
+
+  // Girar o aparelho muda o que cabe.
+  window.addEventListener('resize', limitarListaDeAulas);
 
   function renderAulaDetalhe() {
     var wrap = document.getElementById('aula-detalhe');

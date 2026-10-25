@@ -166,6 +166,44 @@ const estado = (alvo) => {
   const L3 = await lista();
   ok(L3.scrollTop > 0 && L3.scrollTop < antesY, 'a seta ⌄ desce um pedaço da lista (' + L3.scrollTop + 'px)');
 
+  // ---------- no celular, a lista mostra só quatro lições ----------
+  // Pedido do dono (25/10/2026): com as 28 ocupando a tela inteira, a pessoa
+  // rolava um minuto antes de ver o conteúdo da lição que escolheu.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForTimeout(900);
+  const noCelular = await page.evaluate(() => {
+    const l = document.querySelector('.aulas-list');
+    l.scrollTop = 0;                      // o teste acima rolou a lista
+    const r = l.getBoundingClientRect();
+    const av = l.parentElement.querySelector('.rolavel-aviso');
+    return {
+      total: l.querySelectorAll('.aula-item').length,
+      // inteiro = começa e termina dentro da janela da lista
+      inteiros: Array.from(l.querySelectorAll('.aula-item')).filter((i) => {
+        const c = i.getBoundingClientRect();
+        return c.top >= r.top - 2 && c.bottom <= r.bottom + 2;
+      }).length,
+      altura: Math.round(r.height),
+      aviso: av ? av.textContent.trim() : null,
+      avisoVisivel: av ? getComputedStyle(av).visibility === 'visible' : false,
+      avisoLargo: av ? Math.round(av.getBoundingClientRect().width) : 0,
+      larguraLista: Math.round(r.width)
+    };
+  });
+  ok(noCelular.total === 28, 'as 28 lições continuam na lista (' + noCelular.total + ')');
+  ok(noCelular.inteiros === 4, 'mas no celular só quatro aparecem inteiras (' + noCelular.inteiros + ')');
+  ok(noCelular.altura < 520, 'e a lista ficou curta o bastante para o conteúdo da lição subir (' + noCelular.altura + 'px)');
+  ok(/tem mais abaixo/i.test(noCelular.aviso || ''), 'com o aviso escrito: "' + noCelular.aviso + '"');
+  ok(noCelular.avisoVisivel, 'visível desde o começo');
+  ok(noCelular.avisoLargo > noCelular.larguraLista * 0.8,
+    'e em destaque, ocupando a largura da lista (' + noCelular.avisoLargo + ' de ' + noCelular.larguraLista + 'px)');
+
+  // rolou até o fim: aí sim o aviso some, porque não tem mais nada abaixo
+  await page.evaluate(() => { const l = document.querySelector('.aulas-list'); l.scrollTop = l.scrollHeight; });
+  await page.waitForTimeout(500);
+  const noFim = await page.$eval('.rolavel-y .rolavel-aviso', (e) => getComputedStyle(e).visibility);
+  ok(noFim === 'hidden', 'chegando ao fim da lista, o aviso some — não tem mais nada abaixo');
+
   console.log('\nErros de página:', erros.length ? erros : 'nenhum');
   if (erros.length) falhas += erros.length;
   await browser.close();
