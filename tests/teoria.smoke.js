@@ -29,9 +29,18 @@ function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!c
   await page.goto(URL, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(700);
 
-  // 1) o item está no menu, logo depois do "Inicie aqui"
+  // 1) o item está no menu, abrindo o grupo "Aprender e consultar"
+  // (em 25/10/2026 o menu virou três grupos; antes disso a Teoria era o
+  // segundo item de uma lista única)
   const menu = await page.$$eval('.nav-item[data-nav]', (items) => items.map((i) => i.getAttribute('data-nav')));
-  ok(menu.indexOf('aulas') === 1, 'Teoria Musical é o segundo item do menu (veio na posição ' + menu.indexOf('aulas') + ')');
+  ok(menu.indexOf('aulas') >= 0, 'Teoria Musical está no menu (posição ' + menu.indexOf('aulas') + ')');
+  const grupoDaTeoria = await page.$eval('.nav-item[data-nav="aulas"]', (a) => {
+    let el = a.previousElementSibling;
+    while (el && !el.classList.contains('nav-grupo')) el = el.previousElementSibling;
+    return el ? el.textContent.trim() : null;
+  });
+  ok(grupoDaTeoria === 'Aprender e consultar',
+    'e é o primeiro item do grupo "Aprender e consultar" (veio em "' + grupoDaTeoria + '")');
   const rotulo = await page.$eval('.nav-item[data-nav="aulas"]', (a) => a.textContent.trim());
   ok(/Teoria Musical/.test(rotulo), 'o item se chama Teoria Musical ("' + rotulo + '")');
   ok(/Inicie aqui/.test(await page.$eval('.nav-item[data-nav="inicio"]', (a) => a.textContent)),

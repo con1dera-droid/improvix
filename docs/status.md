@@ -2241,6 +2241,58 @@ bpm, para o ciclo fechar em 7 s), e que depois de parar o pico volta a zero. Em
 dois tons, para pegar erro de enarmonia. Bateria inteira: 13 testes de unidade,
 37 smokes, sem erro de página.
 
+## O menu em três grupos e o Treino de Ouvido — ✅ (2026-10-25)
+
+Dois pedidos encadeados, no mesmo dia. O segundo veio do primeiro.
+
+**1. O menu agrupado.** Perguntado se o jogo novo seria mais um item de menu, a
+resposta honesta era: seria o décimo-primeiro — e foi o próprio dono quem
+trouxe, semanas atrás, a queixa de que os alunos "se perdem, dizem que tem
+muita coisa". Então, antes de somar, organizou-se. Os itens continuam todos
+lá, agora sob três títulos: **Treinar** (Inicie aqui, Treino de Ouvido,
+Exercícios de Padrões, Transcrição), **Aprender e consultar** (Teoria do zero,
+Escalas, Fraseados, Acordes, Análise de Harmonia) e **Minhas coisas** (Meus
+Exercícios, Administração, Configurações). Onze itens soltos a cabeça não
+segura; três grupos de quatro, cinco e dois, sim.
+
+Como o administrador pode desligar qualquer tela, um grupo pode acabar vazio —
+e aí o título some junto, em vez de ficar apontando para o nada. Isso tem teste
+pelo caminho real: o admin desliga as cinco telas do grupo "Aprender e
+consultar" e o teste confere que o título sumiu para o aluno, e que os outros
+dois continuam.
+
+**2. O Treino de Ouvido.** "Um joguinho tipo descubra a nota: o sistema manda
+um som, dá as opções e você aperta para ver se acertou." A ideia é essa, com
+uma correção que decide se o jogo funciona ou frustra: tocar uma nota sozinha e
+perguntar "que nota é?" cobra **ouvido absoluto**, que em adulto praticamente
+não se desenvolve — seria sorte de 1 em 12, e a pessoa concluiria que não tem
+ouvido. Então o sistema dá a referência antes (o acorde da tonalidade) e a
+pergunta passa a ser **que grau é**. Isso é ouvido relativo, que se treina, e é
+o que o improvisador usa de verdade.
+
+Quatro níveis, abrindo como os exercícios do Início (80% numa rodada de dez):
+1-3-5 · com a 7ª · a escala inteira · as doze notas. No nível 1, de três em
+três perguntas vem um **acorde inteiro** para dizer se é maior ou menor —
+pedido do dono, e ele mesmo escolheu pôr no nível 1, o que casa: o nível 1 é o
+do acorde (1-3-5) e maior-ou-menor é exatamente a terça desse acorde.
+
+Não precisou de **nenhuma mudança no banco**: o jogo guarda a pontuação na
+tabela `progresso` que já existia, com a chave `ouvido:n1` e a mesma função
+`registrar_gravacao` dos exercícios — inclusive o piso de 80 e o carimbo que
+destrava o seguinte. Quem não está logado joga igual, só não guarda.
+
+Testes: `tests/ouvido.smoke.js` (novo, 22 checagens). A checagem que importa
+não é visual, é de afinação: o teste grampeia o motor de áudio, lê o MIDI
+agendado e confere, pergunta por pergunta, que a nota que sai é mesmo o grau
+anunciado — em dois tons, e também que a terça do acorde bate com "maior" ou
+"menor". Um erro de um semitom aí não quebraria tela nenhuma e ensinaria a
+pessoa errado, que é o pior defeito possível num treino de ouvido. O teste
+pegou um defeito de verdade no caminho: o botão errado não acendia em vermelho,
+porque o valor do botão é texto e a resposta guardada era número ('4' === 4 dá
+falso). `tests/menu.smoke.js` ganhou a conferência dos grupos e dos órfãos, e
+`tests/acesso.smoke.js`, a do grupo que esvazia. Bateria inteira: 13 testes de
+unidade, 38 smokes, sem erro de página.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
@@ -2267,7 +2319,8 @@ do escopo cobrado, mas vale registrar): leitura transposta de sax/trompete
 `index.html`, `css/styles.css`, `js/data.js`, `js/theory.js`, `js/phrases.js`,
 `js/notation.js`, `js/audio.js`, `js/articulation.js`, `js/scale-info.js`, `js/patterns.js`, `js/patterns-ui.js`, `js/scales.js`, `js/scales-ui.js`, `js/transcribe.js`, `js/transcribe-ui.js`, `vendor/*` (+ `vendor/CREDITOS.md`), `sounds/*.js` (+ `sounds/CREDITOS.md`), `js/lab.js`, `js/lessons.js`, `js/library.js`, `js/app.js`, `js/library-ui.js`,
 `js/config.js`, `js/supabaseClient.js`, `js/auth-ui.js`, `js/avaliar.js`,
-`js/gravacao.js`, `js/rolagem.js`, `js/treino-ui.js`, `sql/schema.sql`,
+`js/gravacao.js`, `js/rolagem.js`, `js/treino-ui.js`, `js/ouvido-ui.js`,
+`sql/schema.sql`,
 `tests/theory.test.js`, `tests/phrases.test.js`, `tests/lab.test.js`,
 `tests/lessons.test.js`, `tests/library.test.js`, `tests/articulation.test.js`, `tests/fusion.smoke.js`, `tests/scaleinfo.test.js`, `tests/scaleinfo.smoke.js`, `tests/som.smoke.js`, `tests/patterns.test.js`, `tests/padroes.smoke.js`, `tests/escalas.test.js`, `tests/escalas.smoke.js`, `tests/ambiencia.smoke.js`, `tests/menu.smoke.js`, `tests/transcricao.test.js`, `tests/transcricao.smoke.js`, `tests/audio.smoke.js`, `tests/etapa4.smoke.js`,
 `tests/etapa4.smoke2.js`, `tests/etapa4.e2e.js`, `tests/etapa5.smoke.js`,
@@ -2275,7 +2328,7 @@ do escopo cobrado, mas vale registrar): leitura transposta de sax/trompete
 `tests/etapa5.aulas.smoke.js`, `tests/fraseados.smoke.js`, `tests/biblioteca.smoke.js`, `tests/boasvindas.smoke.js`,
 `tests/teoria.smoke.js`, `tests/progresso.smoke.js`, `tests/cores.smoke.js`,
 `tests/avaliar.test.js`, `tests/gravacao.smoke.js`, `tests/gravacao.e2e.js`,
-`tests/rolagem.smoke.js`, `tests/campo.smoke.js`,
+`tests/rolagem.smoke.js`, `tests/campo.smoke.js`, `tests/ouvido.smoke.js`,
 `tests/screenshot*.js` (dev only),
 `docs/PRD.md`, `docs/mapa-do-sistema.md`, `docs/matriz-rbac.md`,
 `docs/modulos.md`, `docs/status.md`, `docs/etapa4-supabase.md`,

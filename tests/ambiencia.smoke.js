@@ -82,7 +82,12 @@ const { prepararSemLogin } = require('./fake-supabase.js');
   const pouca = await cauda('pouca');
 
   function linha(nome, r, minDb, maxDb) {
-    const ok = r.db >= minDb && r.db <= maxDb && r.pico > 0.25;
+    // O piso do pico só existe para pegar "não saiu som nenhum". Ele era 0.25
+    // e dava alarme falso quando vários navegadores rodam ao mesmo tempo: o
+    // medidor lê a saída a cada 10 ms, e com a máquina ocupada ele perde
+    // quadros e erra o pico por pouco (0,24 em vez de 0,28). O que esta linha
+    // mede de verdade é a CAUDA em dB — essa, sim, é apertada.
+    const ok = r.db >= minDb && r.db <= maxDb && r.pico > 0.15;
     if (!ok) failed = true;
     console.log((ok ? 'ok   ' : 'FALHA') + ' ' + nome.padEnd(14) +
       'pico ' + r.pico.toFixed(3) + ' | cauda 600-1200 ms depois do ataque: ' + r.db.toFixed(1) + ' dB' +

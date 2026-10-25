@@ -157,6 +157,15 @@ li { margin-bottom: 0.5rem; line-height: 1.4; }
   justify-content: space-between;
   gap: 0.4rem;
 }
+/* Título de grupo do menu (25/10/2026). Onze itens soltos a cabeça não
+   segura; três grupos, sim. O título é pequeno e discreto de propósito — ele
+   organiza, não compete com os itens. */
+.nav-grupo {
+  font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-dim);
+  padding: 0.75rem 0.7rem 0.25rem;
+}
+.nav-grupo:first-child { padding-top: 0.2rem; }
 .nav-item:hover { background: var(--bg-elevated); color: var(--text); }
 .nav-item.active { background: var(--accent); color: #fff; }
 .nav-item.is-soon { opacity: 0.65; cursor: default; }
@@ -1455,3 +1464,74 @@ body.sistema-travado .modal-close { display: none; }
   .esc-nota { min-width: 1.7rem; font-size: 0.78rem; }
   .tab-block { font-size: 0.72rem; }
 }
+
+/* ===================== Treino de Ouvido =====================
+   Jogo de ouvido RELATIVO (js/ouvido-ui.js): o sistema dá a referência e
+   pergunta que grau é a nota. Os botões são grandes de propósito — a pessoa
+   responde ouvindo, não lendo, e deve conseguir clicar sem procurar. */
+.ouv-topo {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.8rem 1.2rem;
+  margin-bottom: 0.5rem;
+}
+.ouv-campo { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.78rem; color: var(--text-muted); }
+.ouv-campo select {
+  padding: 0.45rem 0.6rem; border-radius: 8px; font-size: 0.9rem;
+  background: var(--bg-elevated); color: var(--text); border: 1px solid var(--border);
+}
+.ouv-niveis { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.ouv-nivel {
+  padding: 0.4rem 0.75rem; border-radius: 999px; cursor: pointer;
+  font-size: 0.8rem; font-weight: 700;
+  background: var(--bg-elevated); color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.ouv-nivel:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
+.ouv-nivel.is-on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.ouv-nivel.is-trancado { opacity: 0.55; cursor: not-allowed; color: var(--aviso); }
+.ouv-sobre { font-size: 0.85rem; color: var(--text-muted); margin: 0.2rem 0 0.9rem; }
+
+.ouv-placar { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.7rem; }
+.ouv-chip {
+  font-size: 0.78rem; color: var(--text-muted);
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 999px; padding: 0.25rem 0.7rem;
+}
+.ouv-chip strong { color: var(--text); }
+.ouv-chip-quente { border-color: var(--ouvir); color: var(--text); }
+.ouv-chip-quente strong { color: var(--accent); }
+
+.ouv-pergunta { font-size: 1rem; font-weight: 700; color: var(--text); margin: 0.6rem 0 0.5rem; }
+.ouv-botoes { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.ouv-grau {
+  min-width: 64px; padding: 0.85rem 1rem; border-radius: 12px; cursor: pointer;
+  font-size: 1.15rem; font-weight: 800;
+  background: var(--bg-elevated); color: var(--text); border: 2px solid var(--border);
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.ouv-grau:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.ouv-grau:disabled { cursor: default; }
+.ouv-grau.is-certo { background: var(--ok); border-color: var(--ok); color: #fff; }
+.ouv-grau.is-errado { background: var(--erro); border-color: var(--erro); color: #fff; }
+
+.ouv-resposta {
+  margin: 0.8rem 0 0.2rem; padding: 0.6rem 0.85rem; border-radius: 10px;
+  font-size: 0.9rem; font-weight: 600;
+}
+.ouv-certo { background: var(--bg-elevated); color: var(--text); border-left: 4px solid var(--ok); }
+.ouv-errado { background: var(--bg-elevated); color: var(--text); border-left: 4px solid var(--erro); }
+.ouv-acoes { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.7rem; }
+.ouv-acoes-topo { margin: 0 0 0.3rem; }
+
+.ouv-comecar { margin-top: 0.8rem; }
+.ouv-btn-grande { font-size: 1rem; padding: 0.7rem 1.4rem; }
+
+.ouv-fim {
+  margin: 0.4rem 0 1rem; padding: 0.9rem 1.1rem; border-radius: 12px;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+}
+.ouv-fim p { margin: 0.3rem 0 0; font-size: 0.88rem; color: var(--text-muted); }
+.ouv-fim strong { color: var(--text); }
+.ouv-fim-ok { border-left: 5px solid var(--ok); }
+.ouv-fim-quase { border-left: 5px solid var(--aviso); }
+.ouv-nota { font-size: 2rem; font-weight: 800; color: var(--text); line-height: 1; }
+.ouv-grau-largo { min-width: 120px; font-size: 1rem; }

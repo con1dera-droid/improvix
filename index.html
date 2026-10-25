@@ -48,17 +48,28 @@
 
     <nav class="nav">
       <!-- A ordem é a do estudo, escolhida pelo dono do projeto (14/10/2026):
-           primeiro o que se pratica todo dia (treino, padrões, escalas,
-           fraseados), depois o que se consulta (análise, transcrição,
-           acordes) e por fim o que é da pessoa (exercícios, conta). -->
+           primeiro o que se pratica todo dia, depois o que se consulta e por
+           fim o que é da pessoa.
+
+           Em 25/10/2026 os itens ganharam títulos de grupo. O motivo foi uma
+           queixa real do dono: "os usuários entram e se perdem, dizem que tem
+           muita coisa". Onze itens soltos a cabeça não segura; três grupos de
+           três ou quatro, sim. Nada saiu do menu — só ficou separado.
+           Grupo vazio some junto com seus itens (ver aplicarModulos). -->
+      <div class="nav-grupo" data-grupo="treinar">Treinar</div>
       <a href="#" class="nav-item active" data-nav="inicio">🏠 Inicie aqui — treinar escalas</a>
-      <a href="#" class="nav-item" data-nav="aulas">🎓 Teoria Musical — do zero</a>
+      <a href="#" class="nav-item" data-nav="ouvido">🎧 Treino de Ouvido</a>
       <a href="#" class="nav-item" data-nav="padroes">📘 Exercícios de Padrões</a>
+      <a href="#" class="nav-item" data-nav="transcricao">🎤 Transcrição / Treino</a>
+
+      <div class="nav-grupo" data-grupo="aprender">Aprender e consultar</div>
+      <a href="#" class="nav-item" data-nav="aulas">🎓 Teoria Musical — do zero</a>
       <a href="#" class="nav-item" data-nav="biblioteca-escalas">📚 Biblioteca de Escalas</a>
       <a href="#" class="nav-item" data-nav="biblioteca-fraseados">🎼 Biblioteca de Fraseados</a>
-      <a href="#" class="nav-item" data-nav="harmonia">🎹 Análise de Harmonia</a>
-      <a href="#" class="nav-item" data-nav="transcricao">🎤 Transcrição / Treino</a>
       <a href="#" class="nav-item" data-nav="acordes">🎹 Biblioteca de Acordes</a>
+      <a href="#" class="nav-item" data-nav="harmonia">🎹 Análise de Harmonia</a>
+
+      <div class="nav-grupo" data-grupo="minhas">Minhas coisas</div>
       <a href="#" class="nav-item" data-nav="meus-exercicios">📋 Meus Exercícios</a>
       <!-- só aparece para quem é admin (js/auth-ui.js cuida disso) -->
       <a href="#" class="nav-item" data-nav="admin" id="nav-admin" hidden>👑 Administração</a>
@@ -736,6 +747,21 @@
       </div>
     </div>
 
+    <!-- View: Treino de Ouvido -->
+    <!-- Ouvido RELATIVO, não absoluto: o sistema dá a referência antes de
+         tocar a nota, e a pergunta é "que grau é", não "que nota é". Ouvido
+         absoluto praticamente não se desenvolve em adulto; o relativo é o que
+         o improvisador usa de verdade. Ver js/ouvido-ui.js. -->
+    <div class="content view" data-view="ouvido" hidden>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-icon">🎧</span>
+          <div class="card-title">Treino de Ouvido</div>
+        </div>
+        <div id="ouv-conteudo"></div>
+      </div>
+    </div>
+
     <!-- Modal de login/cadastro (Etapa 4) -->
 
     <!-- Rodapé com instrumentos -->
@@ -860,6 +886,7 @@
 <script src="js/patterns-ui.js"></script>
 <script src="js/scales-ui.js"></script>
 <script src="js/treino-ui.js"></script>
+<script src="js/ouvido-ui.js"></script>
 <script src="js/chords-ui.js"></script>
 <script src="js/transcribe.js"></script>
 <script src="js/transcribe-ui.js"></script>

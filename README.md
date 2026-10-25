@@ -114,6 +114,32 @@ dela). O motor é `js/chords.js` e a tela, `js/chords-ui.js`.
 > dele continua no projeto: é ele que sugere a progressão quando se troca a
 > tonalidade na Análise de Harmonia.
 
+## O menu, em três grupos
+
+Desde 25/10/2026 os itens do menu lateral ficam separados por três títulos —
+**Treinar** (Inicie aqui, Treino de Ouvido, Exercícios de Padrões, Transcrição),
+**Aprender e consultar** (Teoria do zero, Escalas, Fraseados, Acordes, Análise
+de Harmonia) e **Minhas coisas** (Meus Exercícios, Administração,
+Configurações). Nada saiu do menu; o motivo foi que onze itens soltos faziam o
+aluno se perder. O administrador continua podendo desligar qualquer tela, e um
+grupo que fique sem nenhum item some junto com o título.
+
+## Treino de Ouvido
+
+Um jogo curto, no item **🎧 Treino de Ouvido**. O sistema toca o acorde da
+tonalidade (a referência), depois uma nota, e você responde **que grau** é
+aquilo — a tônica, a terça, a quinta. É ouvido **relativo**: a pergunta "que
+nota é essa?", sem referência, cobraria ouvido absoluto, que em adulto
+praticamente não se desenvolve e viraria sorte.
+
+São quatro níveis, que abrem como os exercícios do Início — 80% numa rodada de
+dez abre o seguinte: **1)** 1-3-5, **2)** com a 7ª, **3)** a escala inteira,
+**4)** as doze notas. No nível 1, de três em três perguntas vem um **acorde
+inteiro** para você dizer se é maior ou menor — é a terça do mesmo acorde,
+vista de outro ângulo.
+
+Dá para jogar sem conta; quem está logado tem o nível aberto guardado.
+
 ## A tela de Início: treinar escalas
 
 O site abre direto no treino: escolha a **tonalidade**, a **escala** e o

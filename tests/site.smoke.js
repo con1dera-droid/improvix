@@ -32,7 +32,7 @@ function ok(cond, msg) { console.log((cond ? 'ok    ' : 'FALHA ') + msg); if (!c
   const itens = await p.$$eval('.nav-item:not([hidden])', n => n.map(x => x.textContent.replace(/\s+/g,' ').trim()));
   ok(await p.$eval('#nav-admin', e => e.hidden), 'MENU: "Administração" fica escondido para quem não é admin');
   console.log('\nMENU (' + itens.length + '):', itens.join(' · '));
-  ok(itens.length === 10, 'o menu tem os 10 itens');
+  ok(itens.length === 11, 'o menu tem os 11 itens');
 
   const VIEWS = { 'inicio':'inicio', 'harmonia':'harmonia', 'biblioteca-escalas':'biblioteca-escalas', 'biblioteca-fraseados':'biblioteca-fraseados',
     'padroes':'padroes', 'transcricao':'transcricao', 'acordes':'acordes', 'meus-exercicios':'exercicios', 'config':'config' };
