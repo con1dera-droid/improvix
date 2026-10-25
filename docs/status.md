@@ -2559,6 +2559,43 @@ voltas — a conta continua conferida no banco) e `rolagem.smoke` (sem etiqueta
 na horizontal). Bateria inteira: 13 testes de unidade, 38 smokes, sem erro de
 página.
 
+## As lições num seletor, e o fim do aviso escrito — ✅ (2026-10-25)
+
+**A Teoria Musical do zero, no celular, virou um seletor.** "Que fique visível
+apenas o primeiro assunto e os demais ocultos, igual quando a gente escolhe o
+tom: eu escolho e ele abre logo com o conteúdo abaixo." É o formato que o site
+já usa para a tonalidade, e resolve de vez o que vinha sendo aparado em
+etapas: a lista de 28 cartões enchia a tela antes de a pessoa chegar ao texto
+que foi ler. Agora são um `<select>` com as 28 lições separadas pelos nove
+blocos do método (`optgroup`), e o conteúdo logo abaixo.
+
+As duas formas — a lista de cartões e o seletor — existem ao mesmo tempo no
+HTML, e quem escolhe é o CSS pela largura da tela. Apontam para a **mesma**
+lição: o estado é um só, então clicar num cartão no computador e estreitar a
+janela mostra o seletor já naquela lição. O recorte de quatro lições, feito
+mais cedo no mesmo dia, saiu junto — o seletor o substitui, e código que não
+serve mais é peso.
+
+**O aviso escrito de rolagem saiu de vez**, nos dois sentidos. Ele nasceu
+porque a barra do navegador some sozinha no celular e no Mac, e era preciso
+dizer por escrito que havia mais. Agora que a barra é desenhada por nós e fica
+parada, o texto era a terceira coisa dizendo o mesmo — barra, seta e etiqueta.
+Saiu tudo que o sustentava: o elemento, as regras, o espaço reservado embaixo
+da lista e a classe `rolavel-virgem`, que só existia para ele.
+
+Um detalhe que o teste pegou: como a partitura também virou uma caixa que
+rola, `env.querySelector('.rolavel-trilho')` passou a encontrar a barra de
+**dentro** em vez da do envelope. O teste agora pede `:scope >`. E havia uma
+chave repetida no objeto medido (`barra` duas vezes), em que a segunda
+apagava a primeira em silêncio — o tipo de erro que só aparece quando a
+asserção falha por motivo nenhum.
+
+Testes: `tests/rolagem.smoke.js` trocou as sete checagens das quatro lições
+por sete do seletor (as 28 presentes, os blocos, a lição aberta embaixo,
+escolher outra abre a outra) e passou a conferir que **não existe etiqueta
+escrita em lugar nenhum da página**. Bateria inteira: 13 testes de unidade, 38
+smokes, sem erro de página.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

@@ -661,6 +661,9 @@ select, input[type="text"] {
 
 /* Aulas (Etapa 5, parte 4) */
 .aulas-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 1.25rem; align-items: start; }
+/* O seletor de assunto é a forma do celular (ver montarSeletorDeAulas, em
+   js/app.js). No computador quem aparece é a lista de cartões. */
+.aulas-seletor { display: none; }
 .aulas-list { display: flex; flex-direction: column; gap: 0.5rem; max-height: 560px; overflow-y: auto; }
 .aula-item {
   border: 1px solid var(--border); border-radius: 10px; padding: 0.65rem 0.8rem; cursor: pointer;
@@ -785,12 +788,6 @@ select, input[type="text"] {
    Aqui as setas ficam em cima e embaixo, e a sombra marca o lado onde ainda
    há conteúdo. */
 .rolavel-y > *:first-child::-webkit-scrollbar { width: 10px; height: 10px; }
-/* A etiqueta fica EMBAIXO da lista (é para lá que ela aponta) e guarda um
-   lugar de tamanho fixo mesmo depois de sumir — assim a seta ⌄, que se apoia
-   na borda de baixo, nunca cai em cima dela nem pula de lugar quando a pessoa
-   começa a rolar. Sem lugar guardado, as duas coisas se sobrepõem. */
-.rolavel-y { --rol-aviso: 0rem; }
-.rolavel-y.rolavel-ativo { --rol-aviso: 1.55rem; }
 .rolavel-y.rolavel-ativo::before, .rolavel-y.rolavel-ativo::after {
   left: 0; right: 10px; top: auto; bottom: auto; width: auto; height: 26px;
 }
@@ -798,7 +795,7 @@ select, input[type="text"] {
   top: 0; background: linear-gradient(to bottom, var(--bg-card), rgba(0, 0, 0, 0));
 }
 .rolavel-y.rolavel-ativo::after {
-  bottom: var(--rol-aviso); background: linear-gradient(to top, var(--bg-card), rgba(0, 0, 0, 0));
+  bottom: 0; background: linear-gradient(to top, var(--bg-card), rgba(0, 0, 0, 0));
 }
 /* As setas ficam encostadas na barra, do lado direito: no meio da lista elas
    tapavam justamente o título do cartão que a pessoa estava lendo. */
@@ -806,18 +803,7 @@ select, input[type="text"] {
   top: auto; left: auto; right: 16px; transform: none;
 }
 .rolavel-y .rolavel-esq { top: 2px; }
-.rolavel-y .rolavel-dir { bottom: calc(var(--rol-aviso) + 2px); }
-.rolavel-y.rolavel-ativo .rolavel-aviso {
-  order: 1; align-self: center; margin: 0.35rem 0 0;
-  display: inline-block; visibility: hidden;
-  height: 1.2rem; line-height: 1.2rem; padding: 0 0.55rem;
-}
-.rolavel-y.rolavel-ativo.rolavel-virgem .rolavel-aviso { visibility: visible; }
-/* Na vertical o aviso não some depois da primeira rolagem: ele vale enquanto
-   houver conteúdo abaixo, e some só quando a pessoa chega ao fim. Numa lista
-   de 28 lições cortada em 4, "já rolei uma vez" não quer dizer "já sei que
-   tem mais". */
-.rolavel-y.rolavel-ativo:not(.rolavel-fim) .rolavel-aviso { visibility: visible; }
+.rolavel-y .rolavel-dir { bottom: 2px; }
 
 /* A barra desenhada por nós (js/rolagem.js). A do navegador é transparente no
    Mac e some sozinha — foi justamente isso que fez o dono olhar a lista das
@@ -826,7 +812,7 @@ select, input[type="text"] {
 .rolavel-trilho { display: none; }
 .rolavel-y.rolavel-ativo .rolavel-trilho {
   display: block; position: absolute; right: 2px; top: 0;
-  bottom: var(--rol-aviso); width: 10px; border-radius: 999px;
+  bottom: 0; width: 10px; border-radius: 999px;
   background: var(--bg-elevated); border: 1px solid var(--border);
   cursor: pointer; z-index: 2;
 }
@@ -852,15 +838,6 @@ select, input[type="text"] {
 /* Espaço para a barra não cair em cima do texto dos cartões. */
 .rolavel-y.rolavel-ativo > *:first-child { padding-right: 16px; }
 .rolavel-ativo:not(.rolavel-y) > *:first-child { padding-bottom: 14px; }
-
-.rolavel-aviso {
-  order: -1; align-self: flex-start; margin: 0 0 0.3rem;
-  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.02em;
-  color: var(--ouvir-ink); background: var(--ouvir);
-  border-radius: 999px; padding: 0.12rem 0.55rem; pointer-events: none;
-  display: none;
-}
-.rolavel-ativo.rolavel-virgem .rolavel-aviso { display: inline-block; }
 
 /* Gravar o exercício: o botão, a caixa de resultado e a trava do seguinte. */
 .tre-prog-regra {
@@ -1578,14 +1555,15 @@ body.sistema-travado .modal-close { display: none; }
      do site — nada abaixo de 40px no toque. */
   .rolavel-seta { width: 40px; height: 40px; }
 
-  /* "↓ tem mais abaixo", na lista de lições, em destaque: é ele que diz à
-     pessoa que as 28 lições continuam embaixo das quatro que ela vê. */
-  .rolavel-y.rolavel-ativo .rolavel-aviso {
-    width: 100%; height: auto; line-height: 1.4; text-align: center;
-    font-size: 0.74rem; letter-spacing: 0.04em; text-transform: uppercase;
-    padding: 0.3rem 0.6rem; border-radius: 8px;
+  /* As 28 lições viram um seletor, como o do tom: a pessoa abre, escolhe o
+     assunto, e o conteúdo aparece logo abaixo. A lista de cartões (e o
+     envelope de rolagem em volta dela) some — no telefone ela sozinha enchia
+     a tela antes de a pessoa chegar ao que foi ler. */
+  .aulas-seletor {
+    display: flex; flex-direction: column; gap: 0.25rem;
+    font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.2rem;
   }
-  .rolavel-y.rolavel-ativo { --rol-aviso: 1.95rem; }
+  .aulas-grid > .rolavel, #lista-aulas { display: none; }
 
   /* As pastilhas da escala sobem para o cabeçalho (ver posicionarTransporte)
      e viram uma linha só, logo abaixo dos três seletores. */

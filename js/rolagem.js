@@ -11,7 +11,7 @@
  *   - uma barra de rolagem sempre visível (no CSS, com cor própria);
  *   - sombras nas bordas, que aparecem só do lado onde há mais conteúdo;
  *   - setas ‹ › clicáveis, para quem prefere clicar a arrastar;
- *   - um aviso escrito "↔ tem mais para o lado", enquanto não se rolou nada.
+ *   - uma barra desenhada por nós, que não some como a do navegador.
  *
  * Tudo isso só aparece quando a caixa REALMENTE transborda: aviso de rolagem
  * em coisa que já cabe na tela é ruído, e ruído a pessoa aprende a ignorar.
@@ -63,8 +63,6 @@
     var noInicio = pos <= FOLGA;
     env.classList.toggle('rolavel-inicio', noInicio);
     env.classList.toggle('rolavel-fim', pos >= fim - FOLGA);
-    // O aviso escrito some assim que a pessoa entende e rola — já cumpriu o papel.
-    env.classList.toggle('rolavel-virgem', noInicio);
     if (caixa.__polegar) desenharPolegar(caixa, pos, fim);
   }
 
@@ -113,16 +111,10 @@
     dir.className = 'rolavel-seta rolavel-dir';
     dir.setAttribute('aria-label', vertical ? 'Mostrar o que está abaixo' : 'Mostrar o que está à direita');
     dir.textContent = vertical ? '⌄' : '›';
-    // O aviso escrito só existe na vertical. Na horizontal ele saiu em
-    // 25/10/2026, a pedido do dono: agora que a barra azul fica parada
-    // embaixo da partitura, a etiqueta era a terceira coisa dizendo a mesma
-    // coisa (barra, seta e texto) em cima de um cartão já cheio.
-    var aviso = null;
-    if (vertical) {
-      aviso = document.createElement('span');
-      aviso.className = 'rolavel-aviso';
-      aviso.textContent = '↓ tem mais abaixo';
-    }
+    // O aviso escrito ("tem mais para o lado" / "tem mais abaixo") saiu de vez
+    // em 25/10/2026. Ele existia porque a barra do navegador some sozinha no
+    // celular e no Mac; agora que a barra é desenhada e fica parada, o texto
+    // era a terceira coisa dizendo o mesmo — barra, seta e etiqueta.
 
     function anda(quanto) {
       if (vertical) {
@@ -136,7 +128,6 @@
 
     env.appendChild(esq);
     env.appendChild(dir);
-    if (aviso) env.appendChild(aviso);
 
     caixa.__vertical = !!vertical;
     montarTrilho(env, caixa, vertical);

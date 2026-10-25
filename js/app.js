@@ -683,33 +683,44 @@
         '<div class="aula-resumo">' + l.resumo + '</div>';
       wrap.appendChild(item);
     });
-    limitarListaDeAulas();
+    montarSeletorDeAulas();
   }
 
   /**
-   * No celular a lista mostra QUATRO lições e o resto fica embaixo, atrás da
-   * barra de rolagem — pedido do dono em 25/10/2026: com as 28 ocupando a tela
-   * inteira, a pessoa rolava um minuto antes de ver o conteúdo da lição que
-   * escolheu. Quatro cabem e já dão escolha.
+   * As mesmas 28 lições, num seletor — a forma do celular.
    *
-   * A altura é medida, não chutada: os cartões têm textos de tamanhos
-   * diferentes, então o corte fica no fim do quarto cartão, seja qual for a
-   * altura dele. No computador a lista volta ao limite do CSS.
+   * A lista de cartões é ótima no computador e péssima no telefone: ela sozinha
+   * enchia a tela, e a pessoa rolava um bom tempo antes de chegar ao conteúdo
+   * da lição que escolheu. O dono pediu o formato que o site já usa para o tom
+   * (25/10/2026): abre, escolhe o assunto, e o conteúdo aparece logo abaixo.
+   *
+   * As duas formas existem ao mesmo tempo no HTML e quem escolhe é o CSS pela
+   * largura da tela. São a MESMA lição selecionada nas duas — `state` é um só.
    */
-  function limitarListaDeAulas() {
-    var wrap = document.getElementById('lista-aulas');
-    if (!wrap) return;
-    if (!window.matchMedia('(max-width: 980px)').matches) { wrap.style.maxHeight = ''; return; }
-    var itens = wrap.querySelectorAll('.aula-item');
-    if (itens.length <= 4) { wrap.style.maxHeight = ''; return; }
-    var topo = wrap.getBoundingClientRect().top;
-    var quarto = itens[3].getBoundingClientRect().bottom;
-    var altura = Math.round(quarto - topo + wrap.scrollTop + 4);
-    if (altura > 120) wrap.style.maxHeight = altura + 'px';
+  function montarSeletorDeAulas() {
+    var sel = document.getElementById('aula-escolha');
+    if (!sel || !lessonsMod) return;
+    function escHtml(t) {
+      return String(t == null ? '' : t)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+    }
+    var html = '';
+    var grupoAtual = null;
+    lessonsMod.LESSONS.forEach(function (l, i) {
+      var grupo = l.bloco || l.categoria;
+      if (grupo !== grupoAtual) {
+        if (grupoAtual !== null) html += '</optgroup>';
+        grupoAtual = grupo;
+        html += '<optgroup label="' + escHtml(grupo) + '">';
+      }
+      html += '<option value="' + escHtml(l.id) + '">' + (i + 1) + '. ' + escHtml(l.titulo) + '</option>';
+    });
+    if (grupoAtual !== null) html += '</optgroup>';
+    sel.innerHTML = html;
+    sel.value = state.selectedLessonId || '';
+    var caixa = document.getElementById('aulas-seletor');
+    if (caixa) caixa.hidden = false;
   }
-
-  // Girar o aparelho muda o que cabe.
-  window.addEventListener('resize', limitarListaDeAulas);
 
   function renderAulaDetalhe() {
     var wrap = document.getElementById('aula-detalhe');
@@ -791,14 +802,23 @@
 
   function setupAulas() {
     var wrap = document.getElementById('lista-aulas');
-    if (!wrap) return;
-    wrap.addEventListener('click', function (ev) {
-      var item = ev.target.closest('[data-lesson-id]');
-      if (!item) return;
-      state.selectedLessonId = item.getAttribute('data-lesson-id');
-      renderAulasList();
-      renderAulaDetalhe();
-    });
+    if (wrap) {
+      wrap.addEventListener('click', function (ev) {
+        var item = ev.target.closest('[data-lesson-id]');
+        if (!item) return;
+        abrirAula(item.getAttribute('data-lesson-id'));
+      });
+    }
+    // O seletor do celular leva ao mesmo lugar que o cartão do computador.
+    var sel = document.getElementById('aula-escolha');
+    if (sel) sel.addEventListener('change', function () { abrirAula(sel.value); });
+  }
+
+  function abrirAula(id) {
+    if (!id) return;
+    state.selectedLessonId = id;
+    renderAulasList();
+    renderAulaDetalhe();
   }
 
   // ===================== Áudio da progressão (Etapa 3) =====================

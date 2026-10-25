@@ -734,6 +734,15 @@
           Comece pela primeira e vá descendo: cada uma puxa a seguinte, e quase todas têm exemplos
           para ouvir no seu instrumento.</p>
         <div class="aulas-grid">
+          <!-- No celular as 28 lições viram um seletor, como o do tom: a
+               pessoa abre, escolhe o assunto e o conteúdo aparece logo
+               abaixo. Pedido do dono (25/10/2026). No computador continua a
+               lista de cartões, que ali cabe. Ver renderAulasList, em
+               js/app.js. -->
+          <label class="aulas-seletor" id="aulas-seletor" for="aula-escolha" hidden>
+            <span>Assunto</span>
+            <select id="aula-escolha"></select>
+          </label>
           <div class="aulas-list" id="lista-aulas"></div>
           <div class="aulas-detalhe" id="aula-detalhe"></div>
         </div>

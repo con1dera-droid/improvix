@@ -1,12 +1,12 @@
 /**
- * "Tem mais para o lado": os avisos de rolagem.
+ * "Tem mais para o lado": a barra e as setas de rolagem.
  *
  * Partitura, tablatura, braço e tabela larga rolam na horizontal, e no Mac e
  * no celular a barra fica invisível até alguém rolar — então a pessoa olha um
  * compasso cortado e conclui que o exercício acaba ali. A pedido do dono, o
  * aviso ficou explícito. Este teste confere as duas metades da regra:
  *
- *   - quando a caixa TRANSBORDA, aparecem seta, etiqueta e barra visível;
+ *   - quando a caixa TRANSBORDA, aparecem a seta e a barra desenhada;
  *   - quando ela CABE, não aparece nada — aviso em coisa que já cabe é ruído,
  *     e ruído a pessoa aprende a ignorar.
  *
@@ -32,19 +32,22 @@ const estado = (alvo) => {
   const c = document.querySelectorAll('#esc-conteudo .lib-card-body')[alvo];
   if (!c) return null;
   const env = c.parentElement;
-  const et = env.querySelector('.rolavel-aviso');
+  // `:scope >` de propósito: a partitura dentro do cartão também virou uma
+  // caixa que rola, com a barra dela. Sem isso, a busca encontrava a de
+  // dentro — que é outra coisa — em vez da deste envelope.
+  const barra = env.querySelector(':scope > .rolavel-trilho');
   return {
     envelopes: document.querySelectorAll('.rolavel').length,
     ehEnvelope: env.classList.contains('rolavel'),
     ativo: env.classList.contains('rolavel-ativo'),
     setas: Array.from(env.querySelectorAll('.rolavel-seta'))
       .filter((b) => getComputedStyle(b).display !== 'none').length,
-    etiqueta: !!(et && getComputedStyle(et).display !== 'none'),
-    etiquetaBase: et ? Math.round(et.getBoundingClientRect().bottom) : null,
+    etiqueta: !!document.querySelector('.rolavel-aviso'),
+    barra: !!(barra && getComputedStyle(barra).display !== 'none'),
     caixaTopo: Math.round(c.getBoundingClientRect().top),
     cabe: c.scrollWidth - c.clientWidth <= 6,
     scrollLeft: Math.round(c.scrollLeft),
-    barra: getComputedStyle(c).scrollbarColor
+    corDaBarraDoNavegador: getComputedStyle(c).scrollbarColor
   };
 };
 
@@ -70,7 +73,7 @@ const estado = (alvo) => {
   ok(largo.ehEnvelope, 'a tablatura do exercício entrou num envelope de rolagem');
   ok(largo.cabe === true, 'na tela larga, essa tablatura cabe inteira');
   ok(largo.ativo === false, 'e por isso NÃO aparece aviso nenhum nela');
-  ok(largo.etiqueta === false, 'nem seta nem barra sobrando');
+  ok(largo.barra === false, 'nem a barra desenhada');
 
   // ---------- celular: a mesma tablatura transborda ----------
   await page.setViewportSize({ width: 390, height: 844 });
@@ -79,11 +82,12 @@ const estado = (alvo) => {
   ok(estreito.cabe === false, 'no celular, a mesma tablatura transborda');
   ok(estreito.ativo === true, 'e aí o aviso acende');
   ok(estreito.setas >= 2, 'com as setas ‹ › à mostra (' + estreito.setas + ')');
-  // A etiqueta escrita saiu da horizontal em 25/10/2026: com a barra azul
-  // parada embaixo da partitura, ela era a terceira coisa dizendo o mesmo.
-  ok(estreito.etiqueta === false, 'sem etiqueta escrita: quem avisa é a barra e a seta');
-  ok(!!estreito.barra && estreito.barra !== 'auto',
-    'a barra de rolagem tem cor própria, em vez de sumir (' + estreito.barra + ')');
+  ok(estreito.barra === true, 'e a barra desenhada aparece embaixo da caixa');
+  // O aviso escrito saiu de vez em 25/10/2026: com a barra parada, ele era a
+  // terceira coisa dizendo o mesmo — barra, seta e texto.
+  ok(estreito.etiqueta === false, 'sem etiqueta escrita em lugar nenhum da página');
+  ok(!!estreito.corDaBarraDoNavegador && estreito.corDaBarraDoNavegador !== 'auto',
+    'a do navegador também ganhou cor própria (' + estreito.corDaBarraDoNavegador + ')');
 
   // ---------- a seta anda de verdade ----------
   await page.evaluate((alvo) => {
@@ -114,7 +118,6 @@ const estado = (alvo) => {
     const env = l.parentElement;
     const t = env.querySelector('.rolavel-trilho');
     const p = env.querySelector('.rolavel-polegar');
-    const av = env.querySelector('.rolavel-aviso');
     const cx = (e) => { const r = e.getBoundingClientRect(); return { topo: Math.round(r.top), base: Math.round(r.bottom), larg: Math.round(r.width), alt: Math.round(r.height) }; };
     return {
       classes: env.className,
@@ -123,7 +126,6 @@ const estado = (alvo) => {
       trilhoVisivel: t ? getComputedStyle(t).display !== 'none' : false,
       trilho: t ? cx(t) : null,
       polegar: p ? cx(p) : null,
-      aviso: av ? { txt: av.textContent, vis: getComputedStyle(av).visibility, topo: Math.round(av.getBoundingClientRect().top) } : null,
       seta: (function () { const d = env.querySelector('.rolavel-dir'); return d ? cx(d) : null; })(),
       caixa: cx(l)
     };
@@ -137,11 +139,8 @@ const estado = (alvo) => {
   ok(L1.trilho && L1.trilho.larg >= 8, 'a barra tem largura de sobra para ser vista (' + (L1.trilho && L1.trilho.larg) + 'px)');
   ok(L1.polegar && L1.polegar.alt >= 30 && L1.polegar.alt < L1.caixa.alt,
     'o polegar é proporcional: nem some nem toma a barra inteira (' + (L1.polegar && L1.polegar.alt) + 'px de ' + L1.caixa.alt + ')');
-  ok(L1.aviso && L1.aviso.vis === 'visible' && /abaixo/.test(L1.aviso.txt),
-    'e a etiqueta diz, por escrito, que tem mais abaixo');
-  // o erro que apareceu na primeira versão: seta e etiqueta no mesmo lugar
-  ok(L1.seta && L1.aviso && L1.seta.base <= L1.aviso.topo + 1,
-    'a seta ⌄ fica ACIMA da etiqueta, sem cair em cima dela (' + L1.seta.base + ' ≤ ' + L1.aviso.topo + ')');
+  ok(L1.seta && L1.seta.base <= L1.caixa.base + 2,
+    'a seta ⌄ fica dentro da caixa, apoiada na borda de baixo (' + L1.seta.base + ' ≤ ' + L1.caixa.base + ')');
 
   // clicar no fim do trilho leva ao fim da lista
   const t = await page.evaluate(() => {
@@ -155,8 +154,7 @@ const estado = (alvo) => {
   const L2 = await lista();
   ok(L2.scrollTop > L1.scrollTop + 100, 'clicar no fim da barra leva ao fim da lista (' + L1.scrollTop + ' → ' + L2.scrollTop + ')');
   ok(L2.polegar.topo > L1.polegar.topo, 'e o polegar desce junto, mostrando onde a pessoa está');
-  ok(L2.aviso.vis === 'hidden', 'a etiqueta some depois que a pessoa rolou — já cumpriu o papel');
-  ok(L2.seta.base <= L2.aviso.topo + 1, 'e a seta continua no mesmo lugar, sem pular quando a etiqueta some');
+  ok(L2.seta.base === L1.seta.base, 'e a seta não pula de lugar quando a lista rola');
 
   // a seta ⌄ também anda
   const antesY = L2.scrollTop;
@@ -167,43 +165,42 @@ const estado = (alvo) => {
   const L3 = await lista();
   ok(L3.scrollTop > 0 && L3.scrollTop < antesY, 'a seta ⌄ desce um pedaço da lista (' + L3.scrollTop + 'px)');
 
-  // ---------- no celular, a lista mostra só quatro lições ----------
-  // Pedido do dono (25/10/2026): com as 28 ocupando a tela inteira, a pessoa
-  // rolava um minuto antes de ver o conteúdo da lição que escolheu.
+  // ---------- no celular, as lições viram um seletor ----------
+  // Pedido do dono (25/10/2026): no telefone a lista de 28 cartões enchia a
+  // tela antes de a pessoa chegar ao conteúdo que foi ler. Virou um seletor,
+  // como o do tom — abre, escolhe, e a lição aparece logo abaixo.
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(900);
   const noCelular = await page.evaluate(() => {
-    const l = document.querySelector('.aulas-list');
-    l.scrollTop = 0;                      // o teste acima rolou a lista
-    const r = l.getBoundingClientRect();
-    const av = l.parentElement.querySelector('.rolavel-aviso');
+    const sel = document.getElementById('aula-escolha');
+    const lista = document.getElementById('lista-aulas');
     return {
-      total: l.querySelectorAll('.aula-item').length,
-      // inteiro = começa e termina dentro da janela da lista
-      inteiros: Array.from(l.querySelectorAll('.aula-item')).filter((i) => {
-        const c = i.getBoundingClientRect();
-        return c.top >= r.top - 2 && c.bottom <= r.bottom + 2;
-      }).length,
-      altura: Math.round(r.height),
-      aviso: av ? av.textContent.trim() : null,
-      avisoVisivel: av ? getComputedStyle(av).visibility === 'visible' : false,
-      avisoLargo: av ? Math.round(av.getBoundingClientRect().width) : 0,
-      larguraLista: Math.round(r.width)
+      seletor: getComputedStyle(document.getElementById('aulas-seletor')).display !== 'none',
+      lista: getComputedStyle(lista).display !== 'none',
+      envelope: getComputedStyle(lista.parentElement).display !== 'none',
+      opcoes: sel.options.length,
+      grupos: sel.querySelectorAll('optgroup').length,
+      escolhido: sel.value,
+      detalhe: (document.querySelector('.aula-detalhe-titulo') || {}).textContent || ''
     };
   });
-  ok(noCelular.total === 28, 'as 28 lições continuam na lista (' + noCelular.total + ')');
-  ok(noCelular.inteiros === 4, 'mas no celular só quatro aparecem inteiras (' + noCelular.inteiros + ')');
-  ok(noCelular.altura < 520, 'e a lista ficou curta o bastante para o conteúdo da lição subir (' + noCelular.altura + 'px)');
-  ok(/tem mais abaixo/i.test(noCelular.aviso || ''), 'com o aviso escrito: "' + noCelular.aviso + '"');
-  ok(noCelular.avisoVisivel, 'visível desde o começo');
-  ok(noCelular.avisoLargo > noCelular.larguraLista * 0.8,
-    'e em destaque, ocupando a largura da lista (' + noCelular.avisoLargo + ' de ' + noCelular.larguraLista + 'px)');
+  ok(noCelular.seletor, 'no celular aparece o seletor de assunto');
+  ok(!noCelular.lista && !noCelular.envelope, 'e a lista de cartões (com o envelope de rolagem) some');
+  ok(noCelular.opcoes === 28, 'as 28 lições estão todas no seletor (' + noCelular.opcoes + ')');
+  ok(noCelular.grupos >= 4, 'separadas pelos blocos do método (' + noCelular.grupos + ' grupos)');
+  ok(noCelular.detalhe.length > 3 && noCelular.escolhido,
+    'e a lição escolhida já aparece aberta embaixo ("' + noCelular.detalhe + '")');
 
-  // rolou até o fim: aí sim o aviso some, porque não tem mais nada abaixo
-  await page.evaluate(() => { const l = document.querySelector('.aulas-list'); l.scrollTop = l.scrollHeight; });
-  await page.waitForTimeout(500);
-  const noFim = await page.$eval('.rolavel-y .rolavel-aviso', (e) => getComputedStyle(e).visibility);
-  ok(noFim === 'hidden', 'chegando ao fim da lista, o aviso some — não tem mais nada abaixo');
+  // escolher outra abre a outra
+  const outra = await page.$eval('#aula-escolha', (s) => s.options[6].value);
+  await page.selectOption('#aula-escolha', outra);
+  await page.waitForTimeout(600);
+  const trocou = await page.evaluate(() => ({
+    titulo: document.querySelector('.aula-detalhe-titulo').textContent,
+    seletor: document.getElementById('aula-escolha').selectedOptions[0].textContent
+  }));
+  ok(trocou.titulo !== noCelular.detalhe, 'escolher outro assunto abre o conteúdo dele ("' + trocou.titulo + '")');
+  ok(trocou.seletor.indexOf(trocou.titulo) > 0, 'e o seletor mostra o que está aberto ("' + trocou.seletor + '")');
 
   console.log('\nErros de página:', erros.length ? erros : 'nenhum');
   if (erros.length) falhas += erros.length;
