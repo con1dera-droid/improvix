@@ -47,29 +47,21 @@
     </div>
 
     <nav class="nav">
-      <!-- A ordem é a do estudo, escolhida pelo dono do projeto (14/10/2026):
-           primeiro o que se pratica todo dia, depois o que se consulta e por
-           fim o que é da pessoa.
-
-           Em 25/10/2026 os itens ganharam títulos de grupo. O motivo foi uma
-           queixa real do dono: "os usuários entram e se perdem, dizem que tem
-           muita coisa". Onze itens soltos a cabeça não segura; três grupos de
-           três ou quatro, sim. Nada saiu do menu — só ficou separado.
-           Grupo vazio some junto com seus itens (ver aplicarModulos). -->
-      <div class="nav-grupo" data-grupo="treinar">Treinar</div>
+      <!-- A ordem é a do estudo, escolhida pelo dono do projeto. Os títulos de
+           grupo foram testados em 25/10/2026 e tirados no mesmo dia, a pedido
+           dele: a lista corrida ficou mais limpa do que separada em "Treinar /
+           Aprender e consultar / Minhas coisas". A ordem atual é dele, item
+           por item: começar, praticar, estudar, consultar, treinar o ouvido e,
+           no fim, as coisas da conta. -->
       <a href="#" class="nav-item active" data-nav="inicio">🏠 Inicie aqui — treinar escalas</a>
-      <a href="#" class="nav-item" data-nav="ouvido">🎧 Treino de Ouvido</a>
       <a href="#" class="nav-item" data-nav="padroes">📘 Exercícios de Padrões</a>
       <a href="#" class="nav-item" data-nav="transcricao">🎤 Transcrição / Treino</a>
-
-      <div class="nav-grupo" data-grupo="aprender">Aprender e consultar</div>
       <a href="#" class="nav-item" data-nav="aulas">🎓 Teoria Musical — do zero</a>
       <a href="#" class="nav-item" data-nav="biblioteca-escalas">📚 Biblioteca de Escalas</a>
       <a href="#" class="nav-item" data-nav="biblioteca-fraseados">🎼 Biblioteca de Fraseados</a>
       <a href="#" class="nav-item" data-nav="acordes">🎹 Biblioteca de Acordes</a>
       <a href="#" class="nav-item" data-nav="harmonia">🎹 Análise de Harmonia</a>
-
-      <div class="nav-grupo" data-grupo="minhas">Minhas coisas</div>
+      <a href="#" class="nav-item" data-nav="ouvido">🎧 Treino de Ouvido</a>
       <a href="#" class="nav-item" data-nav="meus-exercicios">📋 Meus Exercícios</a>
       <!-- só aparece para quem é admin (js/auth-ui.js cuida disso) -->
       <a href="#" class="nav-item" data-nav="admin" id="nav-admin" hidden>👑 Administração</a>

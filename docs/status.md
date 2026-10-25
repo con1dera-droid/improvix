@@ -2241,25 +2241,24 @@ bpm, para o ciclo fechar em 7 s), e que depois de parar o pico volta a zero. Em
 dois tons, para pegar erro de enarmonia. Bateria inteira: 13 testes de unidade,
 37 smokes, sem erro de página.
 
-## O menu em três grupos e o Treino de Ouvido — ✅ (2026-10-25)
+## A ordem do menu e o Treino de Ouvido — ✅ (2026-10-25)
 
 Dois pedidos encadeados, no mesmo dia. O segundo veio do primeiro.
 
-**1. O menu agrupado.** Perguntado se o jogo novo seria mais um item de menu, a
+**1. A ordem do menu.** Perguntado se o jogo novo seria mais um item de menu, a
 resposta honesta era: seria o décimo-primeiro — e foi o próprio dono quem
 trouxe, semanas atrás, a queixa de que os alunos "se perdem, dizem que tem
-muita coisa". Então, antes de somar, organizou-se. Os itens continuam todos
-lá, agora sob três títulos: **Treinar** (Inicie aqui, Treino de Ouvido,
-Exercícios de Padrões, Transcrição), **Aprender e consultar** (Teoria do zero,
-Escalas, Fraseados, Acordes, Análise de Harmonia) e **Minhas coisas** (Meus
-Exercícios, Administração, Configurações). Onze itens soltos a cabeça não
-segura; três grupos de quatro, cinco e dois, sim.
+muita coisa". A primeira tentativa foi separar os itens em três títulos
+(Treinar / Aprender e consultar / Minhas coisas). Ficou no ar algumas horas e
+ele pediu para tirar: a lista corrida ficou mais limpa do que a dividida.
 
-Como o administrador pode desligar qualquer tela, um grupo pode acabar vazio —
-e aí o título some junto, em vez de ficar apontando para o nada. Isso tem teste
-pelo caminho real: o admin desliga as cinco telas do grupo "Aprender e
-consultar" e o teste confere que o título sumiu para o aluno, e que os outros
-dois continuam.
+Vale registrar o que foi tentado e descartado, para não refazer o caminho. O
+que sobrou é a ordem que ele fixou item por item: Inicie aqui · Exercícios de
+Padrões · Transcrição / Treino · Teoria Musical do zero · Biblioteca de Escalas
+· Biblioteca de Fraseados · Biblioteca de Acordes · Análise de Harmonia ·
+Treino de Ouvido · Meus Exercícios · (Administração) · Configurações no fim.
+Começar, praticar, estudar, consultar, treinar o ouvido e, por último, as
+coisas da conta.
 
 **2. O Treino de Ouvido.** "Um joguinho tipo descubra a nota: o sistema manda
 um som, dá as opções e você aperta para ver se acertou." A ideia é essa, com
@@ -2289,9 +2288,9 @@ anunciado — em dois tons, e também que a terça do acorde bate com "maior" ou
 pessoa errado, que é o pior defeito possível num treino de ouvido. O teste
 pegou um defeito de verdade no caminho: o botão errado não acendia em vermelho,
 porque o valor do botão é texto e a resposta guardada era número ('4' === 4 dá
-falso). `tests/menu.smoke.js` ganhou a conferência dos grupos e dos órfãos, e
-`tests/acesso.smoke.js`, a do grupo que esvazia. Bateria inteira: 13 testes de
-unidade, 38 smokes, sem erro de página.
+falso). `tests/menu.smoke.js` passou a conferir a ordem nova item por item e que
+NÃO existe título de grupo nenhum — se algum voltar sem querer, ele acusa.
+Bateria inteira: 13 testes de unidade, 38 smokes, sem erro de página.
 
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas

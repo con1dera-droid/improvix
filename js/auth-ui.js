@@ -379,7 +379,6 @@
   // que a pessoa vai vê-las, senão a conferência vira caça ao tesouro.
   var MODULOS = [
     { nav: 'inicio', label: 'Inicie aqui — treinar escalas', fixo: true },
-    { nav: 'ouvido', label: 'Treino de Ouvido' },
     { nav: 'padroes', label: 'Exercícios de Padrões' },
     { nav: 'transcricao', label: 'Transcrição / Treino' },
     { nav: 'aulas', label: 'Teoria Musical — do zero' },
@@ -387,6 +386,7 @@
     { nav: 'biblioteca-fraseados', label: 'Biblioteca de Fraseados' },
     { nav: 'acordes', label: 'Biblioteca de Acordes' },
     { nav: 'harmonia', label: 'Análise de Harmonia' },
+    { nav: 'ouvido', label: 'Treino de Ouvido' },
     { nav: 'meus-exercicios', label: 'Meus Exercícios' },
     { nav: 'config', label: 'Configurações', fixo: true }
   ];
@@ -410,24 +410,6 @@
         var inicio = document.querySelector('.nav-item[data-nav="inicio"]');
         if (inicio) inicio.click();
       }
-    });
-    esconderGruposVazios();
-  }
-
-  /**
-   * Título de grupo sem nenhum item embaixo é lixo visual: fica a palavra
-   * "Treinar" apontando para o nada. Como o administrador pode desligar
-   * qualquer tela, um grupo inteiro pode acabar vazio — e aí ele some junto.
-   */
-  function esconderGruposVazios() {
-    document.querySelectorAll('.nav .nav-grupo').forEach(function (titulo) {
-      var vazio = true;
-      var n = titulo.nextElementSibling;
-      while (n && !n.classList.contains('nav-grupo')) {
-        if (n.classList.contains('nav-item') && !n.hidden) { vazio = false; break; }
-        n = n.nextElementSibling;
-      }
-      titulo.hidden = vazio;
     });
   }
 

@@ -157,15 +157,6 @@ li { margin-bottom: 0.5rem; line-height: 1.4; }
   justify-content: space-between;
   gap: 0.4rem;
 }
-/* Título de grupo do menu (25/10/2026). Onze itens soltos a cabeça não
-   segura; três grupos, sim. O título é pequeno e discreto de propósito — ele
-   organiza, não compete com os itens. */
-.nav-grupo {
-  font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
-  letter-spacing: 0.08em; color: var(--text-dim);
-  padding: 0.75rem 0.7rem 0.25rem;
-}
-.nav-grupo:first-child { padding-top: 0.2rem; }
 .nav-item:hover { background: var(--bg-elevated); color: var(--text); }
 .nav-item.active { background: var(--accent); color: #fff; }
 .nav-item.is-soon { opacity: 0.65; cursor: default; }

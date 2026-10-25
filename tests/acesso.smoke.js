@@ -113,43 +113,6 @@ async function estado(page) {
   ok(e.menu.indexOf('transcricao') < 0, 'a tela que o admin desligou não aparece para ele');
   ok(e.menu.indexOf('inicio') >= 0 && e.menu.indexOf('config') >= 0, 'Início e Configurações nunca somem');
 
-  // 5b) um grupo do menu que ficou vazio some junto
-  // Os títulos ("Treinar", "Aprender e consultar", "Minhas coisas") entraram
-  // em 25/10/2026. Se o admin desliga tudo que está embaixo de um deles, o
-  // título sozinho fica apontando para o nada — então ele some também.
-  await sair(page);
-  await entrar(page, 'alex@teste.com', false);
-  await page.click('.nav-item[data-nav="admin"]');
-  await page.waitForTimeout(500);
-  await page.click('[data-adm="aba"][data-v="sistema"]');
-  await page.waitForTimeout(300);
-  for (const t of ['aulas', 'biblioteca-escalas', 'biblioteca-fraseados', 'acordes', 'harmonia']) {
-    await page.click('[data-tela="' + t + '"][data-prefixo="g"]');
-  }
-  await page.click('[data-adm="salvar-sistema"]');
-  await page.waitForTimeout(600);
-  await sair(page);
-  await entrar(page, 'aluno@teste.com', false);
-  await page.waitForTimeout(700);
-  const gruposVisiveis = await page.$$eval('.nav .nav-grupo:not([hidden])', (a) => a.map((x) => x.textContent.trim()));
-  ok(gruposVisiveis.indexOf('Aprender e consultar') < 0,
-    'desligadas as cinco telas do grupo, o título "Aprender e consultar" some (sobraram: ' + gruposVisiveis.join(' · ') + ')');
-  ok(gruposVisiveis.indexOf('Treinar') >= 0 && gruposVisiveis.indexOf('Minhas coisas') >= 0,
-    'e os grupos que ainda têm item continuam lá');
-
-  // devolve as telas, para os passos seguintes verem o menu inteiro
-  await sair(page);
-  await entrar(page, 'alex@teste.com', false);
-  await page.click('.nav-item[data-nav="admin"]');
-  await page.waitForTimeout(500);
-  await page.click('[data-adm="aba"][data-v="sistema"]');
-  await page.waitForTimeout(300);
-  for (const t of ['aulas', 'biblioteca-escalas', 'biblioteca-fraseados', 'acordes', 'harmonia']) {
-    await page.click('[data-tela="' + t + '"][data-prefixo="g"]');
-  }
-  await page.click('[data-adm="salvar-sistema"]');
-  await page.waitForTimeout(600);
-
   // 6) uma tela só para esta pessoa
   await sair(page);
   await entrar(page, 'alex@teste.com', false);

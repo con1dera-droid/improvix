@@ -114,15 +114,15 @@ dela). O motor é `js/chords.js` e a tela, `js/chords-ui.js`.
 > dele continua no projeto: é ele que sugere a progressão quando se troca a
 > tonalidade na Análise de Harmonia.
 
-## O menu, em três grupos
+## A ordem do menu
 
-Desde 25/10/2026 os itens do menu lateral ficam separados por três títulos —
-**Treinar** (Inicie aqui, Treino de Ouvido, Exercícios de Padrões, Transcrição),
-**Aprender e consultar** (Teoria do zero, Escalas, Fraseados, Acordes, Análise
-de Harmonia) e **Minhas coisas** (Meus Exercícios, Administração,
-Configurações). Nada saiu do menu; o motivo foi que onze itens soltos faziam o
-aluno se perder. O administrador continua podendo desligar qualquer tela, e um
-grupo que fique sem nenhum item some junto com o título.
+Uma lista corrida, sem títulos de grupo, na ordem que o dono do projeto fixou:
+**Inicie aqui** · Exercícios de Padrões · Transcrição / Treino · Teoria Musical
+do zero · Biblioteca de Escalas · Biblioteca de Fraseados · Biblioteca de
+Acordes · Análise de Harmonia · **Treino de Ouvido** · Meus Exercícios ·
+(Administração, só para quem administra) · **Configurações** no fim. O
+administrador pode desligar qualquer uma dessas telas, menos o Início e as
+Configurações.
 
 ## Treino de Ouvido
 

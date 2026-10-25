@@ -8,14 +8,13 @@ const { chromium } = require('playwright');
 const path = require('path');
 const { prepararSemLogin } = require('./fake-supabase.js');
 
-// A ordem pedida pelo dono do projeto em 14/10/2026: primeiro o que se
-// pratica, depois o que se consulta, por fim o que é da pessoa. Em
-// 25/10/2026 isso virou três grupos com título, porque onze itens soltos
-// faziam o aluno se perder ("dizem que tem muita coisa"). Nada saiu do
-// menu — só ficou separado, e o Treino de Ouvido entrou no primeiro grupo.
+// A ordem é do dono do projeto, item por item (25/10/2026): começar,
+// praticar, estudar, consultar, treinar o ouvido e, no fim, as coisas da
+// conta. Os títulos de grupo ("Treinar / Aprender e consultar / Minhas
+// coisas") foram testados no mesmo dia e tirados a pedido dele — a lista
+// corrida ficou mais limpa. Se algum voltar, este teste acusa.
 const ESPERADO = [
   ['inicio', '🏠 Inicie aqui'],
-  ['ouvido', '🎧 Treino de Ouvido'],
   ['padroes', '📘 Exercícios de Padrões'],
   ['transcricao', '🎤 Transcrição / Treino'],
   ['aulas', '🎓 Teoria Musical'],
@@ -23,15 +22,9 @@ const ESPERADO = [
   ['biblioteca-fraseados', '🎼 Biblioteca de Fraseados'],
   ['acordes', '🎹 Biblioteca de Acordes'],
   ['harmonia', '🎹 Análise de Harmonia'],
+  ['ouvido', '🎧 Treino de Ouvido'],
   ['meus-exercicios', '📋 Meus Exercícios'],
   ['config', '⚙ Configurações']
-];
-
-// Os títulos de grupo, na ordem, e quantos itens cada um abriga.
-const GRUPOS = [
-  ['Treinar', 4],
-  ['Aprender e consultar', 5],
-  ['Minhas coisas', 2]      // Administração só existe para quem é admin
 ];
 
 (async () => {
@@ -68,28 +61,9 @@ const GRUPOS = [
     check(saiu.indexOf(n) < 0, 'o item "' + n + '" saiu do menu');
   });
 
-  // ---------- os títulos de grupo ----------
-  const grupos = await page.$$eval('.nav .nav-grupo:not([hidden])', (a) => a.map((t) => {
-    let n = 0, el = t.nextElementSibling;
-    while (el && !el.classList.contains('nav-grupo')) {
-      if (el.classList.contains('nav-item') && !el.hidden) n++;
-      el = el.nextElementSibling;
-    }
-    return { txt: t.textContent.trim(), itens: n };
-  }));
-  check(grupos.length === GRUPOS.length, 'o menu tem ' + grupos.length + ' grupos (esperado ' + GRUPOS.length + ')');
-  GRUPOS.forEach((g, i) => {
-    const at = grupos[i] || {};
-    check(at.txt === g[0] && at.itens === g[1],
-      'grupo ' + (i + 1) + ' é "' + g[0] + '" com ' + g[1] + ' itens (veio "' + at.txt + '" com ' + at.itens + ')');
-  });
-  // nenhum item fica órfão, fora de grupo nenhum
-  const orfaos = await page.$$eval('.nav .nav-item:not([hidden])', (a) => a.filter((x) => {
-    let el = x.previousElementSibling;
-    while (el && !el.classList.contains('nav-grupo')) el = el.previousElementSibling;
-    return !el;
-  }).length);
-  check(orfaos === 0, 'nenhum item ficou fora de grupo (' + orfaos + ' órfãos)');
+  // ---------- nada de títulos de grupo ----------
+  const titulos = await page.$$eval('.nav .nav-grupo', (a) => a.length);
+  check(titulos === 0, 'a lista é corrida, sem títulos de grupo (' + titulos + ' encontrados)');
 
   // Cada item abre a tela certa
   const VIEW = {
