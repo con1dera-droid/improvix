@@ -1103,11 +1103,6 @@
       document.querySelectorAll('.content.view').forEach(function (v) {
         v.hidden = v.getAttribute('data-view') !== viewName;
       });
-      // Qual tela está aberta fica escrito no <body>. É por isso que o CSS
-      // consegue esconder a busca do topo só no Início, no celular: lá ela
-      // come uma linha inteira e não serve para nada (quem quer analisar uma
-      // progressão tem a tela própria no menu).
-      document.body.setAttribute('data-tela', viewName);
     },
     /**
      * Abre a Análise de Harmonia vindo de outra tela (Laboratório, Aulas,

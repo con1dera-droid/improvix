@@ -245,7 +245,11 @@ async function irPara(p, nav) {
           var c = n.getBoundingClientRect();
           if (c.width > 0 && c.height > 0 && !n.classList.contains('topbar-right')) meios.push(c.top + c.height / 2);
         });
-        return meios.length >= 3 && Math.max.apply(null, meios) - Math.min.apply(null, meios) <= 8;
+        // Dois bastam hoje: a barra do topo emagreceu de propósito — a busca
+        // (que nunca fez nada) saiu em 25/10/2026 e os seletores de som só
+        // existem para quem administra. Para um visitante sobram o ☾ e a
+        // caixa da conta, e o que se mede aqui é se eles ficam LADO A LADO.
+        return meios.length >= 2 && Math.max.apply(null, meios) - Math.min.apply(null, meios) <= 8;
       })(),
       temIconeSugestao: !!document.getElementById('btn-sugestao'),
       linhas: document.querySelector('.topbar').getBoundingClientRect().height

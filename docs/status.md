@@ -2416,6 +2416,26 @@ dentro da janela), que a lista encolheu o bastante, que o aviso está escrito,
 visível desde o começo e ocupando a largura, e que some ao chegar ao fim.
 Bateria inteira: 13 testes de unidade, 38 smokes, sem erro de página.
 
+## A lupa que nunca buscou nada — ✅ (2026-10-25)
+
+O campo de busca do topo ("Ex.: Gmaj7 | Em7 | Am7 | D7") saiu de todas as
+telas. Vale registrar o motivo, porque não foi corte de função: **ele nunca
+esteve ligado a nada**. Tinha o desenho, o ícone e o texto de exemplo, e
+`#quick-search` não aparecia em nenhuma linha de JavaScript do projeto —
+digitar ali não buscava coisa alguma. Era um controle morto ocupando uma faixa
+do alto da tela, e no celular uma linha inteira.
+
+Saíram juntos: o campo no HTML, as regras `.search` no CSS e o atributo
+`data-tela` que `switchView` punha no `<body>` — ele existia só para a regra
+que escondia a busca no Início. Nada mais dependia dele.
+
+`tests/celular.smoke.js` conferia que a barra do topo fica numa linha só no
+computador exigindo pelo menos três controles visíveis. Com a busca fora e os
+seletores de som restritos a quem administra, um visitante tem dois — o
+mínimo passou a ser dois, e o que se mede continua sendo o mesmo: se eles
+ficam lado a lado. Bateria inteira: 13 testes de unidade, 38 smokes, sem erro
+de página.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

@@ -204,25 +204,6 @@ li { margin-bottom: 0.5rem; line-height: 1.4; }
   border-bottom: 1px solid var(--border);
   gap: 1rem;
 }
-.search {
-  flex: 1;
-  max-width: 420px;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0.5rem 0.8rem;
-}
-.search input {
-  border: none;
-  background: transparent;
-  color: var(--text);
-  outline: none;
-  width: 100%;
-  font-size: 0.85rem;
-}
 .topbar-right { display: flex; align-items: center; gap: 1rem; }
 /* Os seletores de som só existem para quem administra (ver aplicarControlesDeSom
    em js/auth-ui.js). O `hidden` sozinho não bastaria: qualquer regra de
@@ -1410,18 +1391,11 @@ body.sistema-travado .modal-close { display: none; }
     width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center;
     background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
   }
-  .search { order: 6; flex: 1 1 100%; max-width: none; }
-  /* No Início a busca não serve para nada (quem quer analisar uma progressão
-     tem a tela própria no menu) e comia uma linha inteira. */
-  body[data-tela="inicio"] .search { display: none; }
   .som-modo { order: 7; flex: 1 1 42%; width: auto; min-width: 0; max-width: none; min-height: 42px; font-size: 16px; }
   /* Seletores que no computador são miúdos de propósito: no celular vão a
      16px, senão o iPhone dá zoom sozinho quando o dedo toca neles. */
   .fraseados-controles select, .lib-controls select, .esc-filtros select,
-  .tra-registro select, .pad-custom input, .adm-barra input[type="search"],
-  .search input { font-size: 16px; }
-  .search { padding: 0.25rem 0.7rem; }
-  .search input { min-height: 40px; }
+  .tra-registro select, .pad-custom input, .adm-barra input[type="search"] { font-size: 16px; }
   #som-ambiencia { order: 8; }
   /* O 💡 fica: é por ele que quem usa fala com quem administra. (Antes aqui
      morava um sino decorativo, que no celular sumia por não fazer nada.) */
