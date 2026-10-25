@@ -219,17 +219,41 @@
 
     return '<div class="lib-card esc-ex' + (marca && marca.gravado ? ' esc-ex-feito' : '') +
       (marca && marca.proximo ? ' esc-ex-proximo' : '') + '">' +
-      '<div class="lib-card-head"><div class="lib-card-title">' + (i + 1) + '. ' + esc(ex.title) + selo +
+      // O nome do exercício vem num <span> próprio para que, no celular, ele
+      // possa descer para a segunda linha (o selo "continue daqui" vai para a
+      // primeira) e caber em uma linha só — pedido do dono, 25/10/2026.
+      '<div class="lib-card-head"><div class="lib-card-title">' +
+      '<span class="esc-ex-nome">' + (i + 1) + '. ' + esc(ex.title) + '</span>' + selo +
       (marca && marca.proximo ? '<span class="esc-proximo-selo">continue daqui</span>' : '') + '</div>' +
       '<div class="lib-card-actions">' + acoes + '</div></div>' +
+      // A explicação do exercício (e a sugestão, quando há) fica atrás de um
+      // "Informação" no celular: a pedido do dono (25/10/2026), para a pessoa
+      // olhar o exercício e não um parágrafo. No computador não há botão — o
+      // texto já aparece, que é onde sobra espaço.
+      '<button type="button" class="esc-info-btn" data-act="info" aria-expanded="false">Informação</button>' +
+      '<div class="esc-info">' +
       '<p class="si-legend">' + esc(ex.dica) + '</p>' +
       // A sugestão vem em destaque porque é um convite a USAR o exercício em
       // outro lugar (em cima de cada acorde do campo harmônico) — perdida no
       // meio da dica, passava batido.
       (ex.sugestao ? '<p class="esc-ex-sugestao"><strong>Sugestão:</strong> ' + esc(ex.sugestao) + '</p>' : '') +
+      '</div>' +
       (marca && marca.podeGravar ? '<div class="esc-gravacao" data-gravacao="' + i + '" hidden></div>' : '') +
       '<div class="lib-card-body">' + body + notasHTML(ex) + '</div></div>';
   }
+
+  // O "Informação" vale em qualquer tela que use este cartão (Início e
+  // Biblioteca de Escalas), então o ouvinte é um só, no documento — em vez de
+  // repetir o mesmo trecho em cada tela.
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest ? ev.target.closest('[data-act="info"]') : null;
+    if (!b) return;
+    var cartao = b.closest('.esc-ex');
+    var caixa = cartao && cartao.querySelector('.esc-info');
+    if (!caixa) return;
+    var aberto = cartao.classList.toggle('esc-info-aberta');
+    b.setAttribute('aria-expanded', aberto ? 'true' : 'false');
+  });
 
   /** Os exercícios, separados por grupo (a escala / padrões de 4 notas / arpejo). */
   function exerciciosHTML(instrument) {

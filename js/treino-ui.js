@@ -229,19 +229,35 @@
     });
   }
 
-  function resumoHTML(feitos) {
-    var total = state.exercises.length;
-    // O texto continua inteiro, mas fechado: no celular ele sozinho ocupava
-    // meia tela antes de a pessoa chegar no primeiro exercício. Quem quer
-    // entender a regra abre; quem já sabe, passa direto.
-    var REGRA = '<details class="tre-regra"><summary>Como funciona</summary>' +
+  /**
+   * Tudo que explica, e não exercita, mora aqui dentro: a regra do gravar, a
+   * opção do microfone, a contagem e o botão do campo harmônico. No celular
+   * isto fica fechado atrás de "Como funciona" — a pedido do dono em
+   * 25/10/2026, para a pessoa olhar o exercício em vez de um parágrafo. No
+   * computador o botão some e o conteúdo fica sempre à vista.
+   */
+  function extraHTML() {
+    return '<button type="button" class="tre-mais" data-act="mais-info" aria-expanded="false">' +
+      'Como funciona</button>' +
+      '<div class="tre-extra">' +
       '<span class="tre-prog-regra">O exercício 1 está aberto. ' +
       'Clique em <strong>🎙 Gravar e liberar</strong>, toque junto com o acompanhamento, e o IMPROVIX ' +
       'ouve pelo microfone e compara com as notas. Acertando <strong>80%</strong>, ele libera o próximo — ' +
-      'e assim, um a um. <strong>Ouvir o exercício</strong> não libera nada: ouvir não é tocar.</span></details>';
+      'e assim, um a um. <strong>Ouvir o exercício</strong> não libera nada: ouvir não é tocar.</span>' +
+      '<label class="tre-opcao" title="Marque se estiver sem fone de ouvido e o microfone ' +
+      'estiver pegando o som da caixa junto com o seu instrumento.">' +
+      '<input type="checkbox" id="tre-sem-acompanhamento"/> ' +
+      'Gravar sem o acompanhamento (só o metrônomo)</label>' +
+      '<p class="si-legend">' + state.exercises.length + ' exercícios. Comece devagar.</p>' +
+      campoHTML() +
+      '</div>';
+  }
+
+  function resumoHTML(feitos) {
+    var total = state.exercises.length;
     if (!window.IL.account || !window.IL.account.canUse()) {
       return '<span class="tre-prog-aviso">Entre na sua conta para o IMPROVIX guardar o que você já treinou ' +
-        'e liberar os exercícios conforme você grava.</span>' + REGRA;
+        'e liberar os exercícios conforme você grava.</span>';
     }
     var gravados = 0;
     state.exercises.forEach(function (ex, i) { if (gravado(i)) gravados++; });
@@ -250,7 +266,7 @@
       '<span class="tre-prog-texto"><strong>' + gravados + ' de ' + total + '</strong> exercícios gravados nesta escala' +
       (gravados >= total ? ' — escala fechada. Troque o tom ou a escala lá em cima.' : '') +
       (feitos ? ' · ' + feitos + ' tocado(s) junto do começo ao fim' : '') +
-      '</span>' + (gravados >= total ? '' : REGRA);
+      '</span>';
   }
 
   function $(id) { return document.getElementById(id); }
@@ -284,6 +300,14 @@
     var b = ev.target.closest('[data-act]');
     if (!b) return;
     var act = b.getAttribute('data-act');
+    if (act === 'mais-info') {
+      var caixa = b.parentNode.querySelector('.tre-extra');
+      if (!caixa) return;
+      var aberto = b.classList.toggle('is-aberto');
+      caixa.classList.toggle('is-aberta', aberto);
+      b.setAttribute('aria-expanded', aberto ? 'true' : 'false');
+      return;
+    }
     if (act === 'campo') { tocarCampo(b); return; }
     if (act === 'ouvir-ex') { tocar(b, 'ex' + b.getAttribute('data-i'), state.exercises[Number(b.getAttribute('data-i'))]); return; }
     if (act === 'gravar-ex') { gravarExercicio(b, Number(b.getAttribute('data-i'))); return; }
@@ -561,7 +585,7 @@
 
     var html =
       '<div class="esc-head">' +
-      '<div><div class="esc-title">' + esc(rotulo) + ' <span class="esc-tonic">em ' + esc(nf.tonic) + '</span></div>' +
+      '<div class="esc-head-info"><div class="esc-title">' + esc(rotulo) + ' <span class="esc-tonic">em ' + esc(nf.tonic) + '</span></div>' +
       '<div class="lib-badges">' +
       '<span class="lib-badge">' + nf.notes.length + ' notas</span>' +
       '<span class="lib-badge">' + esc(nf.notes.map(function (n) { return n.name; }).join(' ')) + '</span>' +
@@ -572,26 +596,23 @@
       // primeira tela inteira.
       '</div></div></div>' +
 
+      '<div class="tre-transporte-lugar">' +
       '<div class="transport" data-transport="treino">' +
       '<button type="button" class="tr-btn tr-metro" data-act="metro" title="Metrônomo (liga/desliga)" aria-pressed="false">⏱</button>' +
       '<button type="button" class="tr-btn" data-act="menos" title="Mais devagar (−5 bpm)">−</button>' +
       '<span class="tr-bpm" title="Andamento"><input type="number" class="tr-bpm-input" min="40" max="240" step="1" value="80" aria-label="Andamento em bpm"/><small>bpm</small></span>' +
       '<button type="button" class="tr-btn" data-act="mais" title="Mais rápido (+5 bpm)">+</button>' +
       '<button type="button" class="tr-btn tr-loop" data-act="loop" title="Repetir (toca em loop até você parar)" aria-pressed="false">🔁</button>' +
-      '</div>' +
+      '</div></div>' +
 
       '<h3 class="esc-sub">Exercícios para treinar</h3>' +
-      campoHTML() +
       '<div class="tre-prog" id="tre-progresso"></div>' +
-      '<label class="tre-opcao" title="Marque se estiver sem fone de ouvido e o microfone ' +
-      'estiver pegando o som da caixa junto com o seu instrumento.">' +
-      '<input type="checkbox" id="tre-sem-acompanhamento"/> ' +
-      'Gravar sem o acompanhamento (só o metrônomo)</label>' +
-      '<p class="si-legend">' + state.exercises.length + ' exercícios. Comece devagar.</p>' +
+      extraHTML() +
       exerciciosHTML(instrumento);
 
     $('tre-conteudo').innerHTML = html;
     if (window.IL.ui.setupTransportBars) window.IL.ui.setupTransportBars();
+    posicionarTransporte();
     atualizarMarcas();
     // O progresso vem do banco; enquanto não chega, a tela já está inteira e
     // apenas sem os selos. Quando chegar, só os selos são redesenhados.
@@ -616,6 +637,44 @@
     });
     return html + (grupo === null ? '' : '</div>');
   }
+
+  /**
+   * No celular a barra de andamento sobe para o cabeçalho, ao lado do título
+   * encolhido; no computador ela fica no lugar de sempre, acima dos
+   * exercícios. Mover o próprio elemento (em vez de desenhar dois) preserva
+   * os ouvintes que setupTransportBars já ligou nele.
+   */
+  var CELULAR = '(max-width: 900px)';
+
+  /**
+   * Move um pedaço da tela para o cabeçalho (celular) ou de volta para o
+   * lugar dele (computador). Mover o próprio elemento, em vez de desenhar
+   * dois, preserva os ouvintes já ligados nele — e evita que o mesmo
+   * conteúdo exista duas vezes na página.
+   */
+  function mudarDeLugar(seletor, lugarCasa, idTopo) {
+    var casa = $('tre-conteudo') && $('tre-conteudo').querySelector(lugarCasa);
+    var topo = $(idTopo);
+    if (!casa || !topo) return;
+    var peca = casa.querySelector(seletor) || topo.querySelector(seletor);
+    if (!peca) return;
+    var destino = window.matchMedia(CELULAR).matches ? topo : casa;
+    if (peca.parentNode !== destino) destino.appendChild(peca);
+    // Cada render() faz uma peça nova. Sem esta limpeza, a anterior ficava
+    // esquecida no cabeçalho e em poucas trocas de escala havia três barras
+    // empilhadas lá em cima, estourando a largura da tela.
+    Array.prototype.forEach.call(topo.querySelectorAll(seletor), function (velha) {
+      if (velha !== peca) velha.parentNode.removeChild(velha);
+    });
+  }
+
+  function posicionarTransporte() {
+    mudarDeLugar('.transport[data-transport="treino"]', '.tre-transporte-lugar', 'hero-transporte');
+    mudarDeLugar('.lib-badges', '.esc-head-info', 'hero-badges');
+  }
+
+  // Girar o aparelho, ou abrir o site numa janela estreita, muda de lado.
+  window.addEventListener('resize', posicionarTransporte);
 
   function renderTreinoView(preset) {
     build();

@@ -2343,6 +2343,54 @@ auxiliar `escolherSom`, porque os testes de som rodam sem login e o controle
 agora é do administrador. Bateria inteira: 13 testes de unidade, 38 smokes, sem
 erro de página.
 
+## O celular reduzido ao exercício — ✅ (2026-10-25)
+
+Depois da primeira limpeza, o dono olhou de novo e disse o que ainda via:
+"ainda está visualmente poluído". A rodada seguinte tirou do caminho tudo que
+explica, informa ou repete — **sem apagar nada**, só pondo atrás de um toque ou
+mudando de lugar. Vale para o celular; no computador, onde sobra espaço, a tela
+continua como era.
+
+**O que subiu para o cabeçalho.** A barra de andamento (metrônomo, bpm,
+repetir) passou a dividir a linha com o título, que encolheu: duas faixas
+viraram uma. E as pastilhas da escala — *7 notas · C D E F G A B · C7M* —
+desceram para uma linha logo abaixo dos três seletores, que é a que elas
+descrevem. As duas coisas são o **mesmo elemento** mudando de pai conforme a
+largura da tela (`posicionarTransporte`, em `js/treino-ui.js`), e não cópias:
+assim os ouvintes já ligados continuam valendo e o conteúdo nunca existe duas
+vezes na página. Girar o aparelho devolve cada peça ao seu lugar.
+
+**O que ficou atrás de um toque.** `▸ Como funciona` guarda, nessa ordem: a
+regra do gravar, a opção "Gravar sem o acompanhamento", a contagem de
+exercícios e o botão **Tocar o campo harmônico**. Dentro de cada exercício,
+`▸ Informação` guarda a explicação e a sugestão. Nenhum texto foi cortado —
+quem quer ler, abre.
+
+**O que saiu.** A contagem escrita ("0 de 21 exercícios gravados…"), que a
+barrinha logo acima já diz; o título "Maior em C", que os seletores já dizem; e
+o cabeçalho de grupo "A escala e o desenho dela", que o nome do exercício já
+diz.
+
+**O cartão do exercício** virou três linhas, na ordem que o dono pediu: o selo
+("continue daqui"), o nome em **uma linha só**, e os dois botões.
+
+Resultado: o primeiro exercício completo começa a ~380px do topo, contra ~490px
+antes desta rodada e uma tela inteira de rolagem antes da primeira.
+
+Dois defeitos achados no caminho, os dois por medição e não por olho:
+
+- a barra de andamento é refeita a cada redesenho e agora **sobe** para o
+  cabeçalho; as antigas ficavam esquecidas lá, e em três trocas de escala havia
+  três barras empilhadas estourando a largura. A anterior passa a ser removida
+  junto;
+- o nome do exercício em uma linha só, sem poder encolher, furava o cartão para
+  o lado em **102px** na Biblioteca de Escalas — a caixa dele ganhou
+  `min-width: 0`, e aí o texto corta com reticências em vez de empurrar a tela.
+  Quem acusou foi `tests/celular.smoke.js`, que mede o que estoura.
+
+Testes: `tests/gravacao.smoke.js` passou a procurar a regra no bloco novo.
+Bateria inteira: 13 testes de unidade, 38 smokes, sem erro de página.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:

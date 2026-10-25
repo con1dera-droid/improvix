@@ -89,7 +89,9 @@ const DUBLE = (quanto) => {
     trancados: document.querySelectorAll('#tre-conteudo .esc-ex-trancado').length,
     gravar: document.querySelectorAll('#tre-conteudo [data-act="gravar-ex"]').length,
     ouvir: document.querySelectorAll('#tre-conteudo [data-act="ouvir-ex"]').length,
-    regra: (document.getElementById('tre-progresso') || {}).textContent || '',
+    // A regra saiu da caixa do progresso e passou a morar no bloco
+    // "Como funciona" (25/10/2026), que no celular fica fechado.
+    regra: (document.querySelector('#tre-conteudo .tre-extra') || {}).textContent || '',
     primeiroTrancado: (document.querySelector('.esc-ex-trancado') || {}).textContent || ''
   }));
   ok(inicio.trancados === inicio.cartoes - 1,

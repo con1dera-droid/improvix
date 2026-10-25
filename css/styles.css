@@ -561,6 +561,16 @@ select, input[type="text"] {
 }
 .fraseado-explicacao p { font-size: 0.83rem; color: var(--text-muted); margin: 0; }
 
+/* ---- O que explica fica atrás de um toque (25/10/2026) ----
+   No celular, tudo que é texto de apoio some atrás de "Como funciona" e de
+   "Informação": a pessoa olha o exercício, não um parágrafo. No computador,
+   onde sobra espaço, os botões não existem e o conteúdo fica à vista — e por
+   isso estas regras precisam vir ANTES das media queries, senão venceriam as
+   do celular por ordem de arquivo. */
+.tre-mais, .esc-info-btn { display: none; }
+.tre-extra { margin-top: 0.3rem; }
+.tre-extra .tre-prog-regra { display: block; margin-bottom: 0.5rem; }
+
 @media (max-width: 980px) {
   /* minmax(0, 1fr): sem isso a coluna herda a largura mínima do conteúdo
      (os seletores de Estilo/Padrão) e empurra a página no celular. */
@@ -1510,6 +1520,78 @@ body.sistema-travado .modal-close { display: none; }
   .tre-campo-cifra small { font-size: 0.58rem; }
   .esc-sub { margin: 0.8rem 0 0.1rem; }
   .tre-opcao { font-size: 0.74rem; }
+
+  /* O título do cabeçalho encolhe e divide a linha com a barra de andamento
+     (a barra sobe para cá por JS — ver posicionarTransporte). O cartão
+     inteiro foi apertado: é cabeçalho, não conteúdo. */
+  .hero.card { padding: 0.45rem 0.6rem; margin-bottom: 0.6rem; }
+  .hero-topo { display: flex; align-items: center; gap: 0.5rem; flex-wrap: nowrap; }
+  .hero-text { min-width: 0; }
+  .hero-text h1 { font-size: 0.88rem; line-height: 1.15; margin: 0; }
+  .hero .lib-controls { margin: 0.15rem 0 0; }
+  .hero .lib-controls .field { gap: 0.05rem; }
+  .hero .lib-controls .field label { line-height: 1.2; }
+  .hero .lib-controls select { min-height: 36px; }
+  .hero-transporte .tr-btn { width: 30px; height: 30px; min-height: 30px; }
+  .hero-transporte .tr-bpm-input { min-height: 30px; }
+  .hero-transporte { flex: 0 0 auto; margin-left: auto; }
+  .hero-transporte .transport { margin: 0; gap: 0.2rem; padding: 0; border: 0; background: none; }
+  .hero-transporte .tr-btn { width: 32px; height: 32px; min-height: 32px; font-size: 0.85rem; }
+  .hero-transporte .tr-bpm { padding: 0 0.15rem; }
+  .hero-transporte .tr-bpm-input { width: 2.6rem; font-size: 14px; min-height: 32px; }
+  .hero-transporte .tr-bpm small { display: none; }
+
+  /* A contagem escrita sai; fica a barrinha, que já diz o quanto falta. E o
+     "Como funciona" vem colado nela, sem faixa de respiro no meio. */
+  .tre-prog-texto { display: none; }
+  .tre-prog { margin: 0.1rem 0 0; gap: 0.2rem; }
+  .tre-mais { margin-top: 0.1rem; }
+
+  /* Dois rótulos que só repetem o que já está escrito logo acima: a escala e
+     o tom estão nos seletores, e o grupo do exercício está no próprio nome. */
+  .esc-head .esc-title { display: none; }
+  #tre-conteudo .esc-grupo { display: none; }
+  /* As pastilhas da escala sobem para o cabeçalho (ver posicionarTransporte)
+     e viram uma linha só, logo abaixo dos três seletores. */
+  .hero-badges { margin-top: 0.3rem; }
+  .hero-badges .lib-badges { display: flex; flex-wrap: wrap; gap: 0.25rem; margin: 0; }
+  .hero-badges .lib-badge { font-size: 0.68rem; padding: 0.1rem 0.4rem; }
+  #tre-conteudo .esc-head { display: none; }
+
+  /* O nome do exercício só cabe numa linha se a caixa dele puder encolher:
+     sem isto, o <span> sem quebra pedia a largura inteira do texto e furava
+     o cartão para o lado (102px de estouro na Biblioteca de Escalas). */
+  .esc-ex .lib-card-head > * { min-width: 0; max-width: 100%; }
+  .esc-ex .lib-card-title { width: 100%; }
+  .esc-ex .esc-proximo-selo, .esc-ex .esc-feito, .esc-ex .esc-andando,
+  .esc-ex .esc-trancado-selo { align-self: flex-start; }
+
+  /* O cartão do exercício em três linhas: selo, nome (uma linha só) e os
+     botões — nessa ordem, a pedido do dono. */
+  .esc-ex .lib-card-head { flex-direction: column; align-items: stretch; gap: 0.35rem; }
+  .esc-ex .lib-card-title { display: flex; flex-direction: column; align-items: stretch; gap: 0.25rem; }
+  .esc-ex .esc-ex-nome {
+    order: 2; font-size: 0.82rem; max-width: 100%;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .esc-ex .esc-proximo-selo, .esc-ex .esc-feito, .esc-ex .esc-andando { order: 1; margin-left: 0; }
+  .esc-ex .lib-card-actions { gap: 0.4rem; }
+  .esc-ex .lib-card-actions .view-btn { flex: 1 1 auto; justify-content: center; }
+
+  /* "Como funciona" e "Informação" viram botões, e o que eles guardam só
+     aparece depois do toque. */
+  .tre-mais, .esc-info-btn {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    background: none; border: 0; padding: 0.3rem 0; min-height: 34px;
+    font-size: 0.8rem; font-weight: 700; color: var(--accent);
+  }
+  .tre-mais::before, .esc-info-btn::before { content: '▸'; }
+  .tre-mais.is-aberto::before, .esc-info-aberta .esc-info-btn::before { content: '▾'; }
+  .tre-extra { display: none; }
+  .tre-extra.is-aberta { display: block; }
+  .esc-info { display: none; }
+  .esc-info-aberta .esc-info { display: block; }
+  .esc-ex .lib-card-body { margin-top: 0.4rem; }
 }
 
 /* Telas bem estreitas (iPhone SE e afins) */
@@ -1595,14 +1677,4 @@ body.sistema-travado .modal-close { display: none; }
 .ouv-nota { font-size: 2rem; font-weight: 800; color: var(--text); line-height: 1; }
 .ouv-grau-largo { min-width: 120px; font-size: 1rem; }
 
-/* "Como funciona": o texto continua inteiro, mas fechado. No celular ele
-   sozinho ocupava meia tela antes do primeiro exercício. */
-.tre-regra { margin: 0.35rem 0 0; }
-.tre-regra > summary {
-  cursor: pointer; font-size: 0.78rem; font-weight: 700; color: var(--accent);
-  list-style: none; display: inline-flex; align-items: center; gap: 0.3rem;
-}
-.tre-regra > summary::-webkit-details-marker { display: none; }
-.tre-regra > summary::before { content: '▸'; font-size: 0.8rem; }
-.tre-regra[open] > summary::before { content: '▾'; }
-.tre-regra .tre-prog-regra { display: block; margin-top: 0.4rem; }
+
