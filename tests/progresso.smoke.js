@@ -79,7 +79,9 @@ async function tocar(page, i, ms) {
   // O exercício 1 em 80 bpm dura um ciclo fechado em compasso; o teste
   // pergunta ao próprio site quanto é, em vez de chutar.
   const ciclo = await page.evaluate(() => {
-    const ev = window.IL.scales.exercisesFor('C', 'jonio')[0].events;
+    // Com as MESMAS opções da tela (uma oitava, desde 27/10/2026): pedir os
+    // exercícios no padrão mediria um exercício que não é o que está ali.
+    const ev = window.IL.scales.exercisesFor('C', 'jonio', window.IL.ui.TREINO_OPCOES)[0].events;
     let fim = 0; ev.forEach((e) => { fim = Math.max(fim, e.onset + e.dur); });
     const beats = Math.max(4, Math.ceil((fim - 1e-6) / 4) * 4);
     return beats * 60 / 80;
@@ -143,6 +145,39 @@ async function tocar(page, i, ms) {
   ok(trapaca.teto === 20, 'uma chamada não registra mais que 20 voltas (ficou ' + trapaca.teto + ')');
   ok(trapaca.insertRecusado, 'escrever direto na tabela é recusado');
   ok(trapaca.updateRecusado && trapaca.linha0 === 2, 'e mudar as voltas na mão também');
+
+  // 4b) O QUE FOI LIBERADO CONTINUA LIBERADO ao voltar ao site.
+  //
+  // Defeito relatado pelo dono em 27/10/2026: ele gravava, via "o exercício 2
+  // está liberado", e no acesso seguinte o 2 aparecia trancado de novo até
+  // mexer no tom ou na escala. A causa: o progresso chega do banco DEPOIS do
+  // primeiro desenho, e repintar os selos não destranca cartão nenhum — um
+  // cartão trancado não tem partitura nem botões desenhados.
+  //
+  // Aqui o teste grava dois exercícios direto na função do banco (é o que o
+  // site faz ao passar dos 80%), relê o progresso do zero — exatamente o que
+  // a página faz ao abrir — e exige que os cartões apareçam abertos SEM que
+  // nada seja tocado na tela.
+  await page.evaluate(async () => {
+    await window.IL.db.registrarGravacao('treino:jonio:0', 95);
+    await window.IL.db.registrarGravacao('treino:jonio:1', 88);
+  });
+  await page.evaluate(() => window.IL.ui.resetTreinoProgresso());
+  await page.waitForTimeout(1200);
+  const aoVoltar = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll('#tre-conteudo .esc-ex')];
+    return {
+      abertos: cards.filter((c) => !c.classList.contains('esc-ex-trancado')).length,
+      gravados: document.querySelectorAll('#tre-conteudo .esc-feito').length,
+      proximo: (document.querySelector('.esc-ex-proximo .lib-card-title') || {}).textContent || ''
+    };
+  });
+  ok(aoVoltar.abertos === 3,
+    'ao voltar ao site, o que foi liberado continua liberado sem tocar em nada (abertos: ' +
+    aoVoltar.abertos + ', esperado 3 — os dois gravados mais o seguinte)');
+  ok(aoVoltar.gravados === 2, 'e os dois gravados voltam com o ✓ (' + aoVoltar.gravados + ')');
+  ok(/^3\./.test(aoVoltar.proximo.trim()),
+    'o "continue daqui" volta no 3 ("' + aoVoltar.proximo.trim().slice(0, 30) + '")');
 
   // 5) trocar de conta não deixa o progresso da pessoa anterior na tela
   await sair(page);

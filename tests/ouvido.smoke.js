@@ -69,7 +69,14 @@ const PC = { C: 0, Db: 1, D: 2, Eb: 3, E: 4, F: 5, 'F#': 6, G: 7, Ab: 8, A: 9, B
   await page.goto(URL, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(1400);
 
-  await page.click('.nav-item[data-nav="ouvido"]');
+  // noWaitAfter: os itens do menu são <a href="#">, e o Playwright trata o
+  // clique como uma navegação e fica esperando ela "assentar". Neste teste —
+  // o único que grampeia o motor de áudio ANTES do primeiro gesto da página,
+  // para poder ler o MIDI agendado — essa espera não termina, embora a tela
+  // abra na hora: medido, a página responde com os 4 níveis 157 ms depois do
+  // clique, e switchView e renderOuvidoView voltam normalmente. É espera do
+  // Playwright, não travamento do site.
+  await page.click('.nav-item[data-nav="ouvido"]', { noWaitAfter: true });
   await page.waitForTimeout(700);
   ok((await page.$$eval('#ouv-conteudo .ouv-nivel', (e) => e.length)) === 4, 'a tela abre com os quatro níveis');
 
@@ -163,7 +170,7 @@ const PC = { C: 0, Db: 1, D: 2, Eb: 3, E: 4, F: 5, 'F#': 6, G: 7, Ab: 8, A: 9, B
   });
   await page.click('.nav-item[data-nav="inicio"]');
   await page.waitForTimeout(400);
-  await page.click('.nav-item[data-nav="ouvido"]');
+  await page.click('.nav-item[data-nav="ouvido"]', { noWaitAfter: true });
   await page.waitForTimeout(700);
   const depoisDe25h = await page.$$eval('.ouv-nivel', (e) => e.filter((x) => x.disabled).length);
   ok(depoisDe25h === 3, 'passadas 25 horas, os níveis de cima fecham de novo (' + depoisDe25h + ' trancados)');
@@ -176,7 +183,7 @@ const PC = { C: 0, Db: 1, D: 2, Eb: 3, E: 4, F: 5, 'F#': 6, G: 7, Ab: 8, A: 9, B
   });
   await page.click('.nav-item[data-nav="inicio"]');
   await page.waitForTimeout(300);
-  await page.click('.nav-item[data-nav="ouvido"]');
+  await page.click('.nav-item[data-nav="ouvido"]', { noWaitAfter: true });
   await page.waitForTimeout(600);
 
   // ---------- os graus de cada nível ----------
@@ -248,7 +255,7 @@ const PC = { C: 0, Db: 1, D: 2, Eb: 3, E: 4, F: 5, 'F#': 6, G: 7, Ab: 8, A: 9, B
   await p2.waitForTimeout(900);
   await entrar(p2, 'alex@teste.com', true);          // o primeiro cadastro é o admin
   await p2.waitForTimeout(700);
-  await p2.click('.nav-item[data-nav="ouvido"]');
+  await p2.click('.nav-item[data-nav="ouvido"]', { noWaitAfter: true });
   await p2.waitForTimeout(700);
   await p2.click('[data-act="comecar"]');
   await p2.waitForTimeout(400);

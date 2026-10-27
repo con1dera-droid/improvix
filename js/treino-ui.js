@@ -40,6 +40,11 @@
 
   var META_VOLTAS = 2;      // o mesmo número está em registrar_voltas(), no schema
 
+  // Uma ida e volta, não duas. Os testes que medem a duração de uma execução
+  // (tests/progresso.smoke.js) têm de pedir os exercícios com estas mesmas
+  // opções, senão medem um exercício que não é o da tela.
+  var OPCOES_TREINO = { oitavas: 1 };
+
   function chaveDe(i) { return 'treino:' + state.key + ':' + i; }
 
   // ---------------- o campo harmônico tocando por baixo ----------------
@@ -576,7 +581,10 @@
     var instrumento = $('tre-instrumento').value;
     var nf = SC.notesFor(state.tonic, state.key);
     var acorde = SC.chordOf(state.tonic, state.key);
-    state.exercises = SC.exercisesFor(state.tonic, state.key);
+    // Uma oitava só, a pedido do dono (27/10/2026): aqui o exercício é para
+    // repetir todo dia, e uma ida e volta fecha sem perder o foco. A
+    // Biblioteca de Escalas continua com duas — lá é consulta.
+    state.exercises = SC.exercisesFor(state.tonic, state.key, OPCOES_TREINO);
     var rotulo = (ESCALAS.filter(function (e) { return e.key === state.key; })[0] || {}).label || '';
 
     var html =
@@ -611,8 +619,23 @@
     posicionarTransporte();
     atualizarMarcas();
     // O progresso vem do banco; enquanto não chega, a tela já está inteira e
-    // apenas sem os selos. Quando chegar, só os selos são redesenhados.
-    carregarProgresso(atualizarMarcas);
+    // apenas sem os selos.
+    //
+    // Quando chega, nem sempre basta repintar os selos. Um exercício trancado
+    // não tem partitura, tablatura nem botões desenhados — é só o cadeado e a
+    // frase do que fazer. Então, se o que chegou do banco mover a fronteira de
+    // liberação, a lista inteira precisa ser REMONTADA; só os selos deixariam
+    // o exercício já conquistado trancado na tela até a pessoa mexer no tom ou
+    // na escala (era o defeito relatado pelo dono em 27/10/2026: "quando um
+    // exercício desbloquear, ele permanece desbloqueado").
+    //
+    // Não entra em laço: a segunda passada encontra carregarProgresso já lido,
+    // a fronteira igual, e cai no repinte simples.
+    var travaAntes = indiceDoProximo();
+    carregarProgresso(function () {
+      if (indiceDoProximo() !== travaAntes) render();
+      else atualizarMarcas();
+    });
   }
 
   /** Os exercícios, separados pelos mesmos grupos da Biblioteca de Escalas. */
@@ -701,4 +724,7 @@
     if (state.built && $('tre-conteudo')) render();
   };
   window.IL.ui.TREINO_ESCALAS = ESCALAS;
+  // Publicado para quem mede a tela de fora (os testes): assim ninguém
+  // precisa repetir o número de oitavas e arriscar medir outro exercício.
+  window.IL.ui.TREINO_OPCOES = OPCOES_TREINO;
 })();

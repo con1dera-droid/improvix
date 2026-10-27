@@ -162,12 +162,18 @@
   // Exercícios de treino (calculados a partir da escala)
   // ---------------------------------------------------------------------
 
-  // Todo exercício sobe e desce DUAS oitavas. Por isso o ponto de partida
-  // tem de ficar baixo o bastante para a segunda oitava caber: a tônica é
-  // ancorada entre F3 (53) e E4 (64), de modo que o topo fique entre F5 e
-  // E6. Cada instrumento depois reposiciona a linha inteira na oitava
-  // confortável dele (notation.prepareForInstrument).
-  var OITAVAS = 2;
+  // Quantas oitavas o exercício sobe e desce. A Biblioteca de Escalas usa
+  // DUAS (é material de consulta, e duas oitavas obrigam a sair da posição);
+  // a tela de Início — treinar escalas usa UMA, a pedido do dono em
+  // 27/10/2026: ali o exercício é para repetir todo dia, e uma ida e volta é
+  // o que se fecha sem perder o foco. Quem escolhe é quem chama
+  // exercisesFor(), por opts.oitavas.
+  //
+  // O ponto de partida é ancorado entre F3 (53) e E4 (64) — baixo o bastante
+  // para a segunda oitava caber quando ela existe. Cada instrumento depois
+  // reposiciona a linha inteira na oitava confortável dele
+  // (notation.prepareForInstrument).
+  var OITAVAS_PADRAO = 2;
   var LOW = 53, ALTO_INICIO = 64;
 
   function ladderOf(names) {
@@ -271,15 +277,21 @@
     return ladder[0];
   }
 
-  /** Exercícios prontos para a escala no tom. */
-  function exercisesFor(tonic, scaleKey) {
+  /**
+   * Exercícios prontos para a escala no tom.
+   *
+   * @param opts.oitavas  1 ou 2 (padrão 2). Ver OITAVAS_PADRAO acima.
+   */
+  function exercisesFor(tonic, scaleKey, opts) {
+    var OITAVAS = (opts && opts.oitavas) || OITAVAS_PADRAO;
+    var ROT_OIT = OITAVAS === 1 ? 'uma oitava' : 'duas oitavas';
     var info = notesFor(tonic, scaleKey);
     var names = info.notes.map(function (n) { return n.name; });
     var n = names.length;
     var ladder = ladderOf(names);
     var s0 = ancorar(ladder, n, pcOf(info.tonic));
-    // Duas oitavas: os desenhos que andam grau a grau percorrem N graus,
-    // não n. (n = notas da escala; N = duas oitavas dela.)
+    // Os desenhos que andam grau a grau percorrem N graus, não n.
+    // (n = notas da escala; N = o tanto de escala que o exercício percorre.)
     var N = n * OITAVAS;
 
     var out = [];
@@ -301,8 +313,8 @@
       // A pedido do dono (24/10/2026), este exercício — e SÓ ele — é curto e
       // fechado: 1 2 3 5 7 8 9 8 7 5 3 2 1. Uma oitava mais a 9ª, subindo e
       // descendo, sem repetir o topo. É o desenho que ele usa para tocar em
-      // cima de cada acorde do campo harmônico; por isso cabe numa oitava.
-      // Todos os outros exercícios continuam em duas oitavas.
+      // cima de cada acorde do campo harmônico; por isso cabe numa oitava —
+      // e por isso ele é igual nas duas telas, com uma ou com duas oitavas.
       var subida = [0, 1, 2, 4, 6, n, n + 1];      // 1 2 3 5 7 8 9
       seq = subida.concat(subida.slice(0, -1).reverse())  // …8 7 5 3 2 1
         .map(function (g) { return s0 + g; });
@@ -317,8 +329,11 @@
       for (i = 0; i <= N; i++) seq.push(s0 + i);
       for (i = N - 1; i >= 0; i--) seq.push(s0 + i);
       out.push({
-        id: 'escala', grupo: G1, title: 'A escala subindo e descendo (duas oitavas)',
-        dica: 'Toque devagar, com o metrônomo, dizendo o nome (ou o grau) de cada nota. Duas oitavas obrigam a sair da posição: é aí que a escala vira braço inteiro.',
+        id: 'escala', grupo: G1, title: 'A escala subindo e descendo (' + ROT_OIT + ')',
+        dica: 'Toque devagar, com o metrônomo, dizendo o nome (ou o grau) de cada nota.' +
+          (OITAVAS === 1
+            ? ' Uma ida e uma volta: o desenho fechado, para gravar na mão e no ouvido.'
+            : ' Duas oitavas obrigam a sair da posição: é aí que a escala vira braço inteiro.'),
         events: toEvents(seq, ladder, 0.5, true)
       });
     }
@@ -454,9 +469,12 @@
       var subNames = sub.map(function (k) { return names[k % n]; });
       var subLadder = ladderOf(subNames);
       var b0 = ancorar(subLadder, 5, pcOf(info.tonic));
-      if (b0 >= 0 && subLadder[b0 + 12]) {
+      // Quantos começos a janela de 4 notas percorre: 9 cobrem duas oitavas
+      // do desenho de 5 notas, 5 cobrem uma.
+      var desloca = OITAVAS === 1 ? 5 : 9;
+      if (b0 >= 0 && subLadder[b0 + desloca + 3]) {
         seq = [];
-        for (i = 0; i < 9; i++) for (j = 0; j < 4; j++) seq.push(b0 + i + j);
+        for (i = 0; i < desloca; i++) for (j = 0; j < 4; j++) seq.push(b0 + i + j);
         out.push({
           id: 'quatro_desloca', grupo: G2, title: 'Padrão de 4 notas deslocando o início (1-2-3-5, 2-3-5-6, 3-5-6-1…)',
           dica: 'Mesmo desenho, começando cada vez uma nota adiante. Só com esse deslocamento saem dezenas de frases diferentes.',
@@ -493,10 +511,12 @@
     // 10) escala + arpejo na mesma frase: 1-2-3-4-5-3-1 e 1-2-3-5-7-5-3-1
     if (n >= 7) {
       var desenho = [0, 1, 2, 3, 4, 2, 0, 0, 1, 2, 4, 6, 4, 2, 0];
-      seq = desenho.map(function (k) { return s0 + k; })
-        .concat(desenho.map(function (k) { return s0 + n + k; }));   // a 2ª oitava
+      seq = desenho.map(function (k) { return s0 + k; });
+      for (var oe = 1; oe < OITAVAS; oe++) {                         // as oitavas seguintes
+        seq = seq.concat(desenho.map(function (k) { return s0 + n * oe + k; }));
+      }
       out.push({
-        id: 'escala_arpejo', grupo: G3, title: 'Escala + arpejo (1-2-3-4-5-3-1 → 1-2-3-5-7-5-3-1), duas oitavas',
+        id: 'escala_arpejo', grupo: G3, title: 'Escala + arpejo (1-2-3-4-5-3-1 → 1-2-3-5-7-5-3-1), ' + ROT_OIT,
         dica: 'A primeira metade é escala, a segunda é arpejo: misturar os dois na mesma frase é o que faz o solo soar "falado" em vez de exercício.',
         events: toEvents(seq, ladder, 0.5, true)
       });
@@ -551,11 +571,12 @@
 
     // 11) notas-alvo: tônica → 3ª → 5ª → 7ª em notas longas
     var alvo = [];
-    [0, 2, 4, 6].forEach(function (k) { if (k < n) alvo.push(s0 + k); });
-    [0, 2, 4, 6].forEach(function (k) { if (k < n) alvo.push(s0 + n + k); });   // 2ª oitava
+    for (var oa = 0; oa < OITAVAS; oa++) {
+      [0, 2, 4, 6].forEach(function (k) { if (k < n) alvo.push(s0 + n * oa + k); });
+    }
     if (alvo.length >= 3) {
       out.push({
-        id: 'alvo', grupo: G3, title: 'Notas-alvo em notas longas (duas oitavas)',
+        id: 'alvo', grupo: G3, title: 'Notas-alvo em notas longas (' + ROT_OIT + ')',
         dica: 'Segure cada nota do acorde por um compasso e ouça como ela soa dentro da escala.',
         events: toEvents(alvo.concat([s0 + N]), ladder, 2, false)
       });

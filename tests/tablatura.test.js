@@ -100,6 +100,59 @@ INSTRUMENTOS.forEach(function (inst) {
 ok(ruins.length === 0, 'exercícios de escala: ' + exercicios + ' exercícios, ' + conferidas +
   ' casas conferidas, ' + ruins.length + ' erradas' + (ruins.length ? '\n   ' + ruins.slice(0, 5).join('\n   ') : ''));
 
+// --- 1b) os mesmos exercícios em UMA oitava, que é como a tela de Início
+//     os serve desde 27/10/2026. Linha mais curta muda a região escolhida no
+//     braço, então a promessa da tablatura precisa ser conferida aqui também:
+//     é justamente a tela em que a pessoa toca todo dia.
+var ruins1 = [], exercicios1 = 0, antes1 = conferidas;
+var ESCALAS_TREINO = ['jonio', 'eolio', 'pentatonica_maior', 'blues_maior', 'blues_menor'];
+INSTRUMENTOS.forEach(function (inst) {
+  TONS.forEach(function (tom) {
+    ESCALAS_TREINO.forEach(function (sk) {
+      IL.scales.exercisesFor(tom, sk, { oitavas: 1 }).forEach(function (ex, i) {
+        exercicios1++;
+        var pr = nt.prepareForInstrument(ex.events, inst);
+        ruins1 = ruins1.concat(conferir(pr, inst, '1 oitava ' + inst + ' ' + tom + ' ' + sk + ' ex' + (i + 1)));
+      });
+    });
+  });
+});
+ok(ruins1.length === 0, 'exercícios de uma oitava (tela de Início): ' + exercicios1 + ' exercícios, ' +
+  (conferidas - antes1) + ' casas conferidas, ' + ruins1.length + ' erradas' +
+  (ruins1.length ? '\n   ' + ruins1.slice(0, 5).join('\n   ') : ''));
+
+// Uma oitava tem de ser MESMO mais curta, e manter a mesma quantidade de
+// exercícios — a trava de liberação guarda o índice de cada um, e perder ou
+// ganhar um exercício embaralharia o que a pessoa já conquistou.
+(function () {
+  var fora = [];
+  ESCALAS_TREINO.forEach(function (sk) {
+    var duas = IL.scales.exercisesFor('C', sk);
+    var uma = IL.scales.exercisesFor('C', sk, { oitavas: 1 });
+    if (duas.length !== uma.length) { fora.push(sk + ': ' + duas.length + ' vs ' + uma.length + ' exercícios'); return; }
+    duas.forEach(function (ex, i) {
+      if (ex.id !== uma[i].id) fora.push(sk + ' ex' + (i + 1) + ': id ' + ex.id + ' virou ' + uma[i].id);
+      var nd = ex.events.filter(function (e) { return !e.rest; });
+      var nu = uma[i].events.filter(function (e) { return !e.rest; });
+      var amb = function (evs) {
+        var m = evs.map(function (e) { return e.midi; });
+        return Math.max.apply(null, m) - Math.min.apply(null, m);
+      };
+      // O desenho 1-2-3-5-7-8-9 da maior já era de uma oitava: ele é o único
+      // que fica igual nas duas telas.
+      if (ex.id === 'escala' && sk === 'jonio') {
+        if (nd.length !== nu.length) fora.push('o desenho 1-2-3-5-7-8-9 devia ser igual nas duas telas');
+        return;
+      }
+      if (amb(nu) > amb(nd) - 6) {
+        fora.push(sk + ' ex' + (i + 1) + ' (' + ex.id + '): âmbito ' + amb(nd) + ' → ' + amb(nu) + ', não encolheu uma oitava');
+      }
+    });
+  });
+  ok(fora.length === 0, 'uma oitava encolhe o âmbito e preserva os exercícios' +
+    (fora.length ? '\n   ' + fora.slice(0, 5).join('\n   ') : ''));
+})();
+
 // --- 2) exercícios de padrões (os 91 padrões, em dois tons) ---
 var ruinsP = [], linhasP = 0;
 IL.patterns.PATTERNS.forEach(function (pat) {

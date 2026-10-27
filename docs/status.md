@@ -2636,6 +2636,76 @@ topo de cada cartão, nenhuma cifra desenhada, o seletor cobrindo o cartão com
 opacidade zero, e escolher no menu buscando o acorde. Bateria inteira: 13
 testes de unidade, 38 smokes, sem erro de página.
 
+## Uma ida e volta, e a trava que voltava sozinha — ✅ (2026-10-27)
+
+Dois pedidos do dono na mesma mensagem. O segundo era um defeito.
+
+**1. Os exercícios do Início, em uma oitava.** "Quero que todos os exercícios
+do treinar escala fiquem apenas uma ida e volta; acredito que estejam duas
+idas de oitavas e duas voltas." Estavam mesmo: desde 7/10/2026 todos subiam e
+desciam duas oitavas. Era a decisão certa para a Biblioteca de Escalas —
+duas oitavas tiram a escala da posição fixa e espalham o desenho pelo braço —
+e a errada para o Início, que é o exercício de repetir todo dia: linha longa
+demais para fechar sem perder o foco.
+
+Perguntado onde valia a mudança, ele escolheu **só o Início**. Então
+`exercisesFor()` ganhou `opts.oitavas` (padrão 2) e a tela de Início pede 1.
+As duas telas seguem usando o mesmo cartão e o mesmo motor — o que muda é um
+número, não uma segunda versão do código.
+
+Medido, em Dó menor: `C D Eb F G Ab Bb C | Bb Ab G F Eb D C`. Os 21
+exercícios caíram pela metade em notas e o âmbito foi de 22–33 semitons para
+10–21. O desenho **1-2-3-5-7-8-9** da escala maior fica igual nas duas telas:
+ele já era de uma oitava, de propósito.
+
+Três trechos empilhavam a segunda oitava na mão e precisaram virar laço
+(escala + arpejo, notas-alvo e o padrão de 4 notas deslocando o início, que
+passou de 9 começos para 5). Os títulos e as dicas que diziam "duas oitavas"
+passaram a dizer o que a tela está realmente servindo.
+
+**2. A trava que voltava sozinha.** "Quando um exercício desbloquear, ele
+permanece desbloqueado também." Era defeito, não pedido. O progresso vem do
+banco **depois** do primeiro desenho da tela, e quando chegava o sistema só
+repintava os selos. Só que repintar selo não destranca nada: um exercício
+trancado não tem partitura, tablatura nem botões desenhados — é o cadeado e a
+frase do que fazer. Resultado: a pessoa gravava, via "o exercício 2 está
+liberado", e no acesso seguinte o 2 estava trancado de novo até ela mexer no
+tom ou na escala, o que forçava um redesenho e devolvia o que já era dela.
+
+Agora, se o que chega do banco mover a fronteira de liberação, a lista inteira
+é remontada. Não entra em laço porque a segunda passada encontra o progresso
+já lido e a fronteira igual, e cai no repinte simples.
+
+Medido antes e depois, no navegador, com dois exercícios gravados e o
+progresso relido do zero (que é o que a página faz ao abrir): **antes, 1
+cartão aberto de 21; depois, 3** — os dois gravados mais o seguinte, sem
+tocar em nada na tela.
+
+A trava continua sendo **por escala**, como ele escolheu: o que se libera na
+Maior não vale na Menor. Cada escala tem o caminho dela.
+
+**Um terceiro problema apareceu rodando a bateria**, e não era do site:
+`tests/ouvido.smoke.js` travava no clique do menu. Este é o único teste que
+grampeia o motor de áudio **antes** do primeiro gesto da página, para poder
+ler o MIDI agendado; com o grampo posto, o Playwright trata o clique no item
+do menu (`<a href="#">`) como navegação e fica esperando ela assentar. A tela
+abre normalmente — medido: `switchView` e `renderOuvidoView` voltam, e a
+página responde com os 4 níveis 157 ms depois do clique. É espera do
+Playwright, não travamento do site; os cliques do menu nesse teste passaram a
+usar `noWaitAfter`.
+
+Testes: `tests/tablatura.test.js` passou a varrer **também** os exercícios de
+uma oitava nos três instrumentos de corda (1.188 exercícios, 24.648 casas,
+zero erradas — a tablatura de uma linha mais curta escolhe outra região do
+braço, e é a tela em que a pessoa toca todo dia), e confere que uma oitava
+encolhe mesmo o âmbito **sem perder nem ganhar exercício** — a trava guarda o
+índice de cada um, e um exercício a mais embaralharia o que já foi
+conquistado. `tests/progresso.smoke.js` ganhou a medição do defeito acima e
+passou a pedir os exercícios com as mesmas opções da tela (publicadas em
+`window.IL.ui.TREINO_OPCOES`), senão mediria a duração de um exercício que
+não é o que está ali. Bateria inteira: 13 testes de unidade (1.040.826 casas
+de tablatura entre eles), 38 smokes, sem erro de página.
+
 ## Próxima etapa
 Nenhuma etapa obrigatória pendente do escopo original do PRD, com duas
 ressalvas explícitas sobre itens que o `docs/PRD.md` lista na Etapa 5:
